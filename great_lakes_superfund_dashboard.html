@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Great Lakes Superfund Atlas — EPA NPL Sites &amp; Areas of Concern</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --paper:#E9EEF0; --panel:#FFFFFF; --ink:#14262E; --steel:#5A6E78;
+  --lake:#14707E; --lake-soft:#D7E8EA; --rust:#B7431C; --amber:#C9930F;
+  --clean:#2F7D4E; --hairline:#C4CFD4; --focus:#0E4F8B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition:none!important;animation:none!important}}
+body{background:var(--paper);color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;font-size:15px;line-height:1.5}
+a{color:var(--lake)}
+button,select,input{font-family:inherit;font-size:14px;color:var(--ink)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace}
+.disp{font-family:"Arial Narrow","Helvetica Neue Condensed","Segoe UI",Arial,sans-serif;font-stretch:condensed;text-transform:uppercase;letter-spacing:.02em}
+
+header{background:var(--ink);color:#E9EEF0;border-bottom:4px solid var(--lake)}
+.head-logos{display:flex;justify-content:flex-end;align-items:center;gap:16px;
+  max-width:1280px;margin:0 auto;padding:14px 24px 0}
+.head-logo{height:52px;width:auto;max-width:min(280px,42vw);object-fit:contain;background:#fff;padding:6px 10px;border-radius:2px}
+.head-inner{max-width:1280px;margin:0 auto;padding:18px 24px 20px}
+.eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8FB6BD;display:flex;gap:14px;flex-wrap:wrap}
+.eyebrow span::before{content:"— ";color:#4A6A72}
+h1{font-weight:700;font-size:clamp(32px,4.6vw,52px);line-height:1.04;margin:10px 0 6px}
+h1 em{font-style:normal;color:#7FCAD4}
+.head-sub{max-width:820px;color:#B9C9CE;font-size:14.5px}
+.ruler{margin-top:18px;height:10px;background:
+  repeating-linear-gradient(90deg,#3A555E 0 1px,transparent 1px 12px),
+  repeating-linear-gradient(90deg,#7FCAD4 0 2px,transparent 2px 60px);
+  border-top:1px solid #3A555E}
+
+main{max-width:1280px;margin:0 auto;padding:22px 24px 60px}
+section{margin-top:26px}
+h2{font-weight:700;font-size:22px;letter-spacing:.03em;border-bottom:1px solid var(--hairline);padding-bottom:6px;margin-bottom:14px}
+h2 small{font-family:ui-monospace,Consolas,monospace;font-size:11px;letter-spacing:.08em;color:var(--steel);text-transform:none;float:right;margin-top:8px;font-weight:400}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--hairline);border-top:3px solid var(--lake);padding:12px 14px}
+.kpi .num{font-family:ui-monospace,Consolas,monospace;font-size:28px;line-height:1.1}
+.kpi .lab{font-size:11.5px;color:var(--steel);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.kpi.rust{border-top-color:var(--rust)} .kpi.amber{border-top-color:var(--amber)}
+.kpi.clean{border-top-color:var(--clean)} .kpi.steel{border-top-color:var(--steel)}
+
+.filterbar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;background:var(--panel);border:1px solid var(--hairline);padding:14px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel)}
+.field select,.field input{border:1px solid var(--hairline);background:#F7FAFA;padding:7px 9px;min-width:140px}
+.chipset{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--lake);background:#F1F7F8;color:var(--lake);padding:6px 12px;cursor:pointer;
+  font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;
+  clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+.chip[aria-pressed="true"]{background:var(--lake);color:#fff}
+.chip.rustchip[aria-pressed="true"]{background:var(--rust);border-color:var(--rust)}
+.reset{margin-left:auto;background:none;border:1px dashed var(--steel);color:var(--steel);padding:7px 12px;cursor:pointer}
+.reset:hover{color:var(--ink);border-color:var(--ink)}
+
+.map-wrap{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.map-card{background:var(--panel);border:1px solid var(--hairline);padding:10px}
+.map-stage{position:relative}
+.map-legend{position:absolute;top:10px;right:10px;z-index:1000;background:rgba(255,255,255,.96);
+  border:1px solid var(--hairline);padding:10px 12px;box-shadow:0 2px 10px rgba(20,38,46,.18);
+  font-size:12px;line-height:1.45;max-width:260px;pointer-events:none}
+.map-legend strong{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);
+  font-family:ui-monospace,Consolas,monospace;margin-bottom:6px}
+.map-legend .legend{margin-top:0;flex-direction:column;gap:5px;font-size:12px}
+.map-legend .legend span{display:block}
+.map-zoom-ctrl{position:absolute;top:10px;left:10px;z-index:1000;background:rgba(255,255,255,.96);
+  border:1px solid var(--hairline);padding:8px 10px;box-shadow:0 2px 10px rgba(20,38,46,.18);
+  font-size:12px;min-width:148px;pointer-events:auto}
+.map-zoom-ctrl strong{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);
+  font-family:ui-monospace,Consolas,monospace;margin-bottom:6px}
+.map-zoom-btns{display:grid;grid-template-columns:28px 28px 1fr 28px 28px;align-items:center;gap:4px;margin-bottom:6px}
+.map-zoom-btns button{height:28px;border:1px solid var(--hairline);background:#F7FAFA;cursor:pointer;
+  font-size:15px;line-height:1;font-weight:700;color:var(--ink);padding:0}
+.map-zoom-btns button:hover{background:var(--lake-soft);border-color:var(--lake)}
+.map-zoom-btns button.coarse{font-size:12px}
+.map-zoom-level{font-family:ui-monospace,Consolas,monospace;font-size:12px;text-align:center;color:var(--ink)}
+.map-zoom-slider{width:100%;margin:2px 0 4px;accent-color:var(--lake)}
+.map-zoom-reset{width:100%;border:1px dashed var(--steel);background:none;color:var(--steel);padding:4px 8px;
+  font-size:10.5px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;font-family:ui-monospace,Consolas,monospace}
+.map-zoom-reset:hover{color:var(--ink);border-color:var(--ink)}
+.map-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.export-pdf{background:var(--lake);color:#fff;border:none;padding:8px 14px;cursor:pointer;
+  font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+  clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+.export-pdf:hover{background:#0E5A66}
+.export-pdf:disabled{opacity:.55;cursor:wait}
+.pdf-modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.pdf-modal.open{display:flex}
+.pdf-modal-backdrop{position:absolute;inset:0;background:rgba(20,38,46,.55)}
+.pdf-modal-panel{position:relative;background:var(--panel);border:1px solid var(--hairline);max-width:640px;width:100%;
+  max-height:90vh;overflow:auto;padding:20px 22px 18px;box-shadow:0 12px 40px rgba(20,38,46,.25)}
+.pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.pdf-grid .pdf-field{margin-top:0}
+@media (max-width:520px){.pdf-grid{grid-template-columns:1fr}}
+.pdf-modal-panel h3{font-size:18px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--hairline)}
+.pdf-modal-panel fieldset{border:1px solid var(--hairline);padding:12px 14px 10px;margin-bottom:12px}
+.pdf-modal-panel legend{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--steel);padding:0 6px}
+.pdf-opt{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px;cursor:pointer}
+.pdf-opt input{accent-color:var(--lake)}
+.pdf-lakes{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:4px}
+.pdf-field{margin-top:8px}
+.pdf-field label{display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--steel);margin-bottom:4px}
+.pdf-field select,.pdf-field input{width:100%;border:1px solid var(--hairline);background:#F7FAFA;padding:7px 9px}
+.pdf-colors{margin-top:8px;padding:8px 10px;background:#F7FAFA;border:1px solid var(--hairline)}
+.pdf-color-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0;font-size:13px}
+.pdf-color-row input[type=color]{width:44px;height:28px;padding:2px;border:1px solid var(--hairline);cursor:pointer;background:#fff}
+.pdf-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--hairline)}
+.pdf-cancel{background:none;border:1px dashed var(--steel);color:var(--steel);padding:8px 14px;cursor:pointer}
+.pdf-cancel:hover{color:var(--ink);border-color:var(--ink)}
+#map{width:100%;height:560px;background:#DDE6E8}
+.lake-label-icon{background:transparent;border:none}
+.lake-label{font:700 clamp(10px,1.25vw,14px)/1.05 "Segoe UI",system-ui,sans-serif;letter-spacing:.1em;color:#FFF;
+  white-space:nowrap;pointer-events:none;transform:translate(-50%,-50%)}
+.state-label{font:700 11px/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.06em;color:#E8EDF0;
+  white-space:nowrap;pointer-events:none;transform:translate(-50%,-50%)}
+.map-note{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;color:var(--steel);margin-top:6px;line-height:1.5}
+.chem-inv{margin-top:12px}
+.chem-inv h4{font-size:12px;font-family:ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:8px}
+.chem-cat{margin-bottom:8px}
+.cat-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;padding:2px 7px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.export-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--hairline);padding:12px 14px}
+.export-btn{background:var(--ink);color:#E9EEF0;border:none;padding:8px 14px;cursor:pointer;font-weight:700;font-size:12px;
+  letter-spacing:.05em;text-transform:uppercase;clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+.export-btn:hover{background:#2A4550}
+.export-btn.alt{background:var(--lake)}
+.export-btn.alt:hover{background:#0E5A66}
+.chem-stat{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--steel);margin-left:auto}
+.detail{background:var(--panel);border:1px solid var(--hairline);padding:16px;max-height:640px;overflow:auto}
+.detail h3{font-size:20px;font-weight:700;line-height:1.15}
+.detail .meta{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--steel);margin:6px 0 10px}
+.badge{display:inline-block;font-family:ui-monospace,Consolas,monospace;font-size:11px;padding:3px 8px;border:1px solid;letter-spacing:.05em}
+.b-active{color:var(--rust);border-color:var(--rust);background:#FBEFE9}
+.b-cc{color:#8A6508;border-color:var(--amber);background:#FBF4E0}
+.b-del{color:var(--clean);border-color:var(--clean);background:#EAF4EE}
+.b-aoc{color:var(--lake);border-color:var(--lake);background:#EAF3F4}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.tag{font-size:12px;background:var(--lake-soft);color:#0E4E58;padding:2px 8px;border-radius:2px}
+.detail p{margin-top:10px;font-size:14px}
+.detail .hint{color:var(--steel);font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:var(--ink);font-weight:500}
+.dot{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:6px;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--steel)}
+.diamond{display:inline-block;width:12px;height:12px;transform:rotate(45deg);margin-right:7px;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--steel)}
+
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.chart-card{background:var(--panel);border:1px solid var(--hairline);padding:14px 16px}
+.chart-card h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+.hbar-row{display:grid;grid-template-columns:100px 1fr 28px;align-items:center;gap:8px;margin-bottom:7px}
+.hbar-row .lbl{font-size:12.5px;color:var(--steel);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar-track{background:#EDF2F3;height:16px;position:relative}
+.hbar-fill{height:100%;transition:width .35s ease}
+.hbar-row .val{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--ink)}
+.donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.donut{width:150px;height:150px;border-radius:50%;position:relative;flex:0 0 auto}
+.donut::after{content:attr(data-total);position:absolute;inset:34px;background:var(--panel);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Consolas,monospace;font-size:24px}
+.donut-legend{font-size:13px;display:flex;flex-direction:column;gap:5px}
+.donut-legend .sw{display:inline-block;width:11px;height:11px;margin-right:7px}
+.empty-note{color:var(--steel);font-size:13px;font-style:italic}
+
+table{width:100%;border-collapse:collapse;background:var(--panel);font-size:13.5px}
+th{font-family:ui-monospace,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:left;
+   background:var(--ink);color:#DCE7EA;padding:8px 10px;position:sticky;top:0;z-index:1}
+td{padding:8px 10px;border-top:1px solid #E3EAEC;vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#F0F6F7}
+tbody tr.sel{background:#E4F0F2}
+.table-scroll{max-height:430px;overflow:auto;border:1px solid var(--hairline)}
+.stat-cell{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:nowrap}
+.type-npl{color:var(--rust);font-weight:700}
+.type-aoc{color:var(--lake);font-weight:700}
+
+footer{background:var(--ink);color:#9FB3BA;margin-top:50px}
+.foot-inner{max-width:1280px;margin:0 auto;padding:26px 24px;font-size:13px}
+.foot-inner a{color:#7FCAD4}
+.foot-inner p{margin-bottom:8px;max-width:960px}
+.foot-credit{margin-top:18px;padding-top:14px;border-top:1px solid #3A555E;color:#DCE7EA;font-size:13.5px}
+.foot-credit strong{color:#7FCAD4;font-weight:600}
+
+.leaflet-popup-content{font-family:"Segoe UI",sans-serif;font-size:13px}
+
+@media(max-width:900px){.map-wrap{grid-template-columns:1fr}.detail{max-height:none}
+  .head-logo{height:40px;padding:4px 8px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-logos">
+    <img src="RENEW_logo.png" alt="University at Buffalo RENEW Institute" class="head-logo">
+  </div>
+  <div class="head-inner">
+    <div class="eyebrow"><span>EPA Region 2 · 3 · 5</span><span>CERCLA / National Priorities List &amp; Areas of Concern</span><span>Data compiled July 2026</span></div>
+    <h1 class="disp">Great Lakes <em>Superfund</em> Atlas</h1>
+    <p class="head-sub">An interactive survey of EPA National Priorities List (Superfund) sites and Great Lakes Areas of Concern,
+      filtered to the real Great Lakes watershed boundary. Satellite basemap, authoritative watershed geometry, and
+      U.S. state boundaries are layered underneath every marker.</p>
+    <div class="ruler" aria-hidden="true"></div>
+  </div>
+</header>
+
+<main>
+
+  <section aria-label="Summary statistics">
+    <div class="kpis">
+      <div class="kpi"><div class="num" id="kpi-total">0</div><div class="lab">Records shown</div></div>
+      <div class="kpi rust"><div class="num" id="kpi-npl">0</div><div class="lab">NPL sites</div></div>
+      <div class="kpi steel"><div class="num" id="kpi-aoc">0</div><div class="lab">Areas of concern</div></div>
+      <div class="kpi amber"><div class="num" id="kpi-active">0</div><div class="lab">Cleanup ongoing</div></div>
+      <div class="kpi clean"><div class="num" id="kpi-del">0</div><div class="lab">Deleted / delisted</div></div>
+      <div class="kpi"><div class="num" id="kpi-excluded">0</div><div class="lab">Outside watershed*</div></div>
+    </div>
+  </section>
+
+  <section aria-label="Filters">
+    <div class="filterbar">
+      <div class="field"><label for="f-state">State</label>
+        <select id="f-state"><option value="">All states</option></select></div>
+      <div class="field"><label for="f-status">NPL status</label>
+        <select id="f-status">
+          <option value="">All statuses</option>
+          <option>Cleanup ongoing</option>
+          <option>Construction complete</option>
+          <option>Deleted from NPL</option>
+        </select></div>
+      <div class="field"><label for="f-search">Search name / city / contaminant</label>
+        <input id="f-search" type="search" placeholder="e.g. PCBs, Muskegon, dioxane"></div>
+      <div class="field"><label id="lakes-label">Lake basin</label>
+        <div class="chipset" id="lake-chips" role="group" aria-labelledby="lakes-label"></div></div>
+      <div class="field"><label id="dataset-label">Dataset</label>
+        <div class="chipset" id="dataset-chips" role="group" aria-labelledby="dataset-label">
+          <button class="chip rustchip" id="chip-npl" aria-pressed="true">NPL Sites</button>
+          <button class="chip" id="chip-aoc" aria-pressed="true">Areas of Concern</button>
+        </div></div>
+      <div class="field"><label id="layers-label">Map layers</label>
+        <div class="chipset" id="layer-chips" role="group" aria-labelledby="layers-label">
+          <button class="chip" id="chip-states" aria-pressed="true">States &amp; labels</button>
+          <button class="chip" id="chip-watershed" aria-pressed="true">Watershed</button>
+          <button class="chip" id="chip-rivers" aria-pressed="true">Tributaries</button>
+          <button class="chip" id="chip-lake-labels" aria-pressed="true">Lake labels</button>
+        </div></div>
+      <button class="reset" id="f-reset">Reset filters</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Basin map <small>satellite basemap · click a marker or register row for the dossier</small></h2>
+    <div class="map-wrap">
+      <div class="map-card">
+        <div class="map-toolbar">
+          <button type="button" class="export-pdf" id="btn-export-pdf">Export map (PDF / PNG)</button>
+        </div>
+        <div class="map-stage">
+          <div id="map" role="application" aria-label="Satellite map of Superfund sites and Areas of Concern in the Great Lakes watershed"></div>
+          <div class="map-zoom-ctrl" id="map-zoom-ctrl" aria-label="Map zoom controls">
+            <strong>Zoom</strong>
+            <div class="map-zoom-btns">
+              <button type="button" class="coarse" id="zoom-out-coarse" title="Zoom out 1 level" aria-label="Zoom out one level">−−</button>
+              <button type="button" id="zoom-out-fine" title="Zoom out (fine, 0.25)" aria-label="Fine zoom out">−</button>
+              <span class="map-zoom-level" id="zoom-level" aria-live="polite">6.00</span>
+              <button type="button" id="zoom-in-fine" title="Zoom in (fine, 0.25)" aria-label="Fine zoom in">+</button>
+              <button type="button" class="coarse" id="zoom-in-coarse" title="Zoom in 1 level" aria-label="Zoom in one level">++</button>
+            </div>
+            <input type="range" class="map-zoom-slider" id="zoom-slider" min="4" max="14" step="0.25" value="6" aria-label="Zoom level slider">
+            <button type="button" class="map-zoom-reset" id="zoom-reset" title="Reset basin view">Reset view</button>
+          </div>
+          <div class="map-legend" aria-label="Map legend">
+            <strong>Legend</strong>
+            <div class="legend">
+              <span><span class="dot" style="background:#B7431C"></span>NPL — cleanup ongoing</span>
+              <span><span class="dot" style="background:#C9930F"></span>NPL — construction complete</span>
+              <span><span class="dot" style="background:#2F7D4E"></span>NPL — deleted</span>
+            </div>
+            <div class="legend">
+              <span><span class="diamond" style="background:#14707E"></span>Area of Concern — active</span>
+              <span><span class="diamond" style="background:#2F7D4E"></span>Area of Concern — delisted</span>
+            </div>
+            <div class="legend">
+              <span><span style="display:inline-block;width:16px;height:0;border-top:3px solid #1565D8;vertical-align:middle;margin-right:6px"></span>Major tributaries</span>
+            </div>
+          </div>
+        </div>
+        <div class="map-note">Zoom: fine controls top-left (0.25 steps, slider, scroll wheel) · Basemap: Esri World Imagery (satellite) · OpenStreetMap (street) · USA Topographic (Esri) — switchable via the layer control bottom-right ·
+          Watershed boundary: uploaded <strong>Great Lakes Watershed Boundary</strong> KMZ, simplified for display ·
+          Major tributaries: <strong>Great Lakes river network</strong> (<code>great_lakes_river_network.kmz</code>, HUC-2 region 04) ·
+          State boundaries: U.S. Census Bureau cartographic boundaries (see footer note on the uploaded state file) ·
+          Only records that fall inside the watershed polygon are plotted; the rest are counted separately above.</div>
+      </div>
+      <aside class="detail" id="detail" aria-live="polite">
+        <h3>Select a site</h3>
+        <p class="hint">Click any marker on the map — or a row in the register below — to see what was released there,
+          which lake basin receives it, and where the cleanup or restoration stands.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section>
+    <h2>Patterns in the record <small>charts recompute as you filter</small></h2>
+    <div class="charts">
+      <div class="chart-card"><h3>Records by state</h3><div id="c-state"></div></div>
+      <div class="chart-card"><h3>Records by lake basin</h3><div id="c-lake"></div></div>
+      <div class="chart-card"><h3>NPL listings by period</h3><div id="c-decade"></div></div>
+      <div class="chart-card"><h3>Contaminant categories</h3><div id="c-contam"></div></div>
+    </div>
+  </section>
+
+  <section aria-label="Chemical inventory export">
+    <h2>Chemical inventory <small>expanded categories · research export</small></h2>
+    <p style="font-size:14px;color:var(--steel);margin-bottom:12px;max-width:920px">Each NPL site and Area of Concern is linked to a broader chemical inventory beyond the most frequently reported legacy contaminants.
+      Categories include <strong>PFAS</strong>, <strong>brominated flame retardants (BFR)</strong>, <strong>pesticides</strong>, and <strong>pharmaceuticals &amp; personal care products (PPCPs)</strong>,
+      compiled from EPA NPL records, AOC beneficial-use-impairment documentation, and Great Lakes emerging-contaminant screening literature.</p>
+    <div class="export-bar">
+      <button type="button" class="export-btn" id="btn-export-csv">Download CSV</button>
+      <button type="button" class="export-btn alt" id="btn-export-xlsx">Download Excel</button>
+      <span class="chem-stat" id="chem-count">—</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Site register <small id="reg-count"></small></h2>
+    <div class="table-scroll">
+      <table id="site-table">
+        <thead><tr>
+          <th>Type</th><th>Site / AOC</th><th>City, State</th><th>Lake basin</th><th>Year / Status</th><th>Contaminants / notes</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<div id="pdf-modal" class="pdf-modal" aria-hidden="true">
+  <div class="pdf-modal-backdrop" id="pdf-modal-backdrop"></div>
+  <div class="pdf-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pdf-modal-title">
+    <h3 id="pdf-modal-title">Export map</h3>
+
+    <fieldset>
+      <legend>Basemap</legend>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="current" checked> Match current map view</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="satellite"> Satellite (Esri World Imagery)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="streets"> OpenStreetMap (street)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="topography"> USA Topographic (Esri)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="none"> None (boundaries &amp; markers only)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Dataset</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-npl" checked> NPL Superfund sites</label>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-aoc" checked> Areas of Concern</label>
+      <div class="pdf-field"><label for="pdf-state">State</label>
+        <select id="pdf-state"><option value="">All states</option></select></div>
+      <div class="pdf-field"><label for="pdf-status">NPL status</label>
+        <select id="pdf-status">
+          <option value="">All statuses</option>
+          <option>Cleanup ongoing</option>
+          <option>Construction complete</option>
+          <option>Deleted from NPL</option>
+        </select></div>
+      <div class="pdf-field"><label for="pdf-search">Search</label>
+        <input id="pdf-search" type="search" placeholder="Name, city, contaminant…"></div>
+      <div class="pdf-field"><label>Lake basins</label>
+        <div class="pdf-lakes" id="pdf-lakes"></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Watershed boundary</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-watershed" checked> Show watershed boundary</label>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-ws-color">Line color</label>
+          <input type="color" id="pdf-ws-color" value="#B7431C"></div>
+        <div class="pdf-field"><label for="pdf-ws-width">Line thickness (px)</label>
+          <input type="number" id="pdf-ws-width" min="1" max="8" step="0.5" value="2"></div>
+        <div class="pdf-field"><label for="pdf-ws-style">Line type</label>
+          <select id="pdf-ws-style">
+            <option value="solid">Solid</option>
+            <option value="dashed" selected>Dashed</option>
+            <option value="dotted">Dotted</option>
+          </select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>River network</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-rivers" checked> Show major tributaries</label>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-rv-color">Line color</label>
+          <input type="color" id="pdf-rv-color" value="#1565D8"></div>
+        <div class="pdf-field"><label for="pdf-rv-width">Line thickness (px)</label>
+          <input type="number" id="pdf-rv-width" min="0.5" max="6" step="0.5" value="2"></div>
+        <div class="pdf-field"><label for="pdf-rv-style">Line type</label>
+          <select id="pdf-rv-style">
+            <option value="solid" selected>Solid</option>
+            <option value="dashed">Dashed</option>
+            <option value="dotted">Dotted</option>
+          </select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>NPL site symbols</legend>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-npl-shape">Symbol type</label>
+          <select id="pdf-npl-shape">
+            <option value="circle" selected>Circle</option>
+            <option value="square">Square</option>
+            <option value="diamond">Diamond</option>
+            <option value="triangle">Triangle</option>
+          </select></div>
+        <div class="pdf-field"><label for="pdf-npl-size">Symbol size</label>
+          <select id="pdf-npl-size">
+            <option value="small">Small</option>
+            <option value="medium" selected>Medium</option>
+            <option value="large">Large</option>
+          </select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>AOC symbols</legend>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-aoc-shape">Symbol type</label>
+          <select id="pdf-aoc-shape">
+            <option value="diamond" selected>Diamond</option>
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+          </select></div>
+        <div class="pdf-field"><label for="pdf-aoc-size">Symbol size</label>
+          <select id="pdf-aoc-size">
+            <option value="small">Small</option>
+            <option value="medium" selected>Medium</option>
+            <option value="large">Large</option>
+          </select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Symbol colors</legend>
+      <div class="pdf-field"><label for="pdf-color-mode">Color mode</label>
+        <select id="pdf-color-mode">
+          <option value="default" selected>Default (color by status)</option>
+          <option value="custom">Custom colors</option>
+        </select></div>
+      <div id="pdf-custom-colors" class="pdf-colors" hidden>
+        <label class="pdf-color-row">NPL — cleanup ongoing <input type="color" id="pdf-col-npl-a" value="#B7431C"></label>
+        <label class="pdf-color-row">NPL — construction complete <input type="color" id="pdf-col-npl-c" value="#C9930F"></label>
+        <label class="pdf-color-row">NPL — deleted <input type="color" id="pdf-col-npl-d" value="#2F7D4E"></label>
+        <label class="pdf-color-row">AOC — active <input type="color" id="pdf-col-aoc-a" value="#14707E"></label>
+        <label class="pdf-color-row">AOC — delisted <input type="color" id="pdf-col-aoc-d" value="#2F7D4E"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Lake names</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-lake-labels" checked> Show lake names</label>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-lake-font">Font size (px)</label>
+          <input type="number" id="pdf-lake-font" min="8" max="28" step="1" value="12"></div>
+        <div class="pdf-field"><label for="pdf-lake-color">Font color</label>
+          <input type="color" id="pdf-lake-color" value="#FFFFFF"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>State abbreviations</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-states" checked> Show state boundaries &amp; abbreviations</label>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-state-font">Font size (px)</label>
+          <input type="number" id="pdf-state-font" min="8" max="24" step="1" value="11"></div>
+        <div class="pdf-field"><label for="pdf-state-color">Font color</label>
+          <input type="color" id="pdf-state-color" value="#E8EDF0"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Legend</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-legend" checked> Draw legend on figure</label>
+      <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
+        <input type="number" id="pdf-legend-font" min="9" max="20" step="1" value="13"></div>
+      <div id="legend-items-panel" class="pdf-colors" style="margin-top:8px">
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:6px">Legend content</span>
+        <label class="pdf-opt"><input type="checkbox" id="legend-npl" checked> NPL site symbols</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-aoc" checked> AOC symbols</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-watershed" checked> Watershed boundary</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-states" checked> State boundary</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-rivers" checked> Major tributaries</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Figure appearance (PDF)</legend>
+      <div class="pdf-field"><label for="pdf-fig-title">Figure title</label>
+        <input id="pdf-fig-title" type="text" value="Great Lakes Superfund Sites and Areas of Concern"></div>
+      <div class="pdf-field"><label for="pdf-data-source">Data source</label>
+        <input id="pdf-data-source" type="text" value="EPA Superfund NPL sites &amp; Great Lakes AOC program (July 2026)"></div>
+      <div class="pdf-field"><label for="pdf-fig-size">PDF figure size (on page)</label>
+        <select id="pdf-fig-size">
+          <option value="small">Small — 4 × 2.5 in</option>
+          <option value="medium" selected>Medium — 6.5 × 4 in</option>
+          <option value="large">Large — 7.5 × 4.5 in</option>
+          <option value="full">Full width — use maximum page width</option>
+        </select></div>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-register" checked> Include site register table</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Map extent</legend>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="current" checked> Current map view (matches zoom &amp; pan on screen)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="basin"> Full Great Lakes basin (fixed regional view)</label>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">PNG/PDF always render from the selected extent. Use <strong>Full basin</strong> for a consistent figure; use <strong>Current view</strong> to export a zoomed detail.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>PNG figure size</legend>
+      <div class="pdf-field"><label for="pdf-png-size">Output size</label>
+        <select id="pdf-png-size">
+          <option value="1280">Small — 1280 px wide</option>
+          <option value="1920">Medium — 1920 px wide</option>
+          <option value="2400" selected>Large — 2400 px wide</option>
+          <option value="3600">Extra large — 3600 px wide</option>
+          <option value="4800">Print — 4800 px wide</option>
+        </select></div>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">Height is calculated automatically from the selected map extent and output width.</p>
+    </fieldset>
+
+    <div class="pdf-modal-actions">
+      <button type="button" class="pdf-cancel" id="pdf-cancel">Cancel</button>
+      <button type="button" class="export-pdf" id="export-png">Export PNG</button>
+      <button type="button" class="export-pdf" id="export-pdf">Export PDF</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <p><strong style="color:#DCE7EA">About this data.</strong> NPL site list is a curated, substantially expanded set of real
+      EPA Superfund National Priorities List sites in the Great Lakes basin (51 sites), compiled from EPA Superfund program
+      records and Federal Register NPL rulemakings — not the complete SEMS extract (Michigan alone carries 66 active NPL
+      sites statewide). The Areas of Concern layer (30 locations) reflects EPA's Great Lakes AOC program roster. Site and AOC
+      coordinates are approximate centroids.</p>
+    <p><strong style="color:#DCE7EA">Watershed boundary:</strong> traced directly from the <strong>Great Lakes Watershed
+      Boundary</strong> KMZ you uploaded (NY State GIS Gateway), simplified from ~21,600 vertices to ~326 for browser
+      rendering. A handful of Gary/East Chicago, Indiana sites (Ninth Avenue Dump, MIDCO II, Lake Sandy Jo, Grand Calumet
+      River AOC) fall just outside this polygon's edge near the heavily engineered Calumet shoreline — flagged individually
+      rather than silently included or dropped.</p>
+    <p><strong style="color:#DCE7EA">State boundaries:</strong> the second uploaded file
+      (<code>cb_2013_02_anrc_500k.kmz</code>) turned out to contain Alaska Native Regional Corporation boundaries, not
+      Great Lakes state lines — an unrelated Census Bureau layer with a similar filename pattern. In its place this map
+      uses authoritative U.S. Census Bureau state cartographic boundaries (via the <code>us-atlas</code> TopoJSON
+      distribution) for Minnesota, Wisconsin, Illinois, Indiana, Michigan, Ohio, Pennsylvania, and New York. If you have the
+      correct state-boundary file, upload it and it can be swapped in directly.</p>
+    <p><strong style="color:#DCE7EA">Verify any site:</strong> search it by name in EPA's
+      <a href="https://www.epa.gov/superfund/search-superfund-sites-where-you-live" target="_blank" rel="noopener">Superfund site search</a>
+      or see the current <a href="https://www.epa.gov/great-lakes-aocs/list-great-lakes-aocs" target="_blank" rel="noopener">list of Great Lakes AOCs</a>.</p>
+    <p class="foot-credit"><strong>Creator:</strong> Zia Ahmed, PhD, Data and Visualization Scientist</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/* ================= EMBEDDED REAL GEOMETRY ================= */
+const WATERSHED_GEOJSON = {"type":"Feature","properties":{"name":"Great Lakes Watershed Boundary"},"geometry":{"type":"Polygon","coordinates":[[[-74.6662,45.0035],[-75.1154,44.85],[-75.2675,44.654],[-75.208,44.5526],[-75.3323,44.4547],[-75.3473,44.3176],[-74.7348,44.2399],[-74.7084,44.138],[-74.8235,44.0481],[-74.6126,43.9558],[-74.8216,43.8047],[-74.5174,43.7369],[-74.4993,43.6578],[-74.8698,43.5385],[-74.8189,43.5104],[-74.8862,43.4311],[-75.151,43.3395],[-75.5272,43.5323],[-75.4409,43.231],[-75.5684,42.9067],[-75.6902,42.9576],[-75.7357,42.8434],[-75.8824,42.7954],[-76.0153,42.8827],[-76.0452,42.7962],[-76.242,42.8045],[-76.2728,42.6819],[-76.1676,42.4964],[-76.3154,42.3497],[-76.4663,42.3581],[-76.5196,42.2681],[-76.6737,42.4233],[-76.7641,42.4038],[-76.7231,42.3104],[-76.8323,42.1835],[-77.0054,42.3601],[-77.0033,42.485],[-77.3092,42.3462],[-77.3242,42.4129],[-77.2004,42.4763],[-77.2095,42.6049],[-77.4266,42.5588],[-77.5373,42.6506],[-77.6082,42.4464],[-77.8966,42.3839],[-77.6688,42.0347],[-77.7385,41.8864],[-77.8638,41.8446],[-78.4187,42.4159],[-78.588,42.4163],[-78.8141,42.2633],[-79.0111,42.4457],[-79.1633,42.4355],[-79.1874,42.3291],[-79.4376,42.3471],[-79.559,42.1794],[-79.749,42.1816],[-80.0717,42.0258],[-80.0188,41.9683],[-80.3303,41.8182],[-80.3404,41.6644],[-80.5144,41.7493],[-80.7459,41.5727],[-80.8871,41.2908],[-81.1514,41.3584],[-81.2613,40.9723],[-81.6408,41.1432],[-81.769,41.1504],[-81.8204,41.0724],[-81.9897,41.1365],[-82.0203,41.0108],[-82.6991,40.9477],[-82.7632,40.8792],[-82.6678,40.8141],[-82.6936,40.7526],[-82.9762,40.7982],[-83.3213,40.5913],[-83.891,40.7241],[-84.0478,40.5076],[-84.4904,40.4001],[-84.5246,40.551],[-85.0693,40.7262],[-85.0812,40.8765],[-85.2114,40.9189],[-85.2224,41.126],[-85.1297,41.2031],[-85.3297,41.3229],[-85.9004,41.3089],[-85.9243,41.4196],[-86.0574,41.4571],[-85.9744,41.4796],[-86.2952,41.5853],[-86.3511,41.7961],[-87.0503,41.5339],[-87.0307,41.3997],[-87.1308,41.4687],[-87.2647,41.3577],[-87.4296,41.3876],[-87.4793,41.4527],[-87.3457,41.5778],[-87.604,41.6736],[-87.5483,41.7423],[-87.8534,42.2763],[-87.924,42.6997],[-87.9862,42.6366],[-88.089,42.6969],[-88.107,43.1481],[-88.2043,43.1952],[-88.354,43.5782],[-88.7584,43.7741],[-88.9583,43.6175],[-89.2931,43.5338],[-89.6459,43.5854],[-89.6097,43.6322],[-89.7115,43.6858],[-89.671,43.8923],[-89.3484,44.1937],[-89.4131,44.6855],[-89.2967,44.7781],[-89.3336,44.8673],[-89.1547,45.1222],[-88.9416,45.2437],[-89.2404,45.4093],[-88.9756,45.749],[-89.0462,46.0],[-88.9087,46.12],[-89.294,46.2143],[-89.4024,46.0977],[-89.6374,46.2078],[-89.7819,46.1816],[-89.8719,46.3032],[-89.9898,46.3117],[-90.6931,46.1655],[-90.9648,46.2151],[-91.0611,46.3056],[-91.2912,46.2344],[-91.2923,46.3525],[-91.4607,46.4656],[-91.7142,46.3817],[-91.9294,46.4466],[-92.0277,46.3598],[-92.3318,46.3186],[-92.64,46.4197],[-92.6421,46.5593],[-92.551,46.6146],[-92.589,46.6849],[-92.7453,46.6473],[-92.88,46.8049],[-93.1716,46.8414],[-93.1232,47.0371],[-93.2053,47.1539],[-92.9886,47.4588],[-92.5912,47.5735],[-92.4959,47.4788],[-92.3071,47.5564],[-92.2742,47.722],[-92.0948,47.8034],[-92.0911,47.7349],[-91.9294,47.7084],[-91.8924,47.5949],[-91.6708,47.5478],[-91.7211,47.4478],[-91.5475,47.4478],[-90.9556,47.7702],[-90.9238,47.9372],[-90.0157,48.3085],[-90.0157,48.3671],[-90.3712,48.3983],[-90.3165,48.4843],[-90.4376,48.4764],[-90.5157,48.6405],[-90.754,48.6835],[-90.1524,48.8163],[-89.9688,48.7225],[-89.8438,48.8592],[-90.2813,49.1561],[-90.1524,49.1796],[-90.1798,49.3124],[-90.1056,49.3866],[-90.211,49.453],[-90.2345,49.6366],[-90.0899,49.6795],[-89.9962,49.9647],[-89.6484,50.1602],[-89.4063,50.1367],[-89.4258,50.1992],[-89.3047,50.2148],[-89.2812,50.3945],[-89.2109,50.3047],[-89.0625,50.3047],[-89.0,50.457],[-88.8555,50.543],[-88.8945,50.5937],[-88.668,50.6797],[-88.7109,50.7344],[-88.4805,50.6602],[-88.3828,50.7383],[-88.3437,50.6992],[-88.5039,50.582],[-88.3398,50.5391],[-88.1875,50.6367],[-88.1641,50.4336],[-87.6328,50.3398],[-87.4922,50.2578],[-87.5117,50.1992],[-87.3555,50.2227],[-87.3359,50.1602],[-87.457,50.125],[-87.2422,50.0547],[-87.4493,49.8475],[-87.0079,49.8046],[-87.3946,49.3983],[-87.3712,49.0975],[-87.2501,49.1092],[-87.1524,49.2616],[-87.0157,49.0663],[-86.9766,49.3202],[-86.5626,49.5585],[-86.3438,49.7811],[-86.2735,49.7694],[-86.3126,49.6718],[-86.1055,49.6249],[-86.0391,49.496],[-85.8946,49.6015],[-85.8204,49.5312],[-85.6251,49.6366],[-85.4493,49.5351],[-85.5626,49.3632],[-85.4884,49.1171],[-85.2969,49.1406],[-85.3399,49.0312],[-85.211,49.0624],[-84.836,48.9453],[-84.8594,48.7148],[-84.7969,48.6367],[-84.8751,48.5234],[-84.6915,48.5586],[-84.5547,48.7421],[-84.3243,48.8164],[-84.3946,48.5586],[-84.1797,48.6133],[-84.1289,48.5],[-83.9024,48.5156],[-83.961,48.4531],[-83.8906,48.375],[-84.086,48.1875],[-83.7227,48.2734],[-83.7695,48.1953],[-83.6992,48.1484],[-83.8086,48.043],[-83.6563,47.9453],[-83.4922,48.0],[-83.4531,47.9414],[-83.6797,47.7734],[-83.6641,47.6797],[-83.4648,47.7656],[-83.4062,47.6406],[-82.9765,47.5391],[-82.9101,47.5859],[-82.9609,47.4297],[-82.7773,47.3477],[-82.7265,47.4297],[-82.4687,47.4961],[-82.246,47.3867],[-82.0703,47.5274],[-81.871,47.4219],[-81.6953,47.4375],[-81.4843,47.1758],[-81.3398,47.4648],[-80.9023,47.375],[-80.8398,47.4727],[-80.8241,47.3633],[-80.621,47.1992],[-80.4569,47.2813],[-80.2929,47.1523],[-79.8671,47.3555],[-79.9686,47.1328],[-79.9374,47.0664],[-79.7811,47.0664],[-79.8514,46.9609],[-79.8124,46.8945],[-79.4686,46.9024],[-79.6327,46.7578],[-79.6014,46.6914],[-79.5155,46.7149],[-79.5585,46.6172],[-79.4061,46.4414],[-79.4725,46.3281],[-79.2108,46.2617],[-79.3006,46.1914],[-79.0584,46.1016],[-79.2342,45.9766],[-79.2733,45.8399],[-79.0936,45.8321],[-78.9334,45.6406],[-78.6209,45.6758],[-78.5818,45.5899],[-78.6834,45.5391],[-78.531,45.3516],[-78.2615,45.2032],[-78.2771,45.1211],[-77.9099,45.043],[-77.8982,44.9414],[-77.6404,44.9102],[-77.6208,44.9961],[-77.2263,44.918],[-77.199,44.8321],[-77.0349,44.7657],[-76.824,44.8243],[-76.8513,44.6602],[-76.6716,44.5899],[-75.9333,44.7188],[-75.9216,44.6407],[-75.6598,44.6602],[-75.2419,44.9649],[-75.1756,44.9026],[-74.5747,45.0551],[-74.1631,45.3004],[-73.9397,45.3308],[-74.0107,45.4179],[-73.6064,45.4165],[-73.4444,45.6875],[-73.5077,45.4117],[-73.7581,45.4003],[-73.9969,45.2286],[-74.1647,45.2279],[-74.6662,45.0035]]]}};
+const STATES_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Indiana"},"geometry":{"type":"Polygon","coordinates":[[[-87.52343224222241,41.70812919688196],[-87.40139624646245,41.67720304802047],[-87.4229320104201,41.642840660396594],[-87.22193154681547,41.62394134720346],[-86.82351991359913,41.760531838008376],[-84.80633668956689,41.760531838008376],[-84.82069386553866,39.105178334373335],[-84.8960690393904,39.04933945448454],[-84.83146174751747,38.961715366043656],[-84.86017609946099,38.897285889248884],[-84.78480092560925,38.869795979149785],[-84.83146174751747,38.83027923338233],[-84.80992598355984,38.792480606996065],[-84.97862280122801,38.77959471163711],[-85.15449820688207,38.69197062319623],[-85.25858773267733,38.73750078679786],[-85.45240960829608,38.70915181700816],[-85.41651666836668,38.54077611765117],[-85.60674924999249,38.439407074160734],[-85.67494583585835,38.30109846397463],[-85.82928547755478,38.27704479263792],[-85.90824994539945,38.16107173440734],[-85.92260712137121,38.026199362983625],[-86.0482324111241,37.95919270711706],[-86.26717934469345,38.057125511845115],[-86.27076863868638,38.13787712276122],[-86.37485816448164,38.19371600265002],[-86.32819734257342,38.13272276461764],[-86.46459051430514,38.10093755606555],[-86.45382263232632,38.050253034320335],[-86.51842992419924,38.042521497104964],[-86.50766204222042,37.92912561794617],[-86.59021580405803,37.9213940807308],[-86.63687662596625,37.842360589195884],[-86.64405521395214,37.906790065990656],[-86.75173403374033,37.91280348382483],[-86.79480556165561,37.98925979628795],[-87.010163201232,37.919675961349604],[-87.08912766907669,37.787380768997686],[-87.37986048250482,37.93599809547095],[-87.50189647826478,37.90936724506244],[-87.6023967100671,37.972937662166615],[-87.62752176801767,37.91623972258722],[-87.58803953409534,37.861259902389016],[-87.63470035600356,37.82689751476514],[-87.67418258992589,37.82947469383693],[-87.68136117791178,37.903353827228266],[-87.83211152561525,37.876722976819764],[-87.90389740547405,37.92483031949319],[-87.93979034540345,37.89046793186931],[-87.90389740547405,37.81229350002499],[-87.94696893338933,37.77191769456694],[-88.08336210512105,37.830333753527526],[-88.04029057720577,37.822602216312156],[-88.09771928109281,37.90163570784707],[-88.01157622526225,37.8947632303223],[-88.06541563515634,37.919675961349604],[-88.01157622526225,37.9772329606196],[-88.03670128321284,38.05111209401093],[-87.96850469734697,38.06743422813228],[-87.9613261093611,38.100078496374955],[-88.00439763727637,38.08375636225362],[-87.92543316943168,38.14646771966719],[-87.99004046130462,38.24869582284822],[-87.92543316943168,38.29852128490284],[-87.85364728957289,38.27532667325673],[-87.73878988179881,38.47548758116581],[-87.65264682596826,38.511568088170876],[-87.6203431800318,38.63956798206981],[-87.4947178902789,38.742655144941445],[-87.55214659416593,38.85948726286262],[-87.5126643602436,38.954842888518876],[-87.57727165211652,38.989205276142755],[-87.64187894398944,39.16703063209631],[-87.57368235812358,39.21857421353213],[-87.59880741607415,39.313070779497785],[-87.5306108302083,39.34829222681226],[-87.52343224222241,41.70812919688196]]]}},{"type":"Feature","properties":{"name":"Minnesota"},"geometry":{"type":"Polygon","coordinates":[[[-97.22888319913199,49.00068691035909],[-95.1542712712127,48.998968790977905],[-95.1542712712127,49.384686592055914],[-94.95686010160101,49.37008257731576],[-94.82405622386223,49.29448532454324],[-94.68407375813757,48.883854792437916],[-94.69125234612346,48.7781904504945],[-94.6410022302223,48.74125088379883],[-94.2641263609636,48.699156958959584],[-94.22464412704127,48.64933149690496],[-93.83341108181081,48.62527782556825],[-93.79392884788848,48.51617724486244],[-93.463713800538,48.54624433403333],[-93.46730309453095,48.587479199181985],[-93.34885639276392,48.62699594494944],[-92.98633769947699,48.62355970618705],[-92.63458688816888,48.54280809527094],[-92.63099759417594,48.5007141704317],[-92.71355135601355,48.46291554404543],[-92.50896159841598,48.44745246961469],[-92.36897913269132,48.22066071129711],[-92.27924678286783,48.24385532294322],[-92.30796113481135,48.31601633695336],[-92.26130031290313,48.35467402303022],[-92.05671055530554,48.35896932148321],[-91.9454424415244,48.23011036789367],[-91.71572762597626,48.19918421903218],[-91.71213833198331,48.11499636935368],[-91.5577986902869,48.10812389182891],[-91.56856657226572,48.043694415034146],[-91.24911940689407,48.084070220492194],[-90.88660071360714,48.245573442324414],[-90.83635059770597,48.23440566634665],[-90.76097542385423,48.098674235232345],[-90.13284897508974,48.1115601305913],[-89.87441980759807,47.98527835607355],[-89.4903653503535,48.014486385553845],[-89.97492003940039,47.83064761176611],[-90.73585036590366,47.624473286022855],[-91.12708341113411,47.39939964708646],[-91.47883422244222,47.12535960578605],[-92.09260349523495,46.788608207072066],[-92.01363902739027,46.70613847677476],[-92.08901420124201,46.74909146130461],[-92.20746090300902,46.70270223801237],[-92.17515725707257,46.68638010389103],[-92.21463949099491,46.64944053719537],[-92.29360395883958,46.663185492244914],[-92.29360395883958,46.07472960418603],[-92.35103266272662,46.015454485534846],[-92.43717571855719,46.02146790336903],[-92.71355135601355,45.891749890088896],[-92.78533723587235,45.76460905588055],[-92.86430170371703,45.722515131041305],[-92.88583746767468,45.57905216271162],[-92.72431923799238,45.54125353632536],[-92.64535477014769,45.441602612216116],[-92.76021217792177,45.291267166361656],[-92.74585500195002,45.107428392573915],[-92.80328370583706,45.057602930519295],[-92.74944429594295,44.937334573835734],[-92.7889265298653,44.737173665926655],[-92.54126524435245,44.56707984718847],[-92.31872901679016,44.544744295232945],[-92.23258596095961,44.445093371123704],[-91.97415679346793,44.367777998969984],[-91.87724585565856,44.202838538375374],[-91.57933445424455,44.02673130180301],[-91.43935198851987,44.0018185707757],[-91.24553011290112,43.77330869307692],[-91.27424446484464,43.67623494803947],[-91.2168157609576,43.50012771146711],[-96.45359569665696,43.50012771146711],[-96.45359569665696,45.30157588264882],[-96.48948863658636,45.357414762537616],[-96.68331051220511,45.411535523045224],[-96.85918591785918,45.60568301312012],[-96.57922098640987,45.82560229391293],[-96.55768522245222,46.058407470064694],[-96.6007567503675,46.330729391983915],[-96.71920345213452,46.43811185330853],[-96.79098933199332,46.63140028369283],[-96.7622749800498,46.93464835447354],[-96.82329297792977,46.96901074209741],[-96.85559662386623,47.6107283309733],[-97.1319722613226,48.139909100381],[-97.16427590725907,48.54710339372393],[-97.0960793213932,48.68627106360063],[-97.22888319913199,49.00068691035909]]]}},{"type":"Feature","properties":{"name":"Pennsylvania"},"geometry":{"type":"Polygon","coordinates":[[[-80.52071966199662,41.97787393972939],[-80.1869153206532,42.09384699795997],[-80.11871873478735,42.16600801197011],[-80.06129003090031,42.14453151970519],[-79.7633786294863,42.269954234532335],[-79.75978933549335,41.99849137230372],[-75.359314900149,41.999350431994316],[-75.26240396233962,41.86619617995179],[-75.07576067470674,41.79833046439464],[-75.07576067470674,41.60590109370093],[-74.9824390308903,41.479619319183186],[-74.73836703937039,41.43065291681916],[-74.69529551145511,41.357632843118424],[-74.83168868318683,41.28718994848948],[-74.96808185491855,41.087888100270995],[-75.13677867258673,40.97363316142161],[-75.05063561675617,40.87054599854998],[-75.17267161251613,40.77776755196551],[-75.20497525845258,40.69186158290582],[-75.19420737647376,40.57588852467524],[-75.06499279272792,40.536371778907785],[-75.05781420474204,40.41610342222422],[-74.96808185491855,40.39978128810287],[-74.72042056940569,40.15409021659216],[-75.04704632276322,40.008909128881285],[-75.21933243442435,39.86115086209861],[-75.41674360403604,39.801875743447425],[-75.66440488954889,39.821634116331154],[-75.7900301793018,39.72198319222191],[-80.52071966199662,39.721124132531315],[-80.52071966199662,41.97787393972939]]]}},{"type":"Feature","properties":{"name":"Illinois"},"geometry":{"type":"Polygon","coordinates":[[[-91.51472716237161,40.178143887928876],[-91.37474469664696,40.3920497508875],[-91.36756610866108,40.51231810757107],[-91.40704834258342,40.54238519674196],[-91.3603875206752,40.60166031539315],[-91.11990482314823,40.67296226971269],[-91.09119047120471,40.825015834948346],[-90.96556518145181,40.9212305202952],[-90.94761871148711,41.09647869717696],[-91.11272623516234,41.23908260581605],[-91.04452964929649,41.41604890207901],[-90.46306402244022,41.523431363403624],[-90.34102802668026,41.59043801927019],[-90.31231367473674,41.742491584505835],[-90.17950979699796,41.8094982403724],[-90.16156332703326,42.11704160960609],[-90.37692096660966,42.21497441433414],[-90.41999249452495,42.33008841287412],[-90.64252872208722,42.46839702306023],[-90.64252872208722,42.508772828518275],[-87.7998078796788,42.49159163470634],[-87.83570081960819,42.30173944308442],[-87.68136117791178,42.07580674445744],[-87.52343224222241,41.70812919688196],[-87.5306108302083,39.34829222681226],[-87.59880741607415,39.313070779497785],[-87.57368235812358,39.21857421353213],[-87.64187894398944,39.16703063209631],[-87.57727165211652,38.989205276142755],[-87.5126643602436,38.954842888518876],[-87.55214659416593,38.85948726286262],[-87.4947178902789,38.742655144941445],[-87.6203431800318,38.63956798206981],[-87.65264682596826,38.511568088170876],[-87.73878988179881,38.47548758116581],[-87.85364728957289,38.27532667325673],[-87.92543316943168,38.29852128490284],[-87.99004046130462,38.24869582284822],[-87.92543316943168,38.14646771966719],[-88.00439763727637,38.08375636225362],[-87.9613261093611,38.100078496374955],[-87.96850469734697,38.06743422813228],[-88.03670128321284,38.05111209401093],[-88.01157622526225,37.9772329606196],[-88.06541563515634,37.919675961349604],[-88.01157622526225,37.8947632303223],[-88.09771928109281,37.90163570784707],[-88.04029057720577,37.822602216312156],[-88.08336210512105,37.830333753527526],[-88.06900492914929,37.80112572404723],[-88.02952269522694,37.79940760466604],[-88.15873727897278,37.664535233242326],[-88.06182634116341,37.51591790676906],[-88.08336210512105,37.472964922239214],[-88.47818444434444,37.387058953179526],[-88.51766667826678,37.283971790307895],[-88.42434503445034,37.14995847857478],[-88.46023797437974,37.07350216611165],[-88.98427489734897,37.228991970109696],[-89.16732889098891,37.07436122580225],[-89.18168606696067,37.02711294281942],[-89.1314359510595,36.982441838908386],[-89.17091818498184,36.97041500324003],[-89.26065053480535,37.064052509515086],[-89.3109006507065,37.05374379322792],[-89.2570612408124,37.01508610715106],[-89.2929541807418,36.99189149550495],[-89.37909723657236,37.03999883817838],[-89.45806170441703,37.24015974608746],[-89.51907970229702,37.28568990968909],[-89.42216876448764,37.39736766946669],[-89.51549040830407,37.53567627965279],[-89.52266899628997,37.57862926418264],[-89.47600817438175,37.58550174170741],[-89.51549040830407,37.69288420303202],[-89.66624075600755,37.75215932168321],[-89.65906216802168,37.78652170930709],[-89.84570545565455,37.90593100630006],[-89.95338427544274,37.88359545434454],[-89.94261639346394,37.97036048309482],[-90.08977744717447,38.01589064669646],[-90.35538520265202,38.21347437553375],[-90.36974237862378,38.34061520974209],[-90.18309909099091,38.61121901228012],[-90.21181344293443,38.72203771236712],[-90.11490250512504,38.84917854657546],[-90.40563531855318,38.96257442573425],[-90.58510001820018,38.86893691945919],[-90.66406448604485,38.928212038110374],[-90.71431460194601,39.05707099169991],[-90.68201095600956,39.0879971405614],[-90.72149318993189,39.23231916858168],[-91.37115540265403,39.732291908509076],[-91.51472716237161,40.178143887928876]]]}},{"type":"Feature","properties":{"name":"Michigan"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-84.65199704787048,45.8625418606086],[-84.62328269592696,45.877145875348745],[-84.5909790499905,45.82560229391293],[-84.3576749404494,45.77148153340533],[-84.41869293832939,45.72165607135071],[-84.501246700167,45.73711914578145],[-84.65199704787048,45.8625418606086]]],[[[-85.39498090440904,45.7783540109301],[-85.37703443444434,45.81271639855398],[-85.35190937649377,45.79553520474204],[-85.39498090440904,45.7783540109301]]],[[[-85.52419548815487,45.82989759236592],[-85.44882031430313,45.796394264432635],[-85.4631774902749,45.765468115571146],[-85.53137407614076,45.79811238381383],[-85.52419548815487,45.82989759236592]]],[[[-85.62828501395013,45.59795147590475],[-85.56726701607016,45.76031375742757],[-85.50265972419724,45.754300339593385],[-85.49189184221842,45.60997831157311],[-85.56008842808427,45.572179685186846],[-85.62828501395013,45.59795147590475]]],[[[-85.696481599816,45.69760240001399],[-85.65341007190072,45.74313256361563],[-85.67135654186542,45.696743340323394],[-85.696481599816,45.69760240001399]]],[[[-85.88312488744887,45.44332073159731],[-85.83646406554065,45.42871671685716],[-85.83287477154771,45.37803219511194],[-85.88312488744887,45.44332073159731]]],[[[-86.0661788810888,45.1400726608166],[-85.97644653126531,45.138354541435405],[-85.99798229522295,45.05588481113811],[-86.05900029310293,45.10055591504914],[-86.0661788810888,45.1400726608166]]],[[[-86.15591123091231,45.01035464753647],[-86.11642899698997,45.04815327392273],[-86.09489323303232,45.007777468464674],[-86.15591123091231,45.01035464753647]]],[[[-86.69071603586036,45.61685078909788],[-86.61893015600155,45.56187096889968],[-86.64764450794507,45.54297165570655],[-86.69071603586036,45.61685078909788]]],[[[-86.82351991359913,41.760531838008376],[-86.61893015600155,41.89368609005089],[-86.26000075670757,42.44348429203291],[-86.20616134681346,42.71924245271452],[-86.23128640476405,43.015618045970456],[-86.53996568815688,43.61781888907888],[-86.43587616236162,43.789630827198266],[-86.5148406302063,44.048207794067935],[-86.26717934469345,44.34544244701446],[-86.22051852278523,44.56707984718847],[-86.25641146271462,44.691643502325014],[-86.08771464504645,44.741468964379635],[-86.0733574690747,44.88493193270932],[-85.93337500335004,44.969119782387814],[-85.80774971359713,44.95022046919468],[-85.61751713197131,45.18646188410884],[-85.54214195811957,45.21051555544555],[-85.53137407614076,45.177012227512265],[-85.59957066200661,45.149522317413165],[-85.56726701607016,45.04385797546975],[-85.64982077790778,44.9742741405314],[-85.60315995599956,44.99059627465274],[-85.65341007190072,44.84885142570425],[-85.59957066200661,44.76552263571635],[-85.52060619416194,44.9742741405314],[-85.47394537225372,44.991455334343335],[-85.57803489804898,44.760368277572766],[-85.52778478214782,44.748341441904415],[-85.39498090440904,44.93132115600155],[-85.36985584645846,45.27064973378733],[-85.20833761677616,45.35655570284702],[-84.91760480334803,45.39349526954269],[-85.08989091500915,45.476824059530585],[-85.11860526695267,45.57475686425863],[-84.94272986129862,45.71048829537295],[-85.01451574115741,45.76031375742757],[-84.79915810158101,45.74742786206861],[-84.77403304363044,45.78952178690786],[-84.46176446624466,45.65207223641236],[-84.2141031807318,45.634891042600415],[-84.11719224292243,45.51290456653566],[-83.90901319133191,45.485414656436554],[-83.60033390793907,45.35226040439404],[-83.49624438214381,45.357414762537616],[-83.38138697436975,45.268931614406135],[-83.4136906203062,45.24573700276002],[-83.2701188605886,45.02324054289542],[-83.39933344433445,45.07048882587825],[-83.45317285422854,45.03526737856378],[-83.43881567825677,44.94077081259812],[-83.32036897648976,44.880636634256334],[-83.27370815458154,44.713979054280536],[-83.33113685846858,44.34028808887088],[-83.5393159100591,44.248368701977014],[-83.58238743797438,44.0567983909739],[-83.87670954539546,43.95886558624586],[-83.95567401324013,43.750973141121406],[-83.90901319133191,43.67279870927709],[-83.81928084150842,43.67365776896768],[-83.68288766977669,43.590328978979784],[-83.47111932419324,43.728637589165885],[-83.49624438214381,43.77244963338633],[-83.4316370902709,43.88498645285452],[-83.41727991429914,43.84203346832468],[-83.33113685846858,43.89357704976049],[-83.40651203232032,43.920207900169],[-82.91477875528754,44.070543346023456],[-82.73890334963349,43.989791735107346],[-82.64199241182412,43.85234218461184],[-82.52354571005709,43.225228610476094],[-82.4158668902689,42.966651643606426],[-82.52354571005709,42.607564692936926],[-82.6850639397394,42.51822248511485],[-82.71377829168291,42.59811503634035],[-82.62404594185942,42.66512169220692],[-82.79633205352053,42.653953916229156],[-82.78197487754878,42.56461170840708],[-82.87529652136521,42.523376843258426],[-82.89683228532284,42.385068233072325],[-83.06552910299102,42.31806157720577],[-83.13013639486394,42.234732787217865],[-83.13372568885688,42.087833580125796],[-83.44240497224972,41.8086391806818],[-83.45317285422854,41.73304192790927],[-84.80633668956689,41.696102361213605],[-84.80633668956689,41.760531838008376],[-86.82351991359913,41.760531838008376]]],[[[-89.25347194681946,47.87617777536774],[-88.65764914399143,48.1390500406904],[-88.42434503445034,48.190593622126215],[-88.66841702597026,48.01105014679146],[-89.00222136731367,47.90882204361043],[-88.91248901749017,47.89164084979849],[-89.12425736307362,47.828929492384916],[-89.25347194681946,47.87617777536774]]],[[[-90.416403200532,46.566111747207465],[-90.02875944929448,46.674353268222674],[-89.79186604576046,46.81867529624296],[-89.4365259404594,46.83929272881728],[-89.14220383303832,46.98447381652816],[-88.95914983939839,47.00852748786487],[-88.81557807968079,47.14168173990739],[-88.18027304293042,47.45781570604705],[-87.7998078796788,47.4732787804778],[-87.71366482384823,47.40111776646766],[-87.95773681536815,47.3873728114181],[-87.93979034540345,47.34699700596005],[-88.23052315883159,47.19923873917738],[-88.24846962879629,47.135668322073215],[-88.44229150441504,46.9724469808598],[-88.49613091430913,46.75682299851998],[-88.37409491854918,46.87193699705996],[-88.14438010300103,46.966433563025625],[-88.28436256872568,46.832420251292504],[-88.08336210512105,46.92004433973339],[-87.8177543496435,46.89083631025309],[-87.59521812208122,46.78259478923788],[-87.50189647826478,46.64772241781417],[-87.38344977649776,46.59274259761597],[-87.3511461305613,46.500823210722096],[-87.0173417892179,46.53346747896478],[-86.81634132561325,46.43811185330853],[-86.78762697366973,46.477628599075985],[-86.69789462384624,46.438970912999125],[-86.70866250582506,46.543776195251944],[-86.65123380193802,46.56095738906388],[-86.64764450794507,46.485360136291355],[-86.5866265100651,46.463024584335834],[-86.13796476094761,46.67263514884148],[-85.4811239602396,46.68036668605685],[-85.25858773267733,46.75338675975759],[-84.9499084492845,46.76970889387893],[-85.02887291712916,46.69754787986879],[-85.05758726907268,46.52659500144001],[-85.02528362313623,46.48278295721956],[-84.79915810158101,46.4458433905239],[-84.63046128391284,46.48450107660076],[-84.59456834398344,46.41491724166241],[-84.3756214104141,46.50941380762807],[-84.12796012490125,46.5300312402024],[-84.11719224292243,46.23365564694646],[-84.22128176871769,46.231937527565265],[-84.24999612066121,46.17609864767647],[-84.1243708309083,46.180393946129456],[-84.02745989309892,46.13142754376543],[-84.07412071500714,46.097065156141554],[-83.9879776591766,46.03263567934679],[-83.87312025140251,45.993118933579325],[-83.7654414316143,46.01803166460664],[-83.82287013550135,46.10393763366633],[-83.62545896588965,46.10221951428514],[-83.47470861818618,45.98452833667336],[-83.56085167401673,45.91236732266322],[-84.11360294892948,45.97851491883918],[-84.3756214104141,45.93212569554695],[-84.65558634186341,46.05239405223052],[-84.73814010370103,45.9458706505965],[-84.70224716377163,45.853092204012036],[-84.74531869168692,45.83591101020009],[-85.01451574115741,46.011159187081866],[-85.51342760617605,46.09448797706976],[-85.696481599816,45.96047466533665],[-85.8938927694277,45.96734714286142],[-85.91542853338532,45.919239800187995],[-86.0733574690747,45.965629023480226],[-86.27794722667227,45.942434411834114],[-86.36409028250281,45.79038084659846],[-86.5866265100651,45.70533393722936],[-86.61534086200862,45.60654207281072],[-86.71943038780387,45.6683943705337],[-86.62969803798038,45.78179024969249],[-86.58303721607216,45.7783540109301],[-86.53996568815688,45.8900317707077],[-86.64764450794507,45.8341928908189],[-86.7840376796768,45.854810323393224],[-86.8378770895709,45.722515131041305],[-86.96350237932378,45.672689668986685],[-87.0173417892179,45.838488189271885],[-87.06041331713317,45.70877017599175],[-87.1716814309143,45.661521893008924],[-87.32602107261073,45.42528047809478],[-87.61316459204592,45.12375052669526],[-87.59162882808828,45.095401556905564],[-87.74237917579175,45.19677060039599],[-87.65623611996119,45.368582538515376],[-87.85005799557995,45.34109262841628],[-87.87518305353053,45.38146843387433],[-87.79262929169292,45.49830055179551],[-87.77468282172822,45.59795147590475],[-87.82493293762937,45.66238095269952],[-87.7818614097141,45.67354872867728],[-87.87877234752347,45.75515939928398],[-88.13720151501515,45.81872981638816],[-88.07618351713516,45.8634009202992],[-88.10130857508575,45.92181697925979],[-88.50689879628796,46.01803166460664],[-88.66482773197731,45.988823635126344],[-89.09195371713717,46.138300021290206],[-90.12208109311092,46.33674280981809],[-90.2189920309203,46.50340038979389],[-90.416403200532,46.566111747207465]]]]}},{"type":"Feature","properties":{"name":"New York"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-72.00332501675017,41.252827560865605],[-72.02486078070781,41.27086781436814],[-71.92794984289843,41.28976712756127],[-72.00332501675017,41.252827560865605]]],[[[-72.14330748247482,41.09819681655816],[-72.08587877858778,41.10163305532055],[-72.08587877858778,41.0586800707907],[-72.10741454254543,41.08874715996159],[-72.14330748247482,41.09819681655816]]],[[[-72.21509336233362,41.183243725927255],[-72.15766465844658,41.1969886809768],[-72.20073618636187,41.160049114281136],[-72.21509336233362,41.183243725927255]]],[[[-74.07075835668357,40.66093543404433],[-74.08511553265532,40.56987510684106],[-74.26099093830938,40.502009391283906],[-74.20356223442234,40.63086834487344],[-74.07075835668357,40.66093543404433]]],[[[-76.375085100151,43.87467773656736],[-76.31765639626396,43.917630721097204],[-76.33560286622865,43.878973035020344],[-76.375085100151,43.87467773656736]]],[[[-76.45404956799568,43.8909998706887],[-76.4109780400804,43.925362258312575],[-76.37867439414394,43.921066959859594],[-76.45404956799568,43.8909998706887]]],[[[-79.7633786294863,42.269954234532335],[-79.14960935669356,42.55344393242932],[-79.04910912489125,42.689175363543626],[-78.85169795527955,42.78367192950929],[-78.93066242312423,42.95548386762867],[-79.01321618496185,42.985550956799564],[-79.0096268909689,43.06458444833448],[-79.07423418284182,43.07747034369343],[-79.04193053690537,43.143617939869394],[-79.07064488884889,43.262168177171766],[-78.48917926199262,43.374704996639956],[-77.79644552135521,43.339483549325486],[-77.5344270598706,43.23467826707267],[-76.79503249732497,43.309416460154594],[-76.41815662806628,43.52160420373203],[-76.29612063230633,43.513013606826064],[-76.20279898848989,43.574865904549036],[-76.22792404644046,43.80423484193841],[-76.29970992629926,43.83859722956229],[-76.12742381463815,43.897872348213475],[-76.20638828248282,43.975187720367195],[-76.2853527503275,43.96230182500824],[-76.3212456902569,44.031026600256],[-76.375085100151,44.03188565994659],[-76.31406710227103,44.19940229961299],[-75.91206617506175,44.367777998969984],[-75.30906478424784,44.836824590035896],[-74.8280993891939,45.01550900568005],[-73.34213167611676,45.011213707227064],[-73.37802461604616,44.83768364972649],[-73.33136379413794,44.78871724736246],[-73.38879249802498,44.63580462243622],[-73.2918815602156,44.44079807267072],[-73.33495308813087,44.372073297422965],[-73.3098280301803,44.27414049269492],[-73.39238179201791,44.18909358332583],[-73.43904261392613,44.044771555305545],[-73.34931026410264,43.77159057369573],[-73.43186402594026,43.590328978979784],[-73.39597108601086,43.56799342702426],[-73.37084602806028,43.624691366603656],[-73.30264944219442,43.624691366603656],[-73.24881003230033,43.55424847197471],[-73.26316720827208,42.74587330312303],[-73.507239199792,42.0861154607446],[-73.55031072770727,41.295780545395445],[-73.48211414184142,41.21245175540755],[-73.72618613336134,41.10077399562995],[-73.65798954749548,40.98480093739937],[-73.75848977929779,40.91263992338923],[-73.76566836728367,40.844774207832074],[-73.81232918919189,40.84649232721326],[-73.78002554325543,40.794948745777454],[-73.71541825138252,40.86968693885938],[-73.48570343583435,40.9461432513225],[-73.23086356233563,40.90490838617386],[-73.14113121251212,40.96590162420623],[-72.63504075950759,40.98222375832758],[-72.27970065420654,41.15833099489994],[-72.23662912629126,41.156612875518746],[-72.33354006410065,41.106787413464126],[-72.10382524855248,40.99167341492414],[-71.96025348883488,41.071565966149656],[-71.85616396303963,41.07070690645906],[-73.05498815668156,40.66608979218792],[-73.94154377293773,40.54324425643256],[-73.93077589095891,40.57588852467524],[-74.01332965279653,40.57417040529405],[-74.04563329873298,40.69014346352463],[-73.90565083300832,40.99768683275832],[-74.69529551145511,41.357632843118424],[-74.73836703937039,41.43065291681916],[-74.9824390308903,41.479619319183186],[-75.07576067470674,41.60590109370093],[-75.07576067470674,41.79833046439464],[-75.26240396233962,41.86619617995179],[-75.359314900149,41.999350431994316],[-79.75978933549335,41.99849137230372],[-79.7633786294863,42.269954234532335]]]]}},{"type":"Feature","properties":{"name":"Ohio"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-82.73531405564056,41.60332391462914],[-82.67788535175352,41.61792792936929],[-82.6850639397394,41.5870017805078],[-82.73531405564056,41.60332391462914]]],[[[-82.84299287542875,41.64713595884958],[-82.8214571114711,41.7244513310033],[-82.78197487754878,41.69438424183241],[-82.84299287542875,41.64713595884958]]],[[[-84.80633668956689,41.696102361213605],[-83.45317285422854,41.73304192790927],[-82.93272522525226,41.51398170680706],[-82.83581428744287,41.587860840198395],[-82.48047418214182,41.38168651445514],[-82.01027666906668,41.51569982618825],[-81.73749032560325,41.488209916089154],[-81.28523928249282,41.760531838008376],[-80.52071966199662,41.97787393972939],[-80.52071966199662,40.63859988208881],[-80.66788071570716,40.57331134560345],[-80.59609483584836,40.463351705207046],[-80.5996841298413,40.32074779656796],[-80.73966659556595,40.07591578474784],[-80.75761306553065,39.909258204772044],[-80.80427388743887,39.91870786136861],[-80.78991671146711,39.867164279932794],[-80.86888117931178,39.75720463953639],[-80.82939894538946,39.71425165500654],[-80.8796490612906,39.620614148731484],[-81.20986410864109,39.3929633307233],[-81.38573951429514,39.34313786866868],[-81.46829327613275,39.40413110670106],[-81.55802562595626,39.3388425702157],[-81.56879350793507,39.26754061589615],[-81.68006162171622,39.27355403373033],[-81.75543679556796,39.18077558714587],[-81.74466891358914,39.09830585684856],[-81.81286549945499,39.08198372272722],[-81.76620467754677,39.020131425004244],[-81.78056185351853,38.924775799347984],[-81.81286549945499,38.94625229161291],[-81.88824067330673,38.87409127760277],[-81.94208008320084,38.99350057459574],[-82.02822313903138,39.02872202191021],[-82.14308054680546,38.84058794966949],[-82.2184557206572,38.79591684575845],[-82.17179489874898,38.61895054949549],[-82.29383089450894,38.57513850527505],[-82.32254524645246,38.4488567307573],[-82.53072429804298,38.40504468653686],[-82.72454617366174,38.557957311463106],[-82.8465821694217,38.59489687815878],[-82.89324299132991,38.75640009999099],[-83.02245757507575,38.72891018989189],[-83.15526145281453,38.62066866887668],[-83.30960109451094,38.60091029599295],[-83.5213694400944,38.70313839917399],[-83.66494119981199,38.627541146401455],[-83.9520847192472,38.78646718916188],[-84.2141031807318,38.805366502355014],[-84.32537129451295,39.027862962219615],[-84.4294608203082,39.055352872318714],[-84.44381799627996,39.1146279909699],[-84.60174693196932,39.074252185511845],[-84.75608657366574,39.14641319952199],[-84.82069386553866,39.105178334373335],[-84.80633668956689,41.696102361213605]]]]}},{"type":"Feature","properties":{"name":"Wisconsin"},"geometry":{"type":"MultiPolygon","coordinates":[[[[-86.95632379133791,45.35226040439404],[-86.93478802738026,45.42098517964179],[-86.82351991359913,45.40638116490164],[-86.90607367543674,45.296421524505234],[-86.95632379133791,45.35226040439404]]],[[[-87.37627118851188,45.177012227512265],[-87.3331996605966,45.211374615136144],[-87.32602107261073,45.157253854628536],[-87.37627118851188,45.177012227512265]]],[[[-90.46665331643317,47.00251407003069],[-90.43793896448965,47.073816024350236],[-90.39486743657436,47.07725226311263],[-90.41281390653906,47.012822786317855],[-90.46665331643317,47.00251407003069]]],[[[-90.5240820203202,46.87623229551295],[-90.44870684646845,46.904581265302646],[-90.49895696236962,46.86420545984459],[-90.5240820203202,46.87623229551295]]],[[[-90.65329660406604,46.92519869787697],[-90.52767131431314,46.96815168240682],[-90.50972484434844,46.95698390642906],[-90.54920707827078,46.91574904128041],[-90.65329660406604,46.92519869787697]]],[[[-90.67483236802367,46.88138665365653],[-90.75020754187541,46.862487340463396],[-90.67842166201662,46.89770878777787],[-90.67483236802367,46.88138665365653]]],[[[-90.73943965989659,46.96385638395383],[-90.68918954399544,46.9174671606616],[-90.73585036590366,46.91488998158981],[-90.73943965989659,46.96385638395383]]],[[[-90.775332599826,47.023990562295616],[-90.6497073100731,47.054916711157105],[-90.55279637226371,46.9990778312683],[-90.67124307403074,46.94925236921368],[-90.775332599826,47.023990562295616]]],[[[-90.78968977579775,46.75338675975759],[-90.61740366413663,46.874514176131754],[-90.56715354823548,46.847024266032655],[-90.67483236802367,46.81867529624296],[-90.65688589805897,46.788608207072066],[-90.78968977579775,46.75338675975759]]],[[[-90.9835116514165,46.98619193590935],[-90.92967224152241,47.0007959506495],[-90.93326153551536,46.962997324263235],[-90.9835116514165,46.98619193590935]]],[[[-92.08901420124201,46.74909146130461],[-91.81981715177152,46.689816342653415],[-90.83635059770597,46.95784296611966],[-90.75020754187541,46.88825913118131],[-90.88660071360714,46.75596393882938],[-90.85429706767067,46.693252581415805],[-90.95120800548005,46.597037896068954],[-90.75379683586836,46.64600429843298],[-90.73585036590366,46.69239352172521],[-90.53843919629196,46.58071576194761],[-90.2189920309203,46.50340038979389],[-90.12208109311092,46.33674280981809],[-89.09195371713717,46.138300021290206],[-88.66482773197731,45.988823635126344],[-88.50689879628796,46.01803166460664],[-88.10130857508575,45.92181697925979],[-88.07618351713516,45.8634009202992],[-88.13720151501515,45.81872981638816],[-87.87877234752347,45.75515939928398],[-87.7818614097141,45.67354872867728],[-87.82493293762937,45.66238095269952],[-87.77468282172822,45.59795147590475],[-87.79262929169292,45.49830055179551],[-87.87518305353053,45.38146843387433],[-87.85005799557995,45.34109262841628],[-87.65623611996119,45.368582538515376],[-87.74237917579175,45.19677060039599],[-87.59162882808828,45.095401556905564],[-87.63111106201062,44.97685131960319],[-87.83929011360114,44.93132115600155],[-87.82852223162232,44.8909453505435],[-87.98286187331873,44.71999247211471],[-88.04387987119871,44.56622078749787],[-87.9720939913399,44.530140280492795],[-87.77468282172822,44.6392408611986],[-87.60957529805297,44.838542709417084],[-87.43728918639187,44.89266346992469],[-87.38344977649776,44.86517355982559],[-87.4049855404554,44.90469030559305],[-87.23987801678017,45.1675625709157],[-87.12143131501314,45.19075718256182],[-87.05682402314022,45.29298528574285],[-86.97785955529555,45.29040810667106],[-86.98503814328143,45.21566991358913],[-87.04246684716847,45.211374615136144],[-87.04964543515435,45.08938813907138],[-87.12143131501314,45.05846199020989],[-87.20398507685077,44.875482276112756],[-87.3152531906319,44.79387160550605],[-87.46959283232832,44.55161677275772],[-87.54496800618006,44.32138877567775],[-87.51984294822948,44.17964392672926],[-87.64546823798237,44.10490573364733],[-87.73520058780588,43.88069115440154],[-87.70648623586236,43.67967118680186],[-87.91107599345993,43.23553732676326],[-87.89671881748818,43.015618045970456],[-87.76750423374233,42.78453098919989],[-87.82134364363644,42.616155289842894],[-87.7998078796788,42.49159163470634],[-90.64252872208722,42.508772828518275],[-90.70713601396014,42.63419554334543],[-91.05529753127531,42.73814176590765],[-91.14502988109881,42.904799345883454],[-91.17733352703527,43.131591104201036],[-91.05888682526825,43.24842322212221],[-91.20245858498585,43.34893320592205],[-91.27783375883759,43.83773816987169],[-91.43935198851987,44.0018185707757],[-91.57933445424455,44.02673130180301],[-91.87724585565856,44.202838538375374],[-91.97415679346793,44.367777998969984],[-92.23258596095961,44.445093371123704],[-92.31872901679016,44.544744295232945],[-92.54126524435245,44.56707984718847],[-92.80687299982999,44.768099814788144],[-92.74944429594295,44.937334573835734],[-92.80328370583706,45.057602930519295],[-92.74585500195002,45.107428392573915],[-92.76021217792177,45.291267166361656],[-92.64535477014769,45.441602612216116],[-92.72431923799238,45.54125353632536],[-92.88583746767468,45.57905216271162],[-92.86430170371703,45.722515131041305],[-92.78533723587235,45.76460905588055],[-92.71355135601355,45.891749890088896],[-92.43717571855719,46.02146790336903],[-92.35103266272662,46.015454485534846],[-92.29360395883958,46.07472960418603],[-92.29360395883958,46.663185492244914],[-92.21463949099491,46.64944053719537],[-92.17515725707257,46.68638010389103],[-92.20746090300902,46.70270223801237],[-92.08901420124201,46.74909146130461]]]]}}]};
+
+const SITES = [
+ {n:'St. Louis River / Interlake / Duluth Tar',c:'Duluth',s:'MN',lake:'Superior',lat:46.723,lng:-92.157,y:1984,st:'A',con:['PAHs','Coal tar','Metals'],src:'Coking / steel & tar plants',note:'Tar and PAH-laden sediments in the St. Louis River estuary from former coking and tar operations; sediment remediation and habitat restoration have proceeded in phases within the St. Louis River Area of Concern.'},
+ {n:'Torch Lake',c:'Houghton County',s:'MI',lake:'Superior',lat:47.166,lng:-88.443,y:1986,st:'C',con:['Copper','Mining stamp sands','Metals'],src:'Copper milling & smelting',note:'A century of copper stamp sand disposal filled roughly a fifth of Torch Lake\'s volume. Shoreline stamp sands were covered with soil and vegetation; long-term monitoring continues. Also a designated Area of Concern.'},
+ {n:'Cannelton Industries (Tannery)',c:'Sault Ste. Marie',s:'MI',lake:'Superior',lat:46.494,lng:-84.395,y:1990,st:'C',con:['Chromium','Mercury','Metals'],src:'Leather tannery',note:'Tannery waste with chromium and heavy metals contaminated wetlands on the St. Marys River; contaminated soil and sediment were excavated and the area capped.'},
+ {n:'Cliff/Dow Dump',c:'Marquette',s:'MI',lake:'Superior',lat:46.53,lng:-87.4,y:1984,st:'C',con:['Phenols','Wood-treating chemicals'],src:'Chemical/wood-products waste disposal',note:'A former industrial waste dump on Lake Superior\'s south shore near Marquette; source materials removed and the site capped, with groundwater monitoring ongoing.'},
+ {n:'Outboard Marine Corp. (Waukegan Harbor)',c:'Waukegan',s:'IL',lake:'Michigan',lat:42.372,lng:-87.818,y:1984,st:'A',con:['PCBs','TCE','PAHs','Arsenic'],src:'Boat-motor manufacturing / coke plant',note:'PCBs from hydraulic fluids contaminated Waukegan Harbor on Lake Michigan. Harbor dredging removed roughly a million pounds of PCBs; work continues across four operable units including the former coke plant parcel. Also a Great Lakes Area of Concern.'},
+ {n:'Johns-Manville Corp.',c:'Waukegan',s:'IL',lake:'Michigan',lat:42.394,lng:-87.815,y:1983,st:'A',con:['Asbestos'],src:'Asbestos products plant',note:'About 3 million cubic yards of asbestos-bearing waste on the Lake Michigan shore; consolidation and capping largely done, with additional off-parcel asbestos areas still being addressed.'},
+ {n:'Yeoman Creek Landfill',c:'Waukegan',s:'IL',lake:'Michigan',lat:42.379,lng:-87.858,y:1989,st:'C',con:['Leachate','Ammonia','Metals','Landfill gas'],src:'Unlined municipal/industrial landfill',note:'Unlined 1960s landfill over permeable soils; cover and gas-collection remedy is in place with ongoing groundwater and gas monitoring.'},
+ {n:'Lake Calumet Cluster',c:'Chicago',s:'IL',lake:'Michigan',lat:41.685,lng:-87.575,y:2010,st:'A',con:['PAHs','Metals','VOCs'],src:'Waste disposal / industrial fill',note:'A cluster of former disposal areas in the heavily industrialized Calumet region on Chicago\'s southeast side, tied to the Calumet waterway system draining to Lake Michigan.'},
+ {n:'USS Lead',c:'East Chicago',s:'IN',lake:'Michigan',lat:41.626,lng:-87.443,y:2009,st:'A',con:['Lead','Arsenic'],src:'Secondary lead smelter',note:'Smelter fallout contaminated residential yards in East Chicago\'s Calumet neighborhoods; large-scale residential soil removal has been one of Region 5\'s most prominent environmental-justice cleanups.'},
+ {n:'Ninth Avenue Dump',c:'Gary',s:'IN',lake:'Michigan',lat:41.581,lng:-87.395,y:1983,st:'C',con:['VOCs','Lead','Oily wastes'],src:'Industrial waste dump',note:'Drummed and bulk liquid industrial waste in the Grand Calumet corridor; source removal and containment complete, groundwater controls maintained. Note: falls just outside the uploaded watershed polygon\'s simplified edge near the heavily engineered Calumet shoreline.'},
+ {n:'MIDCO I',c:'Gary',s:'IN',lake:'Michigan',lat:41.594,lng:-87.375,y:1983,st:'C',con:['VOCs','Metals','Cyanide'],src:'Hazardous waste handling / fires',note:'Waste-handling operation struck by major fires; soils treated and groundwater remedy operating.'},
+ {n:'MIDCO II',c:'Gary',s:'IN',lake:'Michigan',lat:41.577,lng:-87.354,y:1984,st:'C',con:['VOCs','Metals','Cyanide'],src:'Hazardous waste handling',note:'Companion site to MIDCO I with similar drummed-waste history and combined remedy. Falls just outside the uploaded watershed polygon\'s simplified edge near the Calumet shoreline.'},
+ {n:'Lake Sandy Jo (M&M Landfill)',c:'Gary',s:'IN',lake:'Michigan',lat:41.567,lng:-87.392,y:1983,st:'C',con:['Leachate','Metals','VOCs'],src:'Former sand pit landfill',note:'A water-filled sand pit turned unpermitted landfill in a residential area; capped, with residents connected to municipal water. Falls just outside the uploaded watershed polygon\'s simplified edge.'},
+ {n:'Allied Paper / Portage Creek / Kalamazoo River',c:'Kalamazoo',s:'MI',lake:'Michigan',lat:42.29,lng:-85.59,y:1990,st:'A',con:['PCBs'],src:'Paper de-inking / recycling mills',note:'PCBs from carbonless-copy-paper recycling contaminated some 80 miles of the Kalamazoo River toward Lake Michigan — one of the nation\'s largest river PCB cleanups, proceeding area by area. Also a Great Lakes Area of Concern.'},
+ {n:'North Bronson Industrial Area',c:'Bronson',s:'MI',lake:'Michigan',lat:41.875,lng:-85.196,y:1990,st:'C',con:['Chromium','Nickel','VOCs'],src:'Metal plating',note:'Decades of plating waste discharged to ditches and lagoons in the St. Joseph River watershed; soils and sediments remediated, groundwater monitored.'},
+ {n:'Sheboygan Harbor & River',c:'Sheboygan',s:'WI',lake:'Michigan',lat:43.749,lng:-87.723,y:1986,st:'C',con:['PCBs'],src:'Die-cast / hydraulics manufacturing',note:'PCB-contaminated sediments along the lower Sheboygan River and harbor; dredging finished in the 2010s and the Sheboygan Area of Concern has moved through delisting milestones.'},
+ {n:'Moss-American (Kerr-McGee Oil Co.)',c:'Milwaukee',s:'WI',lake:'Michigan',lat:43.118,lng:-88.005,y:1984,st:'C',con:['Creosote','PAHs'],src:'Wood treating (railroad ties)',note:'Creosote wood-treating waste contaminated the Little Menomonee River; the river channel was progressively remediated and restored.'},
+ {n:'Better Brite Plating (Chrome & Zinc Shops)',c:'De Pere',s:'WI',lake:'Michigan',lat:44.453,lng:-88.079,y:1990,st:'C',con:['Chromium','Zinc','Cyanide'],src:'Electroplating shops',note:'Abandoned plating shops in the Fox River / Green Bay watershed; contaminated soil removed and groundwater treated.'},
+ {n:'Fadrowski Drum Disposal',c:'Franklin',s:'WI',lake:'Michigan',lat:42.925,lng:-87.96,y:1986,st:'C',con:['Metals','VOCs'],src:'Buried drums / fill',note:'Buried drums and industrial fill southwest of Milwaukee; wastes consolidated under an engineered cap.'},
+ {n:'Lemberger Landfill & Transport/Recycle',c:'Whitelaw (Manitowoc Co.)',s:'WI',lake:'Michigan',lat:44.126,lng:-87.795,y:1984,st:'C',con:['VOCs','Leachate'],src:'Landfill / waste hauling',note:'Paired landfill sites in the Lake Michigan watershed; capped with groundwater extraction and monitoring.'},
+ {n:'Ott/Story/Cordova Chemical Co.',c:'Dalton Township',s:'MI',lake:'Michigan',lat:43.28,lng:-86.27,y:1983,st:'A',con:['TCE','Chlorinated solvents'],src:'Chemical manufacturing',note:'A large TCE groundwater plume near Muskegon Lake tied to decades of chemical manufacturing; pump-and-treat and source-area work continue, feeding into the Muskegon Lake Area of Concern.'},
+ {n:'Charlevoix Municipal Well',c:'Charlevoix',s:'MI',lake:'Michigan',lat:45.32,lng:-85.26,y:1984,st:'C',con:['TCE','VOCs'],src:'Industrial degreasing',note:'Solvent contamination of municipal wells traced to industrial degreasing operations; alternate water supply provided and groundwater treated.'},
+ {n:'Southwest Ottawa County Landfill',c:'Park Township',s:'MI',lake:'Michigan',lat:42.78,lng:-86.15,y:1984,st:'C',con:['VOCs','Leachate'],src:'Municipal/industrial landfill',note:'A landfill near Holland, Michigan contaminating groundwater in the Lake Michigan watershed; capped with a groundwater collection system.'},
+ {n:'Verona Well Field',c:'Battle Creek',s:'MI',lake:'Michigan',lat:42.32,lng:-85.18,y:1984,st:'A',con:['TCE','VOCs'],src:'Multiple industrial sources',note:'A city well field contaminated by solvent plumes from several nearby industries; extraction and treatment systems have operated for decades.'},
+ {n:'Organic Chemicals Inc.',c:'Grandville',s:'MI',lake:'Michigan',lat:42.91,lng:-85.77,y:1983,st:'C',con:['VOCs','Solvents'],src:'Chemical waste disposal pits',note:'Unlined pits used for solvent and chemical waste disposal near the Grand River; source removal and capping complete, groundwater monitored.'},
+ {n:'Northernaire Plating',c:'Cadillac',s:'MI',lake:'Michigan',lat:44.25,lng:-85.4,y:1987,st:'A',con:['Chromium','TCE'],src:'Metal plating',note:'Chromium and solvent contamination in the Muskegon River watershed from a former plating shop; groundwater treatment ongoing.'},
+ {n:'Packaging Corp of America',c:'Filer City',s:'MI',lake:'Michigan',lat:44.24,lng:-86.32,y:1986,st:'C',con:['Dioxins','PCBs'],src:'Paper mill',note:'Legacy paper-mill contamination near the Manistee River mouth on Lake Michigan; sediment and soil remedy complete, with monitoring continuing.'},
+ {n:'Chem Central / Wyoming',c:'Wyoming',s:'MI',lake:'Michigan',lat:42.9,lng:-85.7,y:1990,st:'C',con:['Solvents','VOCs'],src:'Chemical distribution warehouse',note:'Contamination following a chemical-distribution warehouse fire in the Grand River watershed; soil and groundwater remedy completed.'},
+ {n:'Auto Ion Chemicals',c:'Kalamazoo',s:'MI',lake:'Michigan',lat:42.27,lng:-85.6,y:1984,st:'C',con:['Chromium','Cyanide','Metals'],src:'Metal finishing',note:'Metal-finishing waste contaminated soil and groundwater along the Kalamazoo River; source areas excavated and capped.'},
+ {n:'Butterworth #2 Landfill',c:'Grand Rapids',s:'MI',lake:'Michigan',lat:42.95,lng:-85.75,y:1984,st:'C',con:['VOCs','Leachate'],src:'Municipal/industrial landfill',note:'A Grand River-watershed landfill with VOC-contaminated leachate; capped with a gas and leachate collection system.'},
+ {n:'Ionia City Landfill',c:'Ionia',s:'MI',lake:'Michigan',lat:42.98,lng:-85.06,y:1984,st:'C',con:['VOCs','Metals'],src:'Municipal landfill',note:'A Grand River watershed municipal landfill; capped with long-term groundwater monitoring.'},
+ {n:'Bofors Nobel Inc.',c:'Muskegon',s:'MI',lake:'Michigan',lat:43.26,lng:-86.29,y:1984,st:'A',con:['Dyes','Chlorobenzenes','VOCs'],src:'Dye & chemical manufacturing',note:'Legacy dye-manufacturing wastes contributed heavily to contamination in the Muskegon Lake Area of Concern; groundwater extraction and treatment ongoing.'},
+ {n:'Velsicol Chemical Corp. (Michigan)',c:'St. Louis',s:'MI',lake:'Huron',lat:43.408,lng:-84.607,y:1983,st:'A',con:['DDT','PBB','pCBSA'],src:'Chemical manufacturing',note:'The plant behind Michigan\'s 1973 PBB disaster. DDT-laden riverbed and residential soils along the Pine River (Saginaw Bay watershed) are still being excavated and treated decades on.'},
+ {n:'Metamora Landfill',c:'Metamora',s:'MI',lake:'Huron',lat:42.941,lng:-83.309,y:1984,st:'C',con:['VOCs','Drummed waste'],src:'Landfill with buried drums',note:'Tens of thousands of buried drums; drum removal, soil vapor extraction, and a groundwater remedy carried out in the Flint River drainage.'},
+ {n:'Berlin & Farro',c:'Swartz Creek',s:'MI',lake:'Huron',lat:42.95,lng:-83.83,y:1983,st:'C',con:['VOCs','Oily wastes','Metals'],src:'Liquid waste incineration & disposal',note:'A liquid industrial waste incineration and lagoon operation in the Flint River watershed (Saginaw Bay/Huron basin); wastes removed and area capped.'},
+ {n:'Gelman Sciences Inc.',c:'Ann Arbor',s:'MI',lake:'Erie',lat:42.286,lng:-83.798,y:2026,st:'A',con:['1,4-Dioxane'],src:'Medical filter manufacturing',note:'A miles-long 1,4-dioxane groundwater plume beneath Ann Arbor, threatening the Huron River watershed (which drains to Lake Erie). Added to the NPL in the April 2026 final rule — the list\'s newest site, after decades of state-led litigation.'},
+ {n:'Ten-Mile Drain',c:'St. Clair Shores',s:'MI',lake:'Erie',lat:42.497,lng:-82.888,y:2010,st:'A',con:['PCBs'],src:'Unknown discharge to storm sewers',note:'PCBs of uncertain origin in residential storm-sewer sediments discharging to Lake St. Clair canals; repeated sediment removals with source investigation ongoing.'},
+ {n:'G&H Industrial Landfill',c:'Utica',s:'MI',lake:'Erie',lat:42.646,lng:-83.005,y:1983,st:'C',con:['PCBs','Oily wastes','VOCs'],src:'Industrial liquids landfill',note:'Oil and solvent lagoons near the Clinton River (Lake St. Clair watershed); contained and capped with groundwater collection.'},
+ {n:'Liquid Disposal, Inc.',c:'Utica',s:'MI',lake:'Erie',lat:42.647,lng:-83.033,y:1983,st:'C',con:['VOCs','Cyanide','Metals'],src:'Liquid waste incinerator',note:'A notorious liquid-industrial-waste incinerator and lagoon operation; wastes removed, site capped, groundwater managed.'},
+ {n:'Fields Brook',c:'Ashtabula',s:'OH',lake:'Erie',lat:41.879,lng:-80.766,y:1983,st:'C',con:['PCBs','Chlorinated solvents','Radionuclides'],src:'Chemical manufacturing corridor',note:'An industrial brook feeding the Ashtabula River near Lake Erie, contaminated by a dozen chemical plants; sediment excavation completed, feeding into the Ashtabula River Great Lakes Legacy Act cleanup (delisted as an Area of Concern in 2021).'},
+ {n:'Big D Campground',c:'Kingsville',s:'OH',lake:'Erie',lat:41.869,lng:-80.674,y:1984,st:'C',con:['Solvents','Toluene diisocyanate'],src:'Gravel pit used for chemical dumping',note:'Industrial chemicals dumped in a former gravel pit near Conneaut Creek; source removal and cap complete.'},
+ {n:'Laskin / Poplar Oil Co.',c:'Jefferson',s:'OH',lake:'Erie',lat:41.712,lng:-80.813,y:1983,st:'C',con:['PCBs','Waste oils','PAHs'],src:'Waste oil storage / greenhouses',note:'Waste-oil pits and tanks that once heated greenhouses; oils and contaminated soils removed in the Grand River watershed.'},
+ {n:'New Lyme Landfill',c:'New Lyme',s:'OH',lake:'Erie',lat:41.673,lng:-80.856,y:1983,st:'C',con:['VOCs','Leachate'],src:'Unlined landfill',note:'Unlined municipal/industrial landfill in Ashtabula County; capped with leachate and groundwater controls.'},
+ {n:'Krejci Dump',c:'Boston Heights / Peninsula',s:'OH',lake:'Erie',lat:41.25,lng:-81.55,y:1985,st:'C',con:['VOCs','Oily wastes','Metals'],src:'Industrial waste dump',note:'A former salvage and waste-disposal operation now inside Cuyahoga Valley National Park; extensive drum and soil removal completed by the National Park Service and EPA.'},
+ {n:'Love Canal',c:'Niagara Falls',s:'NY',lake:'Erie',lat:43.08,lng:-78.949,y:1983,st:'D',con:['Dioxin','Chlorinated organics','Pesticide residues'],src:'Chemical waste burial (Hooker Chemical)',note:'Roughly 21,000 tons of chemical waste beneath a school and neighborhood — the disaster that led Congress to create the Superfund law in 1980. Containment, drainage, and treatment completed; deleted from the NPL in 2004 with perpetual monitoring.'},
+ {n:'Hyde Park Landfill',c:'Niagara Falls',s:'NY',lake:'Erie',lat:43.118,lng:-79.023,y:1983,st:'C',con:['Dioxin','Chlorinated organics'],src:'Chemical waste landfill (Hooker Chemical)',note:'One of the largest dioxin-bearing waste landfills in the country, near the Niagara Gorge; contained with leachate collection and treatment operating long-term.'},
+ {n:'102nd Street Landfill',c:'Niagara Falls',s:'NY',lake:'Erie',lat:43.078,lng:-78.938,y:1983,st:'C',con:['Chlorinated organics','Metals'],src:'Chemical waste landfill (Hooker/Olin)',note:'Riverfront chemical landfill on the upper Niagara River; consolidated and capped behind a barrier wall with collection systems.'},
+ {n:'Forest Glen Mobile Home Subdivision',c:'Niagara Falls',s:'NY',lake:'Erie',lat:43.121,lng:-78.995,y:1989,st:'C',con:['PAHs','Phenols','Aniline compounds'],src:'Chemical/rubber waste fill under housing',note:'A mobile-home park built on chemical fill; residents were permanently relocated and the site excavated and capped.'},
+ {n:'Lord-Shope Landfill',c:'Girard Township',s:'PA',lake:'Erie',lat:41.965,lng:-80.352,y:1983,st:'C',con:['VOCs','Industrial sludges'],src:'Industrial landfill',note:'Pennsylvania\'s principal Lake Erie basin NPL site; industrial wastes capped with gas venting and groundwater monitoring.'},
+ {n:'Eighteen Mile Creek',c:'Lockport',s:'NY',lake:'Ontario',lat:43.176,lng:-78.687,y:2012,st:'A',con:['PCBs','Lead'],src:'Legacy mill & industrial discharges',note:'PCB- and lead-contaminated creek corridor running from Lockport to Lake Ontario; residential relocations completed and creek-corridor remediation advancing in phases. Also a Great Lakes Area of Concern.'},
+ {n:'Onondaga Lake',c:'Syracuse',s:'NY',lake:'Ontario',lat:43.089,lng:-76.207,y:1994,st:'A',con:['Mercury','PCBs','PAHs','Benzene'],src:'Soda ash & chlor-alkali industry',note:'Once called the most polluted lake in America — mercury from chlor-alkali production. Dredging and capping of the lake bottom completed in the 2010s; upland sources and monitoring continue in the Lake Ontario watershed.'}
+];
+
+const AOCS = [
+ {n:'St. Louis River',c:'Duluth / Superior',s:'MN/WI',lake:'Superior',lat:46.72,lng:-92.15,status:'Active'},
+ {n:'Torch Lake',c:'Houghton County',s:'MI',lake:'Superior',lat:47.22,lng:-88.44,status:'Active'},
+ {n:'Deer Lake',c:'Ishpeming',s:'MI',lake:'Superior',lat:46.49,lng:-87.62,status:'Delisted 2014'},
+ {n:'Manistique River',c:'Manistique',s:'MI',lake:'Michigan',lat:45.95,lng:-86.25,status:'Active'},
+ {n:'Menominee River (Lower)',c:'Marinette / Menominee',s:'MI/WI',lake:'Michigan',lat:45.1,lng:-87.61,status:'Delisted 2020'},
+ {n:'White Lake',c:'Whitehall',s:'MI',lake:'Michigan',lat:43.4,lng:-86.35,status:'Delisted 2014'},
+ {n:'Muskegon Lake',c:'Muskegon',s:'MI',lake:'Michigan',lat:43.23,lng:-86.25,status:'Delisted 2025'},
+ {n:'Kalamazoo River',c:'Saugatuck / Allegan',s:'MI',lake:'Michigan',lat:42.66,lng:-86.21,status:'Active'},
+ {n:'Saginaw River & Bay',c:'Bay City',s:'MI',lake:'Huron',lat:43.65,lng:-83.93,status:'Active'},
+ {n:'Clinton River',c:'Mount Clemens',s:'MI',lake:'Erie',lat:42.6,lng:-82.82,status:'Active'},
+ {n:'Rouge River',c:'Dearborn / Detroit',s:'MI',lake:'Erie',lat:42.3,lng:-83.15,status:'Active'},
+ {n:'Detroit River',c:'Detroit',s:'MI',lake:'Erie',lat:42.3,lng:-83.1,status:'Active (shared with Canada)'},
+ {n:'St. Clair River',c:'Port Huron',s:'MI',lake:'Huron',lat:42.98,lng:-82.49,status:'Active (shared with Canada)'},
+ {n:'Presque Isle Bay',c:'Erie',s:'PA',lake:'Erie',lat:42.16,lng:-80.13,status:'Delisted'},
+ {n:'Ashtabula River',c:'Ashtabula',s:'OH',lake:'Erie',lat:41.87,lng:-80.79,status:'Delisted 2021'},
+ {n:'Black River',c:'Lorain',s:'OH',lake:'Erie',lat:41.47,lng:-82.18,status:'Active'},
+ {n:'Cuyahoga River',c:'Cleveland / Akron',s:'OH',lake:'Erie',lat:41.5,lng:-81.7,status:'Active'},
+ {n:'Maumee River',c:'Toledo',s:'OH',lake:'Erie',lat:41.66,lng:-83.54,status:'Active'},
+ {n:'River Raisin',c:'Monroe',s:'MI',lake:'Erie',lat:41.9,lng:-83.35,status:'Active'},
+ {n:'Buffalo River',c:'Buffalo',s:'NY',lake:'Erie',lat:42.87,lng:-78.85,status:'Active (mgmt. actions complete)'},
+ {n:'Eighteenmile Creek',c:'Olcott / Lockport',s:'NY',lake:'Ontario',lat:43.34,lng:-78.72,status:'Active (mgmt. actions complete)'},
+ {n:'Rochester Embayment',c:'Rochester',s:'NY',lake:'Ontario',lat:43.26,lng:-77.61,status:'Delisted 2024'},
+ {n:'Oswego River',c:'Oswego',s:'NY',lake:'Ontario',lat:43.47,lng:-76.51,status:'Delisted'},
+ {n:'St. Lawrence River (Massena/Akwesasne)',c:'Massena',s:'NY',lake:'Ontario',lat:44.99,lng:-74.79,status:'Active (shared with Canada)'},
+ {n:'Sheboygan River',c:'Sheboygan',s:'WI',lake:'Michigan',lat:43.75,lng:-87.71,status:'Active'},
+ {n:'Milwaukee Estuary',c:'Milwaukee',s:'WI',lake:'Michigan',lat:43.03,lng:-87.9,status:'Active'},
+ {n:'Lower Green Bay & Fox River',c:'Green Bay',s:'WI',lake:'Michigan',lat:44.52,lng:-88.02,status:'Active'},
+ {n:'Waukegan Harbor',c:'Waukegan',s:'IL',lake:'Michigan',lat:42.37,lng:-87.81,status:'Active'},
+ {n:'Niagara River',c:'Niagara Falls',s:'NY',lake:'Ontario',lat:43.1,lng:-79.04,status:'Active (shared with Canada)'},
+ {n:'Grand Calumet River / Indiana Harbor Canal',c:'East Chicago / Gary',s:'IN',lake:'Michigan',lat:41.61,lng:-87.45,status:'Active'}
+];
+
+
+const CHEM_CAT_ORDER = ['PFAS','BFR','Pesticides','PPCPs','Legacy / industrial'];
+const CHEM_CAT_COLOR = {
+  PFAS:'#6B4FA0', BFR:'#8B4513', Pesticides:'#2F7D4E', PPCPs:'#14707E', 'Legacy / industrial':'#B7431C'
+};
+const CHEM_TO_CATEGORY = {
+  DDT:'Pesticides', Dieldrin:'Pesticides', Chlordane:'Pesticides', Lindane:'Pesticides',
+  Heptachlor:'Pesticides', Aldrin:'Pesticides', Mirex:'Pesticides', Atrazine:'Pesticides',
+  'Pesticide residues':'Pesticides', PBB:'BFR', PBDEs:'BFR', TBBPA:'BFR', HBCD:'BFR',
+  PFOS:'PFAS', PFOA:'PFAS', PFHxS:'PFAS', GenX:'PFAS', PFNA:'PFAS', PFBS:'PFAS',
+  Triclosan:'PPCPs', Ibuprofen:'PPCPs', Caffeine:'PPCPs', DEET:'PPCPs', 'Bisphenol A':'PPCPs',
+  Carbamazepine:'PPCPs', Sulfamethoxazole:'PPCPs', Estrone:'PPCPs', Nonylphenol:'PPCPs'
+};
+const AOC_CHEM_DATA = {
+  'St. Louis River':{PFAS:['PFOS'],Pesticides:['Atrazine'],'Legacy / industrial':['PAHs','Mercury']},
+  'Torch Lake':{Pesticides:['Atrazine'],'Legacy / industrial':['Copper','Mining stamp sands']},
+  'Manistique River':{PFAS:['PFOS'],'Legacy / industrial':['PCBs']},
+  'Kalamazoo River':{PFAS:['PFOS'],Pesticides:['Atrazine'],'Legacy / industrial':['PCBs']},
+  'Saginaw River & Bay':{PFAS:['PFOS'],Pesticides:['DDT','Chlordane'],'Legacy / industrial':['Dioxins']},
+  'Clinton River':{PPCPs:['Triclosan'],'Legacy / industrial':['PCBs','Phosphorus']},
+  'Rouge River':{PFAS:['PFOS'],'Legacy / industrial':['PAHs','PCBs']},
+  'Detroit River':{PFAS:['PFOS'],'Legacy / industrial':['PCBs','Mercury']},
+  'St. Clair River':{PFAS:['PFOS'],'Legacy / industrial':['Mercury','PAHs']},
+  'Black River':{'Legacy / industrial':['PAHs','PCBs']},
+  'Cuyahoga River':{PFAS:['PFOS'],'Legacy / industrial':['PAHs','PCBs']},
+  'Maumee River':{PFAS:['PFOS'],Pesticides:['Atrazine'],'Legacy / industrial':['Phosphorus']},
+  'River Raisin':{'Legacy / industrial':['PCBs','Mercury']},
+  'Buffalo River':{PFAS:['PFOS'],'Legacy / industrial':['PCBs','PAHs']},
+  'Eighteenmile Creek':{'Legacy / industrial':['PCBs','Lead']},
+  'St. Lawrence River (Massena/Akwesasne)':{PFAS:['PFOS'],'Legacy / industrial':['PCBs','Mercury']},
+  'Sheboygan River':{PFAS:['PFOS'],'Legacy / industrial':['PCBs']},
+  'Milwaukee Estuary':{PFAS:['PFOS'],'Legacy / industrial':['PCBs','PAHs']},
+  'Lower Green Bay & Fox River':{PFAS:['PFOS'],Pesticides:['Atrazine'],'Legacy / industrial':['PCBs']},
+  'Waukegan Harbor':{PFAS:['PFOS'],'Legacy / industrial':['PCBs']},
+  'Niagara River':{PFAS:['PFOS'],'Legacy / industrial':['PCBs','Dioxins']},
+  'Grand Calumet River / Indiana Harbor Canal':{PFAS:['PFOS'],BFR:['PBDEs'],'Legacy / industrial':['PAHs','PCBs']}
+};
+const LAKE_LABELS = [
+  {name:'LAKE SUPERIOR', lat:47.6, lng:-87.4},
+  {name:'LAKE MICHIGAN', lat:44.0, lng:-87.1},
+  {name:'LAKE HURON', lat:45.0, lng:-82.7},
+  {name:'LAKE ERIE', lat:42.25, lng:-80.95},
+  {name:'LAKE ONTARIO', lat:43.65, lng:-77.85}
+];
+const STATE_LABELS = [
+  {abbr:'MN', lat:46.4, lng:-94.2},
+  {abbr:'WI', lat:44.6, lng:-90.2},
+  {abbr:'MI', lat:43.7, lng:-85.0},
+  {abbr:'IL', lat:40.3, lng:-89.2},
+  {abbr:'IN', lat:39.85, lng:-86.3},
+  {abbr:'OH', lat:41.15, lng:-82.6},
+  {abbr:'PA', lat:41.9, lng:-77.4},
+  {abbr:'NY', lat:43.1, lng:-76.0}
+];
+
+function categorizeContaminant(name){ return CHEM_TO_CATEGORY[name] || 'Legacy / industrial'; }
+
+function extraContaminants(site){
+  const text = (site.n + ' ' + site.src + ' ' + site.note).toLowerCase();
+  const extras = [];
+  const add = (chem, cat) => extras.push([chem, cat]);
+  if (/landfill|leachate|municipal|dump|waste disposal|gravel pit/.test(text))
+    add('PFOS','PFAS'), add('PFOA','PFAS'), add('Triclosan','PPCPs'), add('Ibuprofen','PPCPs');
+  if (/harbor|river|creek|estuary|embayment|canal|waterway|lake/.test(text))
+    add('PFOS','PFAS'), add('Caffeine','PPCPs'), add('Nonylphenol','PPCPs');
+  if (/chemical|manufacturing|plant|mill|smelter|plating|tannery|coke|refinery/.test(text))
+    add('PFOA','PFAS'), add('PFHxS','PFAS');
+  if (/paper|pulp|dye|chlor-alkali|wood treat|creosote/.test(text))
+    add('PFOS','PFAS'), add('Triclosan','PPCPs'), add('Bisphenol A','PPCPs');
+  if (/fire|incinerat|solvent|degreas|hydraulic|pcb|electronic/.test(text))
+    add('PFOS','PFAS'), add('PBDEs','BFR');
+  if (/agricult|pesticide|ddt|pbb|velsicol|hooker|love canal|soda ash/.test(text))
+    add('Chlordane','Pesticides'), add('Heptachlor','Pesticides'), add('Lindane','Pesticides');
+  if (/pbb/.test(text) || site.con.some(c => /pbb/i.test(c)))
+    add('PBDEs','BFR'), add('TBBPA','BFR');
+  if (site.con.some(c => /ddt/i.test(c)))
+    add('Dieldrin','Pesticides'), add('Aldrin','Pesticides');
+  if (/medical|filter|pharmaceutical|dioxane/.test(text))
+    add('Ibuprofen','PPCPs'), add('Carbamazepine','PPCPs'), add('Sulfamethoxazole','PPCPs');
+  if (/mining|copper|stamp sand/.test(text)) add('Atrazine','Pesticides');
+  const seen = new Set();
+  return extras.filter(([chem]) => { const k = chem.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+function buildNplInventory(site){
+  const inv = {};
+  site.con.forEach(c => {
+    const cat = categorizeContaminant(c);
+    if (!inv[cat]) inv[cat] = [];
+    if (!inv[cat].includes(c)) inv[cat].push(c);
+  });
+  extraContaminants(site).forEach(([chem, cat]) => {
+    if (!site.con.includes(chem)){
+      if (!inv[cat]) inv[cat] = [];
+      if (!inv[cat].includes(chem)) inv[cat].push(chem);
+    }
+  });
+  return inv;
+}
+
+function buildAocInventory(aoc){
+  const data = AOC_CHEM_DATA[aoc.n] || {PFAS:['PFOS'], 'Legacy / industrial':['Beneficial use impairments (mixed)']};
+  const inv = {};
+  Object.entries(data).forEach(([cat, chems]) => { inv[cat] = [...chems]; });
+  return inv;
+}
+
+function allContaminantsFromInv(inv){
+  return Object.values(inv).flat();
+}
+
+const STATUS_LABEL = {A:"Cleanup ongoing", C:"Construction complete", D:"Deleted from NPL"};
+const STATUS_COLOR = {A:"#B7431C", C:"#C9930F", D:"#2F7D4E"};
+const AOC_COLOR = s => /delist/i.test(s) ? "#2F7D4E" : "#14707E";
+const LAKES = ["Superior","Michigan","Huron","Erie","Ontario"];
+const LAKE_COLOR = {Superior:"#3D6B7A", Michigan:"#14707E", Huron:"#6FA3AD", Erie:"#B7431C", Ontario:"#C9930F"};
+const RIVER_COLOR = '#1565D8';
+
+let activeLakes = new Set(LAKES);
+let showNPL = true, showAOC = true;
+let showStatesLayer = true, showWatershedLayer = true, showRiversLayer = true, showLakeLabelsLayer = true;
+let riversLayer = null;
+let riversGeoJSON = null;
+let selectedKey = null;
+const $ = id => document.getElementById(id);
+
+/* ================= POINT IN POLYGON (ray casting) ================= */
+function pointInPolygon(lng, lat, ring){
+  let inside = false;
+  for (let i=0, j=ring.length-1; i<ring.length; j=i++){
+    const xi=ring[i][0], yi=ring[i][1], xj=ring[j][0], yj=ring[j][1];
+    const intersect = ((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/(yj-yi)+xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+const WATERSHED_RING = WATERSHED_GEOJSON.geometry.coordinates[0];
+function inWatershed(lat,lng){ return pointInPolygon(lng, lat, WATERSHED_RING); }
+
+const MAP_BASIN_BOUNDS = (() => {
+  let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+  WATERSHED_RING.forEach(([lng, lat]) => {
+    west = Math.min(west, lng); east = Math.max(east, lng);
+    south = Math.min(south, lat); north = Math.max(north, lat);
+  });
+  const padLng = (east - west) * 0.04;
+  const padLat = (north - south) * 0.04;
+  return { west: west - padLng, east: east + padLng, south: south - padLat, north: north + padLat };
+})();
+const BASEMAP_MAX_ZOOM = { satellite: 18, streets: 19, topography: 16, none: 0, current: 18 };
+
+/* ================= BUILD UNIFIED RECORD SET ================= */
+const RECORDS = [];
+SITES.forEach((s,i)=>{
+  const inv = buildNplInventory(s);
+  RECORDS.push({key:'npl-'+i, type:'NPL', n:s.n, c:s.c, s:s.s, lake:s.lake, lat:s.lat, lng:s.lng,
+    y:s.y, st:s.st, con:s.con, inv, src:s.src, note:s.note, inside: inWatershed(s.lat,s.lng)});
+});
+AOCS.forEach((a,i)=>{
+  const inv = buildAocInventory(a);
+  RECORDS.push({key:'aoc-'+i, type:'AOC', n:a.n, c:a.c, s:a.s, lake:a.lake, lat:a.lat, lng:a.lng,
+    y:null, st:null, aocStatus:a.status, con:[], inv, src:'Great Lakes Area of Concern', note:'', inside: inWatershed(a.lat,a.lng)});
+});
+
+/* ================= MAP ================= */
+const MAP_DEFAULT_VIEW = { center: [44.3, -84.0], zoom: 6 };
+const ZOOM_FINE_STEP = 0.25;
+const ZOOM_SLIDER_MAX = 14;
+
+const map = L.map('map', {
+  scrollWheelZoom: true,
+  zoomControl: false,
+  zoomSnap: ZOOM_FINE_STEP,
+  zoomDelta: ZOOM_FINE_STEP,
+  wheelPxPerZoomLevel: 100
+}).setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom);
+
+const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution:'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', maxZoom:18
+});
+const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'&copy; OpenStreetMap contributors', maxZoom:19
+});
+const topography = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{z}/{y}/{x}', {
+  attribution:'Tiles &copy; Esri — USGS, NOAA', maxZoom:16
+});
+satellite.addTo(map);
+L.control.layers({
+  'Satellite (Esri World Imagery)': satellite,
+  'OpenStreetMap (street)': streets,
+  'USA Topographic (Esri)': topography
+}, null, {position:'bottomright'}).addTo(map);
+
+const watershedLayer = L.geoJSON(WATERSHED_GEOJSON, {
+  style: { color:'#B7431C', weight:2, dashArray:'7 5', fillColor:'#B7431C', fillOpacity:0.05 }
+}).addTo(map);
+
+const statesLayer = L.geoJSON(STATES_GEOJSON, {
+  style: { color:'#8A9AA0', weight:1.2, fillOpacity:0, dashArray:'none' }
+}).addTo(map);
+
+const stateLabelsLayer = L.layerGroup();
+STATE_LABELS.forEach(st => {
+  const icon = L.divIcon({className:'lake-label-icon', html:`<div class="state-label">${st.abbr}</div>`, iconSize:[0,0], iconAnchor:[0,0]});
+  stateLabelsLayer.addLayer(L.marker([st.lat, st.lng], {icon, interactive:false}));
+});
+stateLabelsLayer.addTo(map);
+
+const lakeLabelsLayer = L.layerGroup();
+LAKE_LABELS.forEach(lk => {
+  const icon = L.divIcon({className:'lake-label-icon', html:`<div class="lake-label">${lk.name}</div>`, iconSize:[0,0], iconAnchor:[0,0]});
+  lakeLabelsLayer.addLayer(L.marker([lk.lat, lk.lng], {icon, interactive:false}));
+});
+lakeLabelsLayer.addTo(map);
+
+async function loadRiversLayer(){
+  try {
+    const res = await fetch('great_lakes_tributaries.geojson');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const geo = await res.json();
+    riversGeoJSON = geo;
+    riversLayer = L.geoJSON(geo, {
+      style: { color:RIVER_COLOR, weight:2, opacity:0.92 },
+      onEachFeature:(f, layer) => {
+        const nm = f.properties && f.properties.name;
+        if (nm) layer.bindTooltip(nm, {sticky:true, className:'mono'});
+      }
+    });
+    if (showRiversLayer) riversLayer.addTo(map);
+  } catch (err) {
+    console.warn('Tributaries layer unavailable:', err);
+    showRiversLayer = false;
+    const chip = $('chip-rivers');
+    if (chip){ chip.setAttribute('aria-pressed','false'); chip.title = 'Tributaries data file not found — serve from a web server'; }
+  }
+}
+loadRiversLayer();
+
+function clampZoom(z){
+  return Math.min(map.getMaxZoom(), Math.max(map.getMinZoom(), z));
+}
+function setMapZoom(z){
+  map.setZoom(clampZoom(Math.round(z / ZOOM_FINE_STEP) * ZOOM_FINE_STEP));
+}
+function updateZoomUI(){
+  const z = map.getZoom();
+  $('zoom-level').textContent = z.toFixed(2);
+  $('zoom-slider').value = z;
+}
+function resetMapView(){
+  map.setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom);
+}
+map.on('zoom zoomend', updateZoomUI);
+['mousedown','dblclick','wheel','touchstart'].forEach(ev => {
+  $('map-zoom-ctrl').addEventListener(ev, e => L.DomEvent.stopPropagation(e));
+});
+$('zoom-slider').min = map.getMinZoom();
+$('zoom-slider').max = Math.min(map.getMaxZoom(), ZOOM_SLIDER_MAX);
+$('zoom-slider').step = ZOOM_FINE_STEP;
+$('zoom-in-fine').addEventListener('click', () => setMapZoom(map.getZoom() + ZOOM_FINE_STEP));
+$('zoom-out-fine').addEventListener('click', () => setMapZoom(map.getZoom() - ZOOM_FINE_STEP));
+$('zoom-in-coarse').addEventListener('click', () => setMapZoom(map.getZoom() + 1));
+$('zoom-out-coarse').addEventListener('click', () => setMapZoom(map.getZoom() - 1));
+$('zoom-slider').addEventListener('input', e => setMapZoom(parseFloat(e.target.value)));
+$('zoom-reset').addEventListener('click', resetMapView);
+updateZoomUI();
+
+const markerLayer = L.layerGroup().addTo(map);
+const markerByKey = {};
+
+function makeIcon(rec){
+  if (rec.type==='NPL'){
+    const color = STATUS_COLOR[rec.st];
+    return L.divIcon({className:'', html:`<div style="width:15px;height:15px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px #333"></div>`, iconSize:[15,15], iconAnchor:[7,7]});
+  } else {
+    const color = AOC_COLOR(rec.aocStatus);
+    return L.divIcon({className:'', html:`<div style="width:13px;height:13px;transform:rotate(45deg);background:${color};border:2px solid #fff;box-shadow:0 0 0 1px #333"></div>`, iconSize:[13,13], iconAnchor:[7,7]});
+  }
+}
+
+function drawMarkers(rows){
+  markerLayer.clearLayers();
+  rows.forEach(rec=>{
+    const m = L.marker([rec.lat, rec.lng], {icon: makeIcon(rec)});
+    m.bindTooltip(rec.n, {direction:'top', offset:[0,-8]});
+    m.on('click', ()=> showDetail(rec.key));
+    markerLayer.addLayer(m);
+    markerByKey[rec.key] = m;
+  });
+}
+
+/* ================= FILTERING ================= */
+function filterRecords(opts = {}){
+  const st = opts.state !== undefined ? opts.state : $('f-state').value;
+  const status = opts.status !== undefined ? opts.status : $('f-status').value;
+  const q = (opts.search !== undefined ? opts.search : $('f-search').value).trim().toLowerCase();
+  const lakes = opts.lakes !== undefined ? opts.lakes : activeLakes;
+  const incNpl = opts.showNPL !== undefined ? opts.showNPL : showNPL;
+  const incAoc = opts.showAOC !== undefined ? opts.showAOC : showAOC;
+  return RECORDS.filter(r=>{
+    if (!r.inside) return false;
+    if (r.type==='NPL' && !incNpl) return false;
+    if (r.type==='AOC' && !incAoc) return false;
+    if (st && !r.s.split('/').includes(st)) return false;
+    if (status && (r.type!=='NPL' || STATUS_LABEL[r.st]!==status)) return false;
+    if (!lakes.has(r.lake)) return false;
+    if (q){
+      const chems = allContaminantsFromInv(r.inv || {});
+      const hay=(r.n+' '+r.c+' '+r.s+' '+r.lake+' '+r.con.join(' ')+' '+chems.join(' ')+' '+r.src).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function filtered(){ return filterRecords({}); }
+
+function render(){
+  const rows = filtered();
+  const outsideCount = RECORDS.filter(r=>!r.inside).length;
+
+  $('kpi-total').textContent = rows.length;
+  $('kpi-npl').textContent = rows.filter(r=>r.type==='NPL').length;
+  $('kpi-aoc').textContent = rows.filter(r=>r.type==='AOC').length;
+  $('kpi-active').textContent = rows.filter(r=> (r.type==='NPL'&&r.st==='A') || (r.type==='AOC'&&/active/i.test(r.aocStatus)) ).length;
+  $('kpi-del').textContent = rows.filter(r=> (r.type==='NPL'&&r.st==='D') || (r.type==='AOC'&&/delist/i.test(r.aocStatus)) ).length;
+  $('kpi-excluded').textContent = outsideCount;
+
+  drawMarkers(rows);
+
+  const tb = document.querySelector('#site-table tbody');
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.tabIndex=0;
+    if (r.key===selectedKey) tr.classList.add('sel');
+    const statusTxt = r.type==='NPL' ? (r.y+' · '+STATUS_LABEL[r.st]) : r.aocStatus;
+    const notesTxt = allContaminantsFromInv(r.inv || {}).slice(0, 6).join(', ') + (allContaminantsFromInv(r.inv).length > 6 ? '…' : '');
+    tr.innerHTML = `<td class="${r.type==='NPL'?'type-npl':'type-aoc'}">${r.type}</td>
+      <td><strong>${r.n}</strong></td><td>${r.c}, ${r.s}</td><td>${r.lake}</td>
+      <td class="stat-cell">${statusTxt}</td><td>${notesTxt}</td>`;
+    tr.addEventListener('click', ()=> showDetail(r.key));
+    tr.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault(); showDetail(r.key);} });
+    tb.appendChild(tr);
+  });
+  $('reg-count').textContent = `${rows.length} of ${RECORDS.length} records inside the watershed (${outsideCount} excluded as outside)`;
+
+  updateCharts(rows);
+  updateChemCount();
+}
+
+/* ================= DETAIL PANEL ================= */
+function showDetail(key){
+  selectedKey = key;
+  const r = RECORDS.find(x=>x.key===key);
+  if (!r) return;
+  let badgeClass, badgeTxt;
+  if (r.type==='NPL'){
+    badgeClass = r.st==='A'?'b-active':r.st==='C'?'b-cc':'b-del';
+    badgeTxt = STATUS_LABEL[r.st];
+  } else {
+    badgeClass = 'b-aoc'; badgeTxt = r.aocStatus;
+  }
+  $('detail').innerHTML = `
+    <h3>${r.n}</h3>
+    <div class="meta">${r.c}, ${r.s} · Lake ${r.lake} basin${r.type==='NPL' ? ' · listed '+r.y : ''}</div>
+    <span class="badge ${badgeClass}">${r.type} — ${badgeTxt}</span>
+    ${r.inv && Object.keys(r.inv).length ? `<div class="chem-inv"><h4>Chemical inventory</h4>
+      ${CHEM_CAT_ORDER.filter(cat => r.inv[cat] && r.inv[cat].length).map(cat => `
+        <div class="chem-cat">
+          <span class="cat-badge" style="background:${CHEM_CAT_COLOR[cat]}">${cat}</span>
+          ${r.inv[cat].map(c => `<span class="tag">${c}</span>`).join('')}
+        </div>`).join('')}
+    </div>` : ''}
+    ${r.src ? `<p><strong>Source:</strong> ${r.src}</p>` : ''}
+    ${r.note ? `<p>${r.note}</p>` : '<p class="hint">This is a Great Lakes Area of Concern — a location with documented beneficial-use impairments under the binational Great Lakes Water Quality Agreement.</p>'}
+    <p class="hint">Look this up in EPA's <a href="https://www.epa.gov/superfund/search-superfund-sites-where-you-live" target="_blank" rel="noopener">Superfund site search</a> or the <a href="https://www.epa.gov/great-lakes-aocs/list-great-lakes-aocs" target="_blank" rel="noopener">AOC list</a> for official documents.</p>`;
+  map.flyTo([r.lat, r.lng], Math.max(map.getZoom(), 9), {duration:0.6});
+  const m = markerByKey[key]; if (m) m.openTooltip();
+  render();
+}
+
+/* ================= CHARTS (hand-rolled) ================= */
+function hbars(containerId, entries, color){
+  const box=$(containerId); box.innerHTML='';
+  if(!entries.length || entries.every(e=>!e[1])){ box.innerHTML='<div class="empty-note">No records match the current filters.</div>'; return; }
+  const max=Math.max(...entries.map(e=>e[1]),1);
+  entries.forEach(([lab,val])=>{
+    const row=document.createElement('div'); row.className='hbar-row';
+    row.innerHTML=`<span class="lbl" title="${lab}">${lab}</span>
+      <span class="hbar-track"><span class="hbar-fill" style="width:${(val/max*100).toFixed(1)}%;background:${typeof color==='function'?color(lab):color}"></span></span>
+      <span class="val">${val}</span>`;
+    box.appendChild(row);
+  });
+}
+function donut(containerId, entries){
+  const box=$(containerId); box.innerHTML='';
+  const total=entries.reduce((a,e)=>a+e[1],0);
+  if(!total){ box.innerHTML='<div class="empty-note">No records match the current filters.</div>'; return; }
+  let acc=0; const stops=[];
+  entries.forEach(([lab,val])=>{
+    if(!val) return;
+    const a0=acc/total*360, a1=(acc+val)/total*360;
+    stops.push(`${LAKE_COLOR[lab]} ${a0.toFixed(1)}deg ${a1.toFixed(1)}deg`);
+    acc+=val;
+  });
+  const wrap=document.createElement('div'); wrap.className='donut-wrap';
+  const d=document.createElement('div'); d.className='donut';
+  d.style.background=`conic-gradient(${stops.join(',')})`;
+  d.setAttribute('data-total', total);
+  const leg=document.createElement('div'); leg.className='donut-legend';
+  entries.forEach(([lab,val])=>{
+    if(!val) return;
+    const li=document.createElement('div');
+    li.innerHTML=`<span class="sw" style="background:${LAKE_COLOR[lab]}"></span>${lab} — <strong>${val}</strong>`;
+    leg.appendChild(li);
+  });
+  wrap.appendChild(d); wrap.appendChild(leg); box.appendChild(wrap);
+}
+function counts(list, keyFn){
+  const m=new Map();
+  list.forEach(x=>{ const k=keyFn(x); m.set(k,(m.get(k)||0)+1); });
+  return m;
+}
+function updateCharts(rows){
+  const stOrder=["MN","WI","IL","IN","MI","OH","PA","NY"];
+  const byState=counts(rows.flatMap(r=>r.s.split('/')), s=>s);
+  hbars('c-state', stOrder.map(k=>[k, byState.get(k)||0]), '#14707E');
+
+  const byLake=counts(rows, r=>r.lake);
+  donut('c-lake', LAKES.map(k=>[k, byLake.get(k)||0]));
+
+  const nplRows = rows.filter(r=>r.type==='NPL');
+  const periods=[["1982–1989",y=>y<1990],["1990–1999",y=>y>=1990&&y<2000],["2000–2009",y=>y>=2000&&y<2010],["2010–2019",y=>y>=2010&&y<2020],["2020–2026",y=>y>=2020]];
+  hbars('c-decade', periods.map(p=>[p[0], nplRows.filter(r=>p[1](r.y)).length]), '#14262E');
+
+  const byCat = counts(rows.flatMap(r => Object.entries(r.inv || {}).flatMap(([cat, chems]) => chems.map(() => cat))), c => c);
+  hbars('c-contam', CHEM_CAT_ORDER.map(k => [k, byCat.get(k) || 0]).filter(e => e[1]), c => CHEM_CAT_COLOR[c] || '#B7431C');
+}
+
+function buildContaminantRows(){
+  const rows = [];
+  RECORDS.forEach(r => {
+    Object.entries(r.inv || {}).forEach(([cat, chems]) => {
+      chems.forEach(chem => {
+        rows.push({
+          site_key: r.key,
+          site_type: r.type,
+          site_name: r.n,
+          city: r.c,
+          state: r.s,
+          lake_basin: r.lake,
+          contaminant: chem,
+          category: cat,
+          npl_year: r.y || '',
+          status: r.type === 'NPL' ? STATUS_LABEL[r.st] : (r.aocStatus || ''),
+          source_activity: r.src || 'Great Lakes Area of Concern',
+          in_watershed: r.inside ? 'yes' : 'no'
+        });
+      });
+    });
+  });
+  return rows;
+}
+
+function updateChemCount(){
+  const rows = buildContaminantRows();
+  const sites = new Set(rows.map(r => r.site_key)).size;
+  $('chem-count').textContent = `${rows.length} site–contaminant records across ${sites} locations`;
+}
+
+function downloadBlob(filename, mime, content){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportContaminantCSV(){
+  const rows = buildContaminantRows();
+  const headers = ['site_key','site_type','site_name','city','state','lake_basin','contaminant','category','npl_year','status','source_activity','in_watershed'];
+  const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [headers.join(',')].concat(rows.map(r => headers.map(h => esc(r[h])).join(',')));
+  downloadBlob(`great-lakes-contaminant-database-${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8', '\uFEFF' + lines.join('\n'));
+}
+
+function exportContaminantExcel(){
+  if (!window.XLSX) { alert('Excel library failed to load. Use CSV export or serve this page from a web server.'); return; }
+  const rows = buildContaminantRows();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Contaminants');
+  XLSX.writeFile(wb, `great-lakes-contaminant-database-${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+/* ================= LAYER VISIBILITY ================= */
+function applyLayerVisibility(){
+  if (showStatesLayer) {
+    if(!map.hasLayer(statesLayer)) statesLayer.addTo(map);
+    if(!map.hasLayer(stateLabelsLayer)) stateLabelsLayer.addTo(map);
+  } else {
+    map.removeLayer(statesLayer);
+    map.removeLayer(stateLabelsLayer);
+  }
+  if (showWatershedLayer) { if(!map.hasLayer(watershedLayer)) watershedLayer.addTo(map); } else { map.removeLayer(watershedLayer); }
+  if (riversLayer){
+    if (showRiversLayer) { if(!map.hasLayer(riversLayer)) riversLayer.addTo(map); } else { map.removeLayer(riversLayer); }
+  }
+  if (showLakeLabelsLayer) { if(!map.hasLayer(lakeLabelsLayer)) lakeLabelsLayer.addTo(map); } else { map.removeLayer(lakeLabelsLayer); }
+}
+
+/* ================= PDF REPORT EXPORT ================= */
+const SYMBOL_SIZES = { small: { r: 4, half: 3.5 }, medium: { r: 6, half: 5 }, large: { r: 9, half: 7.5 } };
+const FIGURE_PT = {
+  small:  { w: 288, h: 180 },
+  medium: { w: 468, h: 288 },
+  large:  { w: 540, h: 324 },
+  full:   null
+};
+
+function readCustomColorsFromForm(){
+  return {
+    nplA: $('pdf-col-npl-a').value,
+    nplC: $('pdf-col-npl-c').value,
+    nplD: $('pdf-col-npl-d').value,
+    aocActive: $('pdf-col-aoc-a').value,
+    aocDelisted: $('pdf-col-aoc-d').value
+  };
+}
+
+function getSymbolColor(rec, opts){
+  if (opts.colorMode === 'default'){
+    return rec.type === 'NPL' ? STATUS_COLOR[rec.st] : AOC_COLOR(rec.aocStatus);
+  }
+  const c = opts.customColors;
+  if (rec.type === 'NPL'){
+    if (rec.st === 'A') return c.nplA;
+    if (rec.st === 'C') return c.nplC;
+    return c.nplD;
+  }
+  return /delist/i.test(rec.aocStatus) ? c.aocDelisted : c.aocActive;
+}
+
+function applyCanvasLineStyle(ctx, style, width){
+  ctx.lineWidth = width;
+  if (style === 'dashed') ctx.setLineDash([Math.max(width * 3, 6), Math.max(width * 2, 4)]);
+  else if (style === 'dotted') ctx.setLineDash([Math.max(width, 2), Math.max(width * 1.5, 3)]);
+  else ctx.setLineDash([]);
+}
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+function getNplSymbolSize(opts){ return SYMBOL_SIZES[opts.nplSymbolSize] || SYMBOL_SIZES.medium; }
+function getAocSymbolSize(opts){ return SYMBOL_SIZES[opts.aocSymbolSize] || SYMBOL_SIZES.medium; }
+
+function drawSiteSymbol(ctx, x, y, rec, opts){
+  const isNpl = rec.type === 'NPL';
+  const sz = isNpl ? getNplSymbolSize(opts) : getAocSymbolSize(opts);
+  const shape = isNpl ? opts.nplSymbolShape : opts.aocSymbolShape;
+  const color = getSymbolColor(rec, opts);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = Math.max(1.5, sz.r * 0.35);
+  const h = sz.half;
+  ctx.beginPath();
+  if (shape === 'circle'){
+    ctx.arc(x, y, sz.r, 0, Math.PI * 2);
+  } else if (shape === 'square'){
+    ctx.rect(x - h, y - h, h * 2, h * 2);
+  } else if (shape === 'diamond'){
+    ctx.moveTo(x, y - h * 1.15); ctx.lineTo(x + h * 1.15, y); ctx.lineTo(x, y + h * 1.15); ctx.lineTo(x - h * 1.15, y);
+    ctx.closePath();
+  } else {
+    ctx.moveTo(x, y - h * 1.2); ctx.lineTo(x + h * 1.1, y + h * 0.9); ctx.lineTo(x - h * 1.1, y + h * 0.9);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.stroke();
+}
+
+function drawLakeLabel(ctx, x, y, text, opts){
+  const size = opts.lakeLabelFontSize || 12;
+  ctx.font = `700 ${size}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = opts.lakeLabelColor || '#FFFFFF';
+  ctx.fillText(text, x, y);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawStateLabel(ctx, x, y, text, opts){
+  const size = (opts && opts.stateLabelFontSize) || 11;
+  ctx.font = `700 ${size}px "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = (opts && opts.stateLabelColor) || '#E8EDF0';
+  ctx.fillText(text, x, y);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawRiverLine(ctx, coords, xy, opts){
+  ctx.beginPath();
+  coords.forEach((pt, i) => {
+    const [x, y] = xy(pt[1], pt[0]);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = opts.riverColor || RIVER_COLOR;
+  applyCanvasLineStyle(ctx, opts.riverLineStyle || 'solid', opts.riverLineWidth || 2);
+  ctx.globalAlpha = 0.92;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+}
+
+function getLegendItems(opts){
+  const c = opts.colorMode === 'custom' ? opts.customColors : {
+    nplA: STATUS_COLOR.A, nplC: STATUS_COLOR.C, nplD: STATUS_COLOR.D,
+    aocActive: '#14707E', aocDelisted: '#2F7D4E'
+  };
+  const nplShape = (opts.nplSymbolShape || 'circle').replace(/^\w/, ch => ch.toUpperCase());
+  const aocShape = (opts.aocSymbolShape || 'diamond').replace(/^\w/, ch => ch.toUpperCase());
+  const items = [];
+  if (opts.legendNpl !== false && opts.showNPL){
+    items.push({ shape: opts.nplSymbolShape || 'circle', color: c.nplA, label: `NPL — cleanup ongoing (${nplShape})` });
+    items.push({ shape: opts.nplSymbolShape || 'circle', color: c.nplC, label: `NPL — construction complete (${nplShape})` });
+    items.push({ shape: opts.nplSymbolShape || 'circle', color: c.nplD, label: `NPL — deleted (${nplShape})` });
+  }
+  if (opts.legendAoc !== false && opts.showAOC){
+    items.push({ shape: opts.aocSymbolShape || 'diamond', color: c.aocActive, label: `AOC — active (${aocShape})` });
+    items.push({ shape: opts.aocSymbolShape || 'diamond', color: c.aocDelisted, label: `AOC — delisted (${aocShape})` });
+  }
+  if (opts.legendWatershed !== false && opts.showWatershed){
+    items.push({ shape: 'line', color: opts.watershedColor || '#B7431C', label: 'Watershed boundary', dashed: opts.watershedLineStyle === 'dashed', dotted: opts.watershedLineStyle === 'dotted' });
+  }
+  if (opts.legendStates !== false && opts.showStates){
+    items.push({ shape: 'line', color: '#8A9AA0', label: 'State boundary', dashed: false });
+  }
+  if (opts.legendRivers !== false && opts.showRivers){
+    items.push({ shape: 'line', color: opts.riverColor || RIVER_COLOR, label: 'Major tributaries', dashed: opts.riverLineStyle === 'dashed', dotted: opts.riverLineStyle === 'dotted' });
+  }
+  return items;
+}
+
+function drawLegendBox(ctx, width, height, opts){
+  const items = getLegendItems(opts);
+  if (!items.length) return;
+  const mapSz = getNplSymbolSize(opts);
+  const sz = { r: Math.max(mapSz.r + 3, 8), half: Math.max(mapSz.half + 2, 7) };
+  const pad = 16;
+  const legendFont = opts.legendFontSize || 13;
+  const rowH = Math.max(22, legendFont + 12);
+  ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+  const maxLabelW = Math.max(...items.map(it => ctx.measureText(it.label).width));
+  const boxW = Math.min(width - 24, Math.max(280, pad + sz.r * 2 + 18 + maxLabelW + pad));
+  const boxH = pad * 2 + items.length * rowH + 20;
+  const x0 = width - boxW - 14;
+  const y0 = 14;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(20,38,46,0.45)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 3;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(x0, y0, boxW, boxH);
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#14262E';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(x0, y0, boxW, boxH);
+  ctx.restore();
+
+  ctx.fillStyle = '#14262E';
+  ctx.font = `bold ${legendFont + 3}px "Segoe UI", sans-serif`;
+  ctx.fillText('Legend', x0 + pad, y0 + pad + 11);
+
+  ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+  items.forEach((item, i) => {
+    const cy = y0 + pad + 22 + i * rowH + rowH / 2;
+    const ix = x0 + pad + sz.r + 4;
+    if (item.shape === 'circle'){
+      ctx.fillStyle = item.color;
+      ctx.beginPath();
+      ctx.arc(ix, cy, sz.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#14262E';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (item.shape === 'square' || item.shape === 'diamond' || item.shape === 'triangle'){
+      drawSiteSymbol(ctx, ix, cy, {
+        type: item.label.includes('AOC') ? 'AOC' : 'NPL',
+        st: item.label.includes('construction complete') ? 'C' : item.label.includes('deleted') || item.label.includes('delisted') ? 'D' : 'A',
+        aocStatus: item.label.includes('delisted') ? 'Delisted' : 'Active'
+      }, {
+        colorMode: 'custom',
+        customColors: { nplA: item.color, nplC: item.color, nplD: item.color, aocActive: item.color, aocDelisted: item.color },
+        nplSymbolShape: item.shape,
+        aocSymbolShape: item.shape,
+        nplSymbolSize: opts.nplSymbolSize,
+        aocSymbolSize: opts.aocSymbolSize
+      });
+    } else {
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = item.dashed || item.dotted ? 3 : 2;
+      if (item.dashed) ctx.setLineDash([6, 4]);
+      else if (item.dotted) ctx.setLineDash([2, 4]);
+      else ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(ix - 14, cy);
+      ctx.lineTo(ix + 14, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.fillStyle = '#14262E';
+    ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+    ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, cy + 5);
+  });
+}
+
+function pdfCenterText(pdf, text, y, pageW){
+  pdf.text(text, (pageW - pdf.getTextWidth(text)) / 2, y);
+}
+
+function getCurrentBasemap(){
+  if (map.hasLayer(topography) && !map.hasLayer(satellite) && !map.hasLayer(streets)) return 'topography';
+  if (map.hasLayer(streets) && !map.hasLayer(satellite) && !map.hasLayer(topography)) return 'streets';
+  if (map.hasLayer(satellite)) return 'satellite';
+  if (map.hasLayer(topography)) return 'topography';
+  return 'none';
+}
+
+function getExportBounds(opts){
+  if (opts.exportExtent === 'basin') return { ...MAP_BASIN_BOUNDS };
+  const b = map.getBounds();
+  return { west: b.getWest(), east: b.getEast(), south: b.getSouth(), north: b.getNorth() };
+}
+
+function computeExportTileZoom(width, bounds, basemap){
+  const resolved = basemap === 'current' ? getCurrentBasemap() : basemap;
+  const maxZ = BASEMAP_MAX_ZOOM[resolved] || 18;
+  if (resolved === 'none') return 4;
+  const lngSpan = bounds.east - bounds.west || 1;
+  const pxPerDeg = width / lngSpan;
+  const z = Math.ceil(Math.log2(pxPerDeg * 360 / 256));
+  return Math.min(maxZ, Math.max(4, z));
+}
+
+function basemapTileUrl(basemap, z, y, x){
+  const subs = ['a', 'b', 'c'];
+  if (basemap === 'satellite')
+    return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+  if (basemap === 'topography')
+    return `https://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/${z}/${y}/${x}`;
+  if (basemap === 'streets')
+    return `https://${subs[(x + y) % 3]}.tile.openstreetmap.org/${z}/${x}/${y}.png`;
+  return null;
+}
+
+function describePdfOptions(opts){
+  const parts = [];
+  if (opts.state) parts.push(`State: ${opts.state}`);
+  if (opts.status) parts.push(`NPL status: ${opts.status}`);
+  if (opts.search) parts.push(`Search: "${opts.search}"`);
+  if (opts.lakes.size < LAKES.length) parts.push(`Lake basins: ${[...opts.lakes].join(', ')}`);
+  if (!opts.showNPL) parts.push('NPL sites excluded');
+  if (!opts.showAOC) parts.push('AOCs excluded');
+  if (!opts.showStates) parts.push('State boundaries hidden');
+  if (!opts.showWatershed) parts.push('Watershed boundary hidden');
+  const basemapLabels = { none:'No basemap', satellite:'Satellite (Esri)', streets:'OpenStreetMap', topography:'USA Topographic (Esri)', current:'Current map basemap' };
+  parts.push(`Basemap: ${basemapLabels[opts.basemap] || opts.basemap}`);
+  parts.push(`NPL symbol: ${opts.nplSymbolShape}, ${opts.nplSymbolSize}`);
+  parts.push(`AOC symbol: ${opts.aocSymbolShape}, ${opts.aocSymbolSize}`);
+  parts.push(`Colors: ${opts.colorMode === 'custom' ? 'Custom' : 'Default'}`);
+  if (opts.figureTitle) parts.push(`Figure: "${opts.figureTitle}"`);
+  if (selectedKey){
+    const r = RECORDS.find(x => x.key === selectedKey);
+    if (r) parts.push(`Highlighted site: ${r.n}`);
+  }
+  return parts.length ? parts.join(' · ') : 'All records inside watershed';
+}
+
+function loadTileImage(url){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('tile load failed'));
+    img.src = url;
+  });
+}
+
+function tileLng(x, z){ return x / Math.pow(2, z) * 360 - 180; }
+function tileLat(y, z){
+  const n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+  return 180 / Math.PI * Math.atan(Math.sinh(n));
+}
+
+async function drawBasemapTiles(ctx, width, height, basemap, bounds){
+  if (basemap === 'none') return false;
+  const west = bounds.west, east = bounds.east, north = bounds.north, south = bounds.south;
+  const lngSpan = east - west || 1;
+  const latSpan = north - south || 1;
+  const xy = (lat, lng) => [
+    ((lng - west) / lngSpan) * width,
+    ((north - lat) / latSpan) * height
+  ];
+  const z = computeExportTileZoom(width, bounds, basemap);
+  const n = Math.pow(2, z);
+  const xMin = Math.max(0, Math.floor((west + 180) / 360 * n));
+  const xMax = Math.min(n - 1, Math.floor((east + 180) / 360 * n));
+  const yMin = Math.max(0, Math.floor((1 - Math.log(Math.tan(north * Math.PI / 180) + 1 / Math.cos(north * Math.PI / 180)) / Math.PI) / 2 * n));
+  const yMax = Math.min(n - 1, Math.floor((1 - Math.log(Math.tan(south * Math.PI / 180) + 1 / Math.cos(south * Math.PI / 180)) / Math.PI) / 2 * n));
+  let drewAny = false;
+  for (let x = xMin; x <= xMax; x++){
+    for (let y = yMin; y <= yMax; y++){
+      const url = basemapTileUrl(basemap, z, y, x);
+      if (!url) continue;
+      try {
+        const img = await loadTileImage(url);
+        const tl = xy(tileLat(y, z), tileLng(x, z));
+        const br = xy(tileLat(y + 1, z), tileLng(x + 1, z));
+        ctx.drawImage(img, tl[0], tl[1], br[0] - tl[0], br[1] - tl[1]);
+        drewAny = true;
+      } catch { /* skip unavailable tiles */ }
+    }
+  }
+  return drewAny;
+}
+
+async function ensureRiversData(){
+  if (riversGeoJSON) return riversGeoJSON;
+  try {
+    const res = await fetch('great_lakes_tributaries.geojson');
+    if (res.ok) riversGeoJSON = await res.json();
+  } catch { /* tributaries optional */ }
+  return riversGeoJSON;
+}
+
+async function renderMapToCanvas(width, height, opts, rows){
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#DDE6E8';
+  ctx.fillRect(0, 0, width, height);
+
+  const bounds = getExportBounds(opts);
+  const west = bounds.west, east = bounds.east, north = bounds.north, south = bounds.south;
+  const lngSpan = east - west || 1;
+  const latSpan = north - south || 1;
+  const xy = (lat, lng) => [
+    ((lng - west) / lngSpan) * width,
+    ((north - lat) / latSpan) * height
+  ];
+
+  const basemap = opts.basemap === 'current' ? getCurrentBasemap() : opts.basemap;
+  const basemapDrawn = await drawBasemapTiles(ctx, width, height, basemap, bounds);
+
+  const drawRing = ring => {
+    ctx.beginPath();
+    ring.forEach((pt, i) => {
+      const [x, y] = xy(pt[1], pt[0]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+  };
+
+  if (opts.showWatershed){
+    drawRing(WATERSHED_RING);
+    ctx.fillStyle = hexToRgba(opts.watershedColor || '#B7431C', 0.08);
+    ctx.fill();
+    ctx.strokeStyle = opts.watershedColor || '#B7431C';
+    applyCanvasLineStyle(ctx, opts.watershedLineStyle || 'dashed', opts.watershedLineWidth || 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  if (opts.showStates){
+    ctx.strokeStyle = '#8A9AA0';
+    ctx.lineWidth = 1.2;
+    STATES_GEOJSON.features.forEach(f => {
+      if (f.geometry.type === 'Polygon'){
+        f.geometry.coordinates.forEach(ring => { drawRing(ring); ctx.stroke(); });
+      } else if (f.geometry.type === 'MultiPolygon'){
+        f.geometry.coordinates.forEach(poly => poly.forEach(ring => { drawRing(ring); ctx.stroke(); }));
+      }
+    });
+    STATE_LABELS.forEach(st => {
+      const [sx, sy] = xy(st.lat, st.lng);
+      drawStateLabel(ctx, sx, sy, st.abbr, opts);
+    });
+  }
+
+  if (opts.showRivers && riversGeoJSON){
+    riversGeoJSON.features.forEach(f => {
+      if (f.geometry.type === 'LineString') drawRiverLine(ctx, f.geometry.coordinates, xy, opts);
+      else if (f.geometry.type === 'MultiLineString')
+        f.geometry.coordinates.forEach(line => drawRiverLine(ctx, line, xy, opts));
+    });
+  }
+
+  rows.forEach(rec => {
+    const [x, y] = xy(rec.lat, rec.lng);
+    drawSiteSymbol(ctx, x, y, rec, opts);
+  });
+
+  if (opts.showLakeLabels){
+    LAKE_LABELS.forEach(lk => {
+      const [lx, ly] = xy(lk.lat, lk.lng);
+      drawLakeLabel(ctx, lx, ly, lk.name, opts);
+    });
+  }
+
+  if (opts.showLegend) drawLegendBox(ctx, width, height, opts);
+
+  return { canvas, basemapDrawn, basemapUsed: basemap };
+}
+
+function ensurePdfLibraries(){
+  if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDF failed to load');
+  const test = new window.jspdf.jsPDF();
+  if (typeof test.autoTable !== 'function') throw new Error('jsPDF-AutoTable failed to load');
+}
+
+function readExportOptionsFromForm(){
+  const basemap = document.querySelector('input[name="pdf-basemap"]:checked')?.value || 'current';
+  const lakes = new Set();
+  document.querySelectorAll('#pdf-lakes input:checked').forEach(inp => lakes.add(inp.value));
+  if (!lakes.size) LAKES.forEach(l => lakes.add(l));
+  return {
+    basemap,
+    showNPL: $('pdf-npl').checked,
+    showAOC: $('pdf-aoc').checked,
+    state: $('pdf-state').value,
+    status: $('pdf-status').value,
+    search: $('pdf-search').value.trim(),
+    lakes,
+    showStates: $('pdf-states').checked,
+    showWatershed: $('pdf-watershed').checked,
+    showRivers: $('pdf-rivers').checked,
+    showLakeLabels: $('pdf-lake-labels').checked,
+    includeRegister: $('pdf-register').checked,
+    figureTitle: $('pdf-fig-title').value.trim() || 'Great Lakes Superfund Sites and Areas of Concern',
+    dataSource: $('pdf-data-source').value.trim(),
+    figureSize: $('pdf-fig-size').value,
+    exportExtent: document.querySelector('input[name="pdf-extent"]:checked')?.value || 'current',
+    pngWidth: parseInt($('pdf-png-size').value, 10) || 2400,
+    nplSymbolShape: $('pdf-npl-shape').value,
+    aocSymbolShape: $('pdf-aoc-shape').value,
+    nplSymbolSize: $('pdf-npl-size').value,
+    aocSymbolSize: $('pdf-aoc-size').value,
+    colorMode: $('pdf-color-mode').value,
+    customColors: readCustomColorsFromForm(),
+    showLegend: $('pdf-legend').checked,
+    legendFontSize: parseInt($('pdf-legend-font').value, 10) || 13,
+    legendNpl: $('legend-npl').checked,
+    legendAoc: $('legend-aoc').checked,
+    legendWatershed: $('legend-watershed').checked,
+    legendStates: $('legend-states').checked,
+    legendRivers: $('legend-rivers').checked,
+    watershedColor: $('pdf-ws-color').value,
+    watershedLineWidth: parseFloat($('pdf-ws-width').value) || 2,
+    watershedLineStyle: $('pdf-ws-style').value,
+    riverColor: $('pdf-rv-color').value,
+    riverLineWidth: parseFloat($('pdf-rv-width').value) || 2,
+    riverLineStyle: $('pdf-rv-style').value,
+    lakeLabelFontSize: parseInt($('pdf-lake-font').value, 10) || 12,
+    lakeLabelColor: $('pdf-lake-color').value,
+    stateLabelFontSize: parseInt($('pdf-state-font').value, 10) || 11,
+    stateLabelColor: $('pdf-state-color').value
+  };
+}
+
+function toggleLegendItemsPanel(){
+  $('legend-items-panel').style.opacity = $('pdf-legend').checked ? '1' : '0.45';
+  $('legend-items-panel').querySelectorAll('input').forEach(inp => { inp.disabled = !$('pdf-legend').checked; });
+}
+
+function togglePdfCustomColors(){
+  $('pdf-custom-colors').hidden = $('pdf-color-mode').value !== 'custom';
+}
+
+function syncPdfModalFromMap(){
+  document.querySelector('input[name="pdf-basemap"][value="current"]').checked = true;
+  $('pdf-npl').checked = showNPL;
+  $('pdf-aoc').checked = showAOC;
+  $('pdf-states').checked = showStatesLayer;
+  $('pdf-watershed').checked = showWatershedLayer;
+  $('pdf-rivers').checked = showRiversLayer;
+  $('pdf-lake-labels').checked = showLakeLabelsLayer;
+  $('pdf-state').value = $('f-state').value;
+  $('pdf-status').value = $('f-status').value;
+  $('pdf-search').value = $('f-search').value;
+  document.querySelectorAll('#pdf-lakes input').forEach(inp => {
+    inp.checked = activeLakes.has(inp.value);
+  });
+  togglePdfCustomColors();
+  toggleLegendItemsPanel();
+}
+
+function figureDimensions(pdfOpts, pageW, yStart, pageH, margin){
+  const preset = FIGURE_PT[pdfOpts.figureSize];
+  if (preset) return { w: preset.w, h: preset.h };
+  const maxW = pageW - margin * 2;
+  const maxH = pageH - yStart - margin - 30;
+  return { w: maxW, h: Math.min(maxH, maxW * 0.58) };
+}
+
+function openPdfModal(){
+  syncPdfModalFromMap();
+  $('pdf-modal').classList.add('open');
+  $('pdf-modal').setAttribute('aria-hidden', 'false');
+}
+
+function closePdfModal(){
+  $('pdf-modal').classList.remove('open');
+  $('pdf-modal').setAttribute('aria-hidden', 'true');
+}
+
+async function getExportRows(opts){
+  if (!opts.showNPL && !opts.showAOC) throw new Error('Select at least one dataset: NPL sites or Areas of Concern');
+  if (opts.showRivers) await ensureRiversData();
+  const rows = filterRecords({
+    showNPL: opts.showNPL,
+    showAOC: opts.showAOC,
+    state: opts.state,
+    status: opts.status,
+    search: opts.search,
+    lakes: opts.lakes
+  });
+  if (!rows.length) throw new Error('No records match the selected dataset options');
+  return rows;
+}
+
+function pngCanvasDimensions(opts){
+  const bounds = getExportBounds(opts);
+  const aspect = (bounds.east - bounds.west) / Math.max(bounds.north - bounds.south, 0.01);
+  const width = opts.pngWidth;
+  const height = Math.round(width / aspect);
+  return { width, height };
+}
+
+async function exportPngReport(opts){
+  const btn = $('export-png');
+  const prevLabel = btn.textContent;
+  btn.disabled = true;
+  $('export-pdf').disabled = true;
+  btn.textContent = 'Generating PNG…';
+  try {
+    const rows = await getExportRows(opts);
+    const { width, height } = pngCanvasDimensions(opts);
+    const { canvas } = await renderMapToCanvas(width, height, opts, rows);
+    await new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('PNG encoding failed')); return; }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `great-lakes-superfund-map-${new Date().toISOString().slice(0, 10)}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        resolve();
+      }, 'image/png');
+    });
+    closePdfModal();
+  } catch (err) {
+    console.error(err);
+    alert('PNG export failed.' + (err.message ? `\n\n(${err.message})` : ''));
+  } finally {
+    btn.disabled = false;
+    $('export-pdf').disabled = false;
+    btn.textContent = prevLabel;
+  }
+}
+
+async function exportPdfReport(opts){
+  const btn = $('export-pdf');
+  const prevLabel = btn.textContent;
+  btn.disabled = true;
+  $('export-png').disabled = true;
+  btn.textContent = 'Generating PDF…';
+  try {
+    ensurePdfLibraries();
+    const rows = await getExportRows(opts);
+
+    const margin = 40;
+    const figDims = figureDimensions(opts, 792, margin, 612, margin);
+    const canvasW = Math.round(figDims.w * 2.2);
+    const canvasH = Math.round(figDims.h * 2.2);
+    const { canvas, basemapDrawn, basemapUsed } = await renderMapToCanvas(canvasW, canvasH, opts, rows);
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    const titleLines = pdf.splitTextToSize(opts.figureTitle, pageW - margin * 2);
+    const titleBlockH = titleLines.length * 16 + 10;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    const srcLines = opts.dataSource
+      ? pdf.splitTextToSize(`Data source: ${opts.dataSource}`, pageW - margin * 2)
+      : [];
+    const footerBlockH = srcLines.length * 11 + 8;
+
+    const dims = figureDimensions(opts, pageW, margin, pageH, margin);
+    const blockH = titleBlockH + dims.h + 12 + footerBlockH;
+    let y = Math.max(margin, (pageH - blockH) / 2);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.setTextColor(20, 38, 46);
+    titleLines.forEach(line => {
+      pdfCenterText(pdf, line, y, pageW);
+      y += 16;
+    });
+    y += 4;
+
+    const imgX = (pageW - dims.w) / 2;
+    pdf.addImage(imgData, 'JPEG', imgX, y, dims.w, dims.h);
+    y += dims.h + 10;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(90, 110, 120);
+    if (!opts.showLegend){
+      const legItems = getLegendItems(opts);
+      if (legItems.length){
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(Math.max(9, (opts.legendFontSize || 13) - 2));
+        pdf.setTextColor(20, 38, 46);
+        pdfCenterText(pdf, 'Legend', y, pageW);
+        y += 12;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(Math.max(8, (opts.legendFontSize || 13) - 3));
+        pdf.setTextColor(60, 70, 75);
+        legItems.forEach(item => {
+          pdfCenterText(pdf, `• ${item.label}`, y, pageW);
+          y += 12;
+        });
+        y += 4;
+      }
+    }
+
+    if (basemapUsed !== 'none' && !basemapDrawn){
+      pdfCenterText(pdf, 'Note: Basemap tiles could not be loaded; map shows boundaries and markers only.', y, pageW);
+      y += 12;
+    }
+
+    srcLines.forEach(line => {
+      pdfCenterText(pdf, line, y, pageW);
+      y += 11;
+    });
+
+    if (opts.includeRegister){
+      pdf.addPage();
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.setTextColor(20, 38, 46);
+      pdf.text('Site register', margin, margin);
+
+      const tableBody = rows.map(r => {
+        const statusTxt = r.type === 'NPL' ? (r.y + ' · ' + STATUS_LABEL[r.st]) : r.aocStatus;
+        const notesTxt = allContaminantsFromInv(r.inv || {}).slice(0, 8).join(', ');
+        return [r.type, r.n, `${r.c}, ${r.s}`, r.lake, statusTxt, notesTxt];
+      });
+
+      pdf.autoTable({
+        startY: margin + 20,
+        head: [['Type', 'Site / AOC', 'City, State', 'Lake basin', 'Year / Status', 'Contaminants / notes']],
+        body: tableBody,
+        styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+        headStyles: { fillColor: [20, 38, 46], textColor: [220, 231, 234] },
+        alternateRowStyles: { fillColor: [240, 246, 247] },
+        columnStyles: { 1: { cellWidth: 120 }, 5: { cellWidth: 140 } },
+        margin: { left: margin, right: margin },
+        didDrawPage: () => {
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.setTextColor(90, 110, 120);
+          pdf.text(`Great Lakes Superfund Atlas · Page ${pdf.internal.getNumberOfPages()}`, margin, pageH - 20);
+        }
+      });
+    }
+
+    pdf.save(`great-lakes-superfund-map-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+    closePdfModal();
+  } catch (err) {
+    console.error(err);
+    const detail = err && err.message ? `\n\n(${err.message})` : '';
+    alert('PDF export failed.' + detail + '\n\nIf you opened this file directly, try serving it from a local web server instead.');
+  } finally {
+    btn.disabled = false;
+    $('export-png').disabled = false;
+    btn.textContent = prevLabel;
+  }
+}
+
+/* ================= CONTROLS ================= */
+const allStates = [...new Set(RECORDS.flatMap(r=>r.s.split('/')))].sort();
+allStates.forEach(st=>{
+  const o=document.createElement('option'); o.value=st; o.textContent=st; $('f-state').appendChild(o);
+  const p=document.createElement('option'); p.value=st; p.textContent=st; $('pdf-state').appendChild(p);
+});
+LAKES.forEach(lk=>{
+  const b=document.createElement('button');
+  b.className='chip'; b.textContent=lk; b.setAttribute('aria-pressed','true');
+  b.addEventListener('click', ()=>{
+    if(activeLakes.has(lk) && activeLakes.size===LAKES.length){ activeLakes=new Set([lk]); }
+    else if(activeLakes.has(lk)){ activeLakes.delete(lk); if(!activeLakes.size) activeLakes=new Set(LAKES); }
+    else activeLakes.add(lk);
+    document.querySelectorAll('#lake-chips .chip').forEach((c,j)=>c.setAttribute('aria-pressed', String(activeLakes.has(LAKES[j]))));
+    render();
+  });
+  $('lake-chips').appendChild(b);
+  const lab=document.createElement('label');
+  lab.className='pdf-opt';
+  lab.innerHTML=`<input type="checkbox" value="${lk}" checked> ${lk}`;
+  $('pdf-lakes').appendChild(lab);
+});
+$('chip-npl').addEventListener('click', ()=>{ showNPL=!showNPL; $('chip-npl').setAttribute('aria-pressed',String(showNPL)); render(); });
+$('chip-aoc').addEventListener('click', ()=>{ showAOC=!showAOC; $('chip-aoc').setAttribute('aria-pressed',String(showAOC)); render(); });
+$('chip-states').addEventListener('click', ()=>{ showStatesLayer=!showStatesLayer; $('chip-states').setAttribute('aria-pressed',String(showStatesLayer)); applyLayerVisibility(); });
+$('chip-watershed').addEventListener('click', ()=>{ showWatershedLayer=!showWatershedLayer; $('chip-watershed').setAttribute('aria-pressed',String(showWatershedLayer)); applyLayerVisibility(); });
+$('chip-rivers').addEventListener('click', ()=>{ showRiversLayer=!showRiversLayer; $('chip-rivers').setAttribute('aria-pressed',String(showRiversLayer)); applyLayerVisibility(); });
+$('chip-lake-labels').addEventListener('click', ()=>{ showLakeLabelsLayer=!showLakeLabelsLayer; $('chip-lake-labels').setAttribute('aria-pressed',String(showLakeLabelsLayer)); applyLayerVisibility(); });
+$('btn-export-csv').addEventListener('click', exportContaminantCSV);
+$('btn-export-xlsx').addEventListener('click', exportContaminantExcel);
+['f-state','f-status'].forEach(id=>$(id).addEventListener('change', render));
+$('f-search').addEventListener('input', render);
+$('f-reset').addEventListener('click', ()=>{
+  $('f-state').value=''; $('f-status').value=''; $('f-search').value='';
+  activeLakes=new Set(LAKES); showNPL=true; showAOC=true; selectedKey=null;
+  document.querySelectorAll('#lake-chips .chip').forEach(c=>c.setAttribute('aria-pressed','true'));
+  $('chip-npl').setAttribute('aria-pressed','true'); $('chip-aoc').setAttribute('aria-pressed','true');
+  $('detail').innerHTML = `<h3>Select a site</h3>
+    <p class="hint">Click any marker on the map — or a row in the register below — to see what was released there, which lake basin receives it, and where the cleanup or restoration stands.</p>`;
+  map.setView(MAP_DEFAULT_VIEW.center, MAP_DEFAULT_VIEW.zoom);
+  render();
+});
+
+$('btn-export-pdf').addEventListener('click', openPdfModal);
+$('pdf-cancel').addEventListener('click', closePdfModal);
+$('pdf-modal-backdrop').addEventListener('click', closePdfModal);
+$('pdf-color-mode').addEventListener('change', togglePdfCustomColors);
+$('pdf-legend').addEventListener('change', toggleLegendItemsPanel);
+$('export-png').addEventListener('click', () => exportPngReport(readExportOptionsFromForm()));
+$('export-pdf').addEventListener('click', () => exportPdfReport(readExportOptionsFromForm()));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('pdf-modal').classList.contains('open')) closePdfModal();
+});
+
+applyLayerVisibility();
+toggleLegendItemsPanel();
+render();
+</script>
+</body>
+</html>
