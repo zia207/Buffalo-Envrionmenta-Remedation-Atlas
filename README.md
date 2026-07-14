@@ -31,8 +31,11 @@ An interactive map and research register covering **Erie, Niagara, Cattaraugus, 
 | Chemical Bulk Storage | 84 | NYSDEC Bulk Storage GIS (Erie & Niagara) |
 | County boundaries | 8 | U.S. Census TIGER |
 | ZIP code areas (ZCTA) | 212 | U.S. Census TIGER (simplified) |
+| Social Vulnerability Index | 217 WNY ZCTAs | [CDC/ATSDR SVI](https://www.atsdr.cdc.gov/place-health/php/svi/svi-interactive-map.html) (`svi_ny.csv`) |
 
 DEC programs include State Superfund, Brownfield Cleanup, Environmental Restoration, Voluntary Cleanup, and RCRA corrective action.
+
+> **SVI layer:** Toggle **SVI index** on the map (Map layers row) to open the CDC-style themes & indicators choropleth. SVI data is embedded in the HTML — works when opening the file directly (`file://`) or from a web server.
 
 ### Features
 
@@ -40,6 +43,7 @@ DEC programs include State Superfund, Brownfield Cleanup, Environmental Restorat
 - **Filters** by county, DEC program, status/class, and free-text search
 - **Toggleable datasets** — NPL, DEC, CEAM, CBS — with marker clustering
 - **Boundary overlays** — county outlines and **distinct-color ZIP code polygons**
+- **CDC/ATSDR Social Vulnerability Index (SVI)** — choropleth by ZCTA from `svi_ny.csv` with **themes & indicators** dropdown (Overall SVI, 4 themes, 20+ indicators) matching the [ATSDR SVI Interactive Map](https://www.atsdr.cdc.gov/place-health/php/svi/svi-interactive-map.html)
 - **Site dossier panel** — click any marker or table row for program details, contaminants, and status
 - **Chemical inventory** — expanded contaminant categories (PFAS, BFR, pesticides, PPCPs, legacy/industrial) with CSV and Excel export
 - **Map export (PNG / PDF)** — configurable basemap, symbol shape/size/color, boundary line style, legend, resolution, and map extent
@@ -101,6 +105,7 @@ Buffalo-Envrionmenta-Remedation-Atlas/
 ├── index.html                              # GitHub Pages default entry (Buffalo atlas)
 ├── greater_buffalo_remediation_dashboard.html  # Greater Buffalo atlas (canonical)
 ├── great_lakes_superfund_dashboard.html    # Great Lakes Superfund & AOC atlas
+├── svi_ny.csv                              # CDC/ATSDR SVI data for New York ZCTAs
 ├── RENEW_logo.png                          # University at Buffalo RENEW logo
 └── README.md
 ```
