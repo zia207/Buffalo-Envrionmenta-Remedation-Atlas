@@ -313,7 +313,7 @@ footer strong{color:var(--ink)}
       <div class="map-card">
         <div class="map-toolbar">
           <button type="button" class="export-pdf" id="btn-export-pdf">Export map (PDF / PNG)</button>
-          <span class="hint">Map layers: enable <strong>SVI index</strong> for CDC themes &amp; indicators choropleth</span>
+          <span class="hint">Map layers: enable <strong>SVI index</strong> for CDC themes &amp; indicators choropleth · export dialog supports SVI-ranked figures &amp; customizable legends</span>
           <span class="hint mono" id="map-shown">—</span>
         </div>
         <div class="map-stage">
@@ -542,6 +542,18 @@ footer strong{color:var(--ink)}
     </fieldset>
 
     <fieldset>
+      <legend>SVI-ranked choropleth</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-svi"> Show SVI-ranked ZCTA choropleth</label>
+      <div id="pdf-svi-panel" class="pdf-colors" style="margin-top:8px">
+        <div class="pdf-field"><label for="pdf-svi-metric">SVI theme / indicator</label>
+          <select id="pdf-svi-metric" disabled></select></div>
+        <div class="pdf-field"><label for="pdf-svi-fill">Fill opacity</label>
+          <input type="number" id="pdf-svi-fill" min="0.2" max="0.95" step="0.05" value="0.72" disabled></div>
+        <p style="font-size:12px;color:var(--steel);margin-top:6px">NY statewide percentile ranks · 2022 CDC/ATSDR SVI · WNY ZCTAs. Mutually exclusive with ZIP boundary fill.</p>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>ZIP code boundaries</legend>
       <label class="pdf-opt"><input type="checkbox" id="pdf-zips"> Show ZIP boundaries</label>
       <div class="pdf-field"><label for="pdf-zip-mode">Fill style</label>
@@ -678,8 +690,17 @@ footer strong{color:var(--ink)}
     <fieldset>
       <legend>Legend</legend>
       <label class="pdf-opt"><input type="checkbox" id="pdf-legend" checked> Draw legend on figure</label>
-      <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
-        <input type="number" id="pdf-legend-font" min="9" max="20" step="1" value="13"></div>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
+          <input type="number" id="pdf-legend-font" min="9" max="20" step="1" value="13"></div>
+        <div class="pdf-field"><label for="pdf-legend-pos">Legend position</label>
+          <select id="pdf-legend-pos">
+            <option value="top-right" selected>Top right</option>
+            <option value="top-left">Top left</option>
+            <option value="bottom-right">Bottom right</option>
+            <option value="bottom-left">Bottom left</option>
+          </select></div>
+      </div>
       <div id="legend-items-panel" class="pdf-colors" style="margin-top:8px">
         <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:6px">Legend content</span>
         <label class="pdf-opt"><input type="checkbox" id="legend-npl" checked> NPL site symbols</label>
@@ -688,6 +709,7 @@ footer strong{color:var(--ink)}
         <label class="pdf-opt"><input type="checkbox" id="legend-cbs" checked> Bulk storage symbols</label>
         <label class="pdf-opt"><input type="checkbox" id="legend-counties" checked> County boundaries</label>
         <label class="pdf-opt"><input type="checkbox" id="legend-zips"> ZIP boundaries</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-svi" checked> SVI vulnerability scale</label>
       </div>
     </fieldset>
 
@@ -1066,6 +1088,31 @@ function initSviMetricSelect(){
   });
   sel.value=sviMetric;
   updateSviVarHint();
+}
+
+function initPdfSviMetricSelect(){
+  const sel=$('pdf-svi-metric');
+  if(!sel) return;
+  sel.innerHTML='';
+  SVI_CATALOG.forEach(sec=>{
+    if(sec.group){
+      const og=document.createElement('optgroup');
+      og.label=sec.group;
+      sec.items.forEach(it=>{
+        const o=document.createElement('option');
+        o.value=it.field; o.textContent=it.label;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    } else {
+      sec.items.forEach(it=>{
+        const o=document.createElement('option');
+        o.value=it.field; o.textContent=it.label;
+        sel.appendChild(o);
+      });
+    }
+  });
+  sel.value=sviMetric;
 }
 
 function getSviMetricMeta(field){ return SVI_METRIC_INDEX[field]||{field,label:field,ep:null}; }
@@ -1868,6 +1915,21 @@ function drawZipBoundaries(ctx, xy, opts, scale){
   });
 }
 
+function drawSviChoropleth(ctx, xy, opts, scale){
+  const fillOp = opts.sviFillOpacity ?? 0.72;
+  const metric = opts.sviMetric || 'RPL_THEMES';
+  PAYLOAD.zips.features.forEach(f => {
+    const zip = String(f.properties.zip).padStart(5, '0');
+    const rpl = sviRankValue(sviByZip[zip], metric);
+    const c = sviColorForRpl(rpl);
+    ctx.fillStyle = hexToRgba(c.fill, fillOp);
+    ctx.strokeStyle = c.stroke;
+    applyCanvasLineStyle(ctx, 'solid', 0.85 * scale);
+    drawPolyRings(ctx, f.geometry, xy, ctx.fillStyle);
+    ctx.setLineDash([]);
+  });
+}
+
 function getLegendItems(opts){
   const c = opts.colorMode === 'custom' ? opts.customColors : {
     nplA: NPL_COLOR, nplC: '#C9930F', nplD: '#2F7D4E',
@@ -1896,7 +1958,29 @@ function getLegendItems(opts){
     items.push({shape: 'line', color: opts.countyColor, label: 'County boundary', dashed: opts.countyLineStyle === 'dashed', dotted: opts.countyLineStyle === 'dotted'});
   if (opts.legendZips !== false && opts.showZips)
     items.push({shape: 'line', color: opts.zipColorMode === 'distinct' ? '#14707E' : opts.zipColor, label: opts.zipColorMode === 'distinct' ? 'ZIP boundaries (distinct colors)' : 'ZIP boundaries', dashed: opts.zipLineStyle === 'dashed', dotted: opts.zipLineStyle === 'dotted'});
+  if (opts.legendSvi !== false && opts.showSvi){
+    const meta = getSviMetricMeta(opts.sviMetric || 'RPL_THEMES');
+    items.push({shape: 'svi-header', label: `CDC/ATSDR SVI — ${meta.label} (NY statewide rank)`});
+    SVI_COLOR_BINS.forEach(b => items.push({shape: 'swatch', color: b.color, label: b.label}));
+    items.push({shape: 'swatch', color: SVI_NO_DATA.fill, label: 'No data'});
+  }
   return items;
+}
+
+function legendBoxOrigin(width, height, boxW, boxH, pos){
+  const m = 14;
+  switch (pos){
+    case 'top-left': return {x0: m, y0: m};
+    case 'bottom-left': return {x0: m, y0: height - boxH - m};
+    case 'bottom-right': return {x0: width - boxW - m, y0: height - boxH - m};
+    default: return {x0: width - boxW - m, y0: m};
+  }
+}
+
+function legendItemRowHeight(item, legendFont, rowH, headerH, swatchH){
+  if (item.shape === 'svi-header') return headerH;
+  if (item.shape === 'swatch') return swatchH;
+  return rowH;
 }
 
 function drawLegendBox(ctx, width, height, opts){
@@ -1906,12 +1990,17 @@ function drawLegendBox(ctx, width, height, opts){
   const pad = 16;
   const legendFont = opts.legendFontSize || 13;
   const rowH = Math.max(22, legendFont + 12);
+  const headerH = Math.max(18, legendFont + 4);
+  const swatchH = Math.max(18, legendFont + 6);
   ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-  const maxLabelW = Math.max(...items.map(it => ctx.measureText(it.label).width));
+  const maxLabelW = Math.max(...items.map(it => {
+    if (it.shape === 'svi-header') ctx.font = `bold ${Math.max(9, legendFont - 1)}px "Segoe UI", sans-serif`;
+    else ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+    return ctx.measureText(it.label).width;
+  }));
   const boxW = Math.min(width - 24, Math.max(280, pad + sz.r * 2 + 18 + maxLabelW + pad));
-  const boxH = pad * 2 + items.length * rowH + 20;
-  const x0 = width - boxW - 14;
-  const y0 = 14;
+  const boxH = pad * 2 + 20 + items.reduce((sum, it) => sum + legendItemRowHeight(it, legendFont, rowH, headerH, swatchH), 0);
+  const {x0, y0} = legendBoxOrigin(width, height, boxW, boxH, opts.legendPosition || 'top-right');
   ctx.save();
   ctx.shadowColor = 'rgba(20,38,46,0.45)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x0, y0, boxW, boxH);
@@ -1921,20 +2010,37 @@ function drawLegendBox(ctx, width, height, opts){
   ctx.fillStyle = '#14262E';
   ctx.font = `bold ${legendFont + 3}px "Segoe UI", sans-serif`;
   ctx.fillText('Legend', x0 + pad, y0 + pad + 11);
-  ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-  items.forEach((item, i) => {
-    const cy = y0 + pad + 22 + i * rowH + rowH / 2;
+  let cy = y0 + pad + 22;
+  items.forEach(item => {
+    const ih = legendItemRowHeight(item, legendFont, rowH, headerH, swatchH);
+    const midY = cy + ih / 2;
     const ix = x0 + pad + sz.r + 4;
-    if (item.shape === 'line'){
+    if (item.shape === 'svi-header'){
+      ctx.fillStyle = '#5A6E78';
+      ctx.font = `bold ${Math.max(9, legendFont - 1)}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad, midY + 4);
+    } else if (item.shape === 'swatch'){
+      const sw = 14, sh = 10;
+      ctx.fillStyle = item.color;
+      ctx.fillRect(ix - 14, midY - sh / 2, sw, sh);
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1;
+      ctx.strokeRect(ix - 14, midY - sh / 2, sw, sh);
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
+    } else if (item.shape === 'line'){
       ctx.strokeStyle = item.color;
       ctx.lineWidth = item.dashed || item.dotted ? 3 : 2;
       if (item.dashed) ctx.setLineDash([6, 4]);
       else if (item.dotted) ctx.setLineDash([2, 4]);
       else ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(ix - 14, cy); ctx.lineTo(ix + 14, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ix - 14, midY); ctx.lineTo(ix + 14, midY); ctx.stroke();
       ctx.setLineDash([]);
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
     } else {
-      drawSiteSymbol(ctx, ix, cy, {
+      drawSiteSymbol(ctx, ix, midY, {
         type: item.label.includes('CEAM') ? 'CEAM' : item.label.includes('bulk') ? 'CBS' : item.label.includes('DEC') ? 'DEC' : 'NPL',
         st: item.label.includes('construction complete') ? 'C' : item.label.includes('deleted') ? 'D' : 'A',
         prog: item.label.includes('Brownfield') ? 'BCP' : item.label.includes('State Superfund') ? 'SSF' : item.label.includes('Environmental') ? 'ERP' : item.label.includes('Voluntary') ? 'VCP' : 'RCRA'
@@ -1944,10 +2050,11 @@ function drawLegendBox(ctx, width, height, opts){
         nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape,
         nplSymbolSize: opts.nplSymbolSize, decSymbolSize: opts.decSymbolSize, ceamSymbolSize: opts.ceamSymbolSize, cbsSymbolSize: opts.cbsSymbolSize
       });
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
     }
-    ctx.fillStyle = '#14262E';
-    ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-    ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, cy + 5);
+    cy += ih;
   });
 }
 
@@ -1964,6 +2071,9 @@ function readExportOptionsFromForm(){
     showCBS: $('pdf-cbs').checked,
     showCounties: $('pdf-counties').checked,
     showZips: $('pdf-zips').checked,
+    showSvi: $('pdf-svi').checked,
+    sviMetric: $('pdf-svi-metric').value || 'RPL_THEMES',
+    sviFillOpacity: parseFloat($('pdf-svi-fill').value) || 0.72,
     showLabels: $('pdf-labels').checked,
     showLegend: $('pdf-legend').checked,
     includeRegister: $('pdf-register').checked,
@@ -1989,6 +2099,8 @@ function readExportOptionsFromForm(){
     legendCbs: $('legend-cbs').checked,
     legendCounties: $('legend-counties').checked,
     legendZips: $('legend-zips').checked,
+    legendSvi: $('legend-svi').checked,
+    legendPosition: $('pdf-legend-pos').value || 'top-right',
     countyColor: $('pdf-co-color').value,
     countyLineWidth: parseFloat($('pdf-co-width').value) || 1.5,
     countyLineStyle: $('pdf-co-style').value,
@@ -2005,7 +2117,27 @@ function readExportOptionsFromForm(){
 
 function toggleLegendItemsPanel(){
   $('legend-items-panel').style.opacity = $('pdf-legend').checked ? '1' : '0.45';
-  $('legend-items-panel').querySelectorAll('input').forEach(inp => { inp.disabled = !$('pdf-legend').checked; });
+  $('legend-items-panel').querySelectorAll('input').forEach(inp => {
+    if (inp.id === 'legend-svi') inp.disabled = !$('pdf-legend').checked || !$('pdf-svi').checked;
+    else inp.disabled = !$('pdf-legend').checked;
+  });
+}
+
+function togglePdfSviPanel(){
+  const on = $('pdf-svi').checked;
+  $('pdf-svi-panel').style.opacity = on ? '1' : '0.45';
+  $('pdf-svi-panel').querySelectorAll('select,input').forEach(inp => { inp.disabled = !on; });
+  if (on && $('pdf-zips').checked) $('pdf-zips').checked = false;
+  $('pdf-zips').disabled = on;
+  if (on) $('legend-svi').checked = true;
+  toggleLegendItemsPanel();
+}
+
+function togglePdfZipsForExport(){
+  if ($('pdf-zips').checked && $('pdf-svi').checked){
+    $('pdf-svi').checked = false;
+    togglePdfSviPanel();
+  }
 }
 
 function togglePdfCustomColors(){
@@ -2020,7 +2152,10 @@ function syncExportModalFromMap(){
   $('pdf-cbs').checked = show.CBS;
   $('pdf-counties').checked = showCounties;
   $('pdf-zips').checked = showZips;
+  $('pdf-svi').checked = showSvi;
+  $('pdf-svi-metric').value = sviMetric;
   $('pdf-labels').checked = showLabels;
+  togglePdfSviPanel();
   togglePdfCustomColors();
   toggleLegendItemsPanel();
 }
@@ -2045,8 +2180,10 @@ function closeExportModal(){
 }
 
 function getExportRows(opts){
-  if (!opts.showNPL && !opts.showDEC && !opts.showCEAM && !opts.showCBS)
-    throw new Error('Select at least one dataset to export');
+  const anyDataset = opts.showNPL || opts.showDEC || opts.showCEAM || opts.showCBS;
+  if (!anyDataset && !opts.showSvi)
+    throw new Error('Select at least one dataset or SVI choropleth to export');
+  if (!anyDataset) return [];
   const typeOK = {NPL: opts.showNPL, DEC: opts.showDEC, CEAM: opts.showCEAM, CBS: opts.showCBS};
   const rows = currentRecords().filter(r => typeOK[r.type]);
   if (!rows.length) throw new Error('No records match the selected datasets and filters');
@@ -2079,7 +2216,8 @@ async function renderExportCanvas(width, opts, rows){
   const basemap = opts.basemap === 'current' ? getCurrentBasemap() : opts.basemap;
   const basemapDrawn = await drawBasemapTiles(ctx, width, height, basemap, bounds);
 
-  if (opts.showZips) drawZipBoundaries(ctx, xy, opts, scale);
+  if (opts.showSvi) drawSviChoropleth(ctx, xy, opts, scale);
+  else if (opts.showZips) drawZipBoundaries(ctx, xy, opts, scale);
 
   if (opts.showCounties){
     ctx.strokeStyle = opts.countyColor;
@@ -2233,10 +2371,14 @@ $('pdf-cancel').addEventListener('click', closeExportModal);
 $('pdf-modal-backdrop').addEventListener('click', closeExportModal);
 $('pdf-color-mode').addEventListener('change', togglePdfCustomColors);
 $('pdf-legend').addEventListener('change', toggleLegendItemsPanel);
+$('pdf-svi').addEventListener('change', togglePdfSviPanel);
+$('pdf-zips').addEventListener('change', togglePdfZipsForExport);
 $('export-png').addEventListener('click', () => exportPngReport(readExportOptionsFromForm()));
 $('export-pdf').addEventListener('click', () => exportPdfReport(readExportOptionsFromForm()));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pdf-modal').classList.contains('open')) closeExportModal(); });
 toggleLegendItemsPanel();
+togglePdfSviPanel();
+initPdfSviMetricSelect();
 
 /* dataset totals in the About section reflect the loaded data */
 $('dc-npl').textContent=PAYLOAD.npl.length;
