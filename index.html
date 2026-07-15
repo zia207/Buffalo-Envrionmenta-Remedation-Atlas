@@ -13,9 +13,9 @@
   --lake:#14707E; --lake-soft:#D7E8EA; --rust:#B7431C; --amber:#C9930F;
   --clean:#2F7D4E; --violet:#6B4FA0; --slate:#3D5A6C;
   --hairline:#C4CFD4; --focus:#0E4F8B;
-  /* dataset / program colors */
-  --c-npl:#B7431C; --c-ssf:#8A2D12; --c-bcp:#14707E; --c-erp:#C9930F;
-  --c-vcp:#2F7D4E; --c-rcra:#5A6E78; --c-dwc:#6B4FA0; --c-ceam:#7A1F6B; --c-cbs:#3D5A6C;
+  /* dataset / program colors — distinct hues for map symbols */
+  --c-npl:#E85D04; --c-ssf:#6B1D0E; --c-bcp:#0B6E7A; --c-erp:#D4A017;
+  --c-vcp:#1B7A45; --c-rcra:#455A64; --c-dwc:#6B4FA0; --c-ceam:#9B1B7A; --c-cbs:#1E3A5F;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -79,12 +79,22 @@ h2 small{font-family:ui-monospace,Consolas,monospace;font-size:11px;letter-spaci
 #map{height:640px;width:100%;background:#dfe7ea}
 .map-legend{position:absolute;top:10px;right:10px;z-index:1000;background:rgba(255,255,255,.96);
   border:1px solid var(--hairline);padding:10px 12px;box-shadow:0 2px 10px rgba(20,38,46,.18);
-  font-size:12px;line-height:1.5;max-width:240px}
+  font-size:12px;line-height:1.5;max-width:270px}
 .map-legend strong{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);
   font-family:ui-monospace,Consolas,monospace;margin-bottom:6px}
 .map-legend .lg{display:flex;align-items:center;gap:8px;margin:3px 0}
-.map-legend .sw{width:12px;height:12px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(0,0,0,.3)}
-.map-legend .sw.sq{border-radius:2px}
+.map-legend .lg .cnt{margin-left:auto;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--steel);padding-left:8px}
+.map-legend .sw{width:13px;height:13px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(0,0,0,.28);background:currentColor}
+.map-legend .sw.shape-circle{border-radius:50%}
+.map-legend .sw.shape-square{border-radius:2px}
+.map-legend .sw.shape-diamond{border-radius:1px;transform:rotate(45deg);width:11px;height:11px;margin:1px}
+.map-legend .sw.shape-triangle{border-radius:0;clip-path:polygon(50% 0%,100% 100%,0% 100%)}
+.map-legend .sw.shape-triangle-down{border-radius:0;clip-path:polygon(0 0,100% 0,50% 100%)}
+.map-legend .sw.shape-hexagon{border-radius:0;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%)}
+.map-legend .sw.shape-star{border-radius:0;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.map-legend .sw.shape-cross{border-radius:0;clip-path:polygon(35% 0%,65% 0%,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0% 65%,0% 35%,35% 35%)}
+.map-legend .lg-empty{color:var(--steel);font-size:11.5px;margin-top:2px}
+.map-marker-sym{display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .map-zoom-ctrl{position:absolute;top:10px;left:10px;z-index:1000;background:rgba(255,255,255,.96);
   border:1px solid var(--hairline);padding:8px 10px;box-shadow:0 2px 10px rgba(20,38,46,.18);
   font-size:12px;min-width:150px}
@@ -210,6 +220,36 @@ tbody tr.sel{background:var(--lake-soft)}
   clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
 .export-pdf:hover{background:#0E5A66}
 .export-pdf:disabled{opacity:.55;cursor:wait}
+.site-pick-bar{align-items:flex-start}
+.site-pick-grid{display:grid;grid-template-columns:1fr;gap:12px;padding:0 0 12px;margin-top:4px}
+.site-pick-col{border:1px solid var(--hairline);background:var(--panel);padding:10px 12px}
+.site-pick-col h3{font-size:13px;margin:0 0 8px;letter-spacing:.04em;text-transform:uppercase;color:var(--slate)}
+.site-pick-col input[type=search]{width:100%;border:1px solid var(--hairline);background:#F7FAFA;padding:7px 9px;margin-bottom:6px}
+.site-pick-prog-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.site-pick-prog-tabs button{background:#F7FAFA;border:1px solid var(--hairline);color:var(--steel);padding:5px 10px;cursor:pointer;font-size:12px;line-height:1.3;text-align:left}
+.site-pick-prog-tabs button:hover{border-color:var(--ink);color:var(--ink)}
+.site-pick-prog-tabs button[aria-pressed="true"]{background:var(--slate);border-color:var(--slate);color:#fff}
+.site-pick-prog-tabs button .cnt{font-family:ui-monospace,Consolas,monospace;font-size:11px;opacity:.85;margin-left:4px}
+.site-pick-prog-tabs button .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;border:1px solid rgba(255,255,255,.8);box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.site-pick-prog-tabs button .sw.shape-square{border-radius:1px}
+.site-pick-prog-tabs button .sw.shape-diamond{border-radius:1px;transform:rotate(45deg);width:7px;height:7px}
+.site-pick-prog-tabs button .sw.shape-triangle{border-radius:0;clip-path:polygon(50% 0%,100% 100%,0% 100%)}
+.site-pick-prog-tabs button .sw.shape-hexagon{border-radius:0;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%)}
+.site-pick-prog-tabs button .sw.shape-triangle-down{border-radius:0;clip-path:polygon(0 0,100% 0,50% 100%)}
+.site-pick-prog-tabs button[aria-pressed="true"] .sw{box-shadow:0 0 0 1px rgba(255,255,255,.5)}
+.site-pick-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.site-pick-actions-row button{background:none;border:1px dashed var(--steel);color:var(--steel);padding:4px 10px;cursor:pointer;font-size:12px}
+.site-pick-actions-row button:hover{color:var(--ink);border-color:var(--ink)}
+.site-pick-list{max-height:280px;overflow:auto;border:1px solid var(--hairline);background:#F7FAFA;padding:4px 0}
+.site-pick-item{display:flex;gap:8px;align-items:flex-start;padding:5px 10px;font-size:12.5px;cursor:pointer;line-height:1.35}
+.site-pick-item:hover{background:#E8F1F2}
+.site-pick-item input{margin-top:2px;accent-color:var(--lake);flex-shrink:0}
+.site-pick-item .meta{color:var(--steel);font-size:11px}
+.site-pick-count{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--steel);letter-spacing:.04em}
+.site-pick-panel.disabled{opacity:.72}
+.pdf-site-pick{margin-top:8px;padding:8px 10px;background:#F7FAFA;border:1px solid var(--hairline)}
+.pdf-site-pick .site-pick-list{max-height:160px}
+.pdf-site-pick .site-pick-prog-tabs button{padding:4px 8px;font-size:11px}
 .pdf-modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
 .pdf-modal.open{display:flex}
 .pdf-modal-backdrop{position:absolute;inset:0;background:rgba(20,38,46,.55)}
@@ -224,6 +264,10 @@ tbody tr.sel{background:var(--lake-soft)}
   text-transform:uppercase;color:var(--steel);padding:0 6px}
 .pdf-opt{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px;cursor:pointer}
 .pdf-opt input{accent-color:var(--lake)}
+.pdf-bbox-drawing #map{cursor:crosshair !important}
+.pdf-bbox-banner{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;z-index:1100;
+  background:rgba(20,38,46,.92);color:#fff;padding:8px 14px;font-size:13px;max-width:min(420px,90%);
+  text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
 .pdf-field{margin-top:8px}
 .pdf-field label{display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--steel);margin-bottom:4px}
@@ -299,11 +343,38 @@ footer strong{color:var(--ink)}
       <div class="field"><label id="layer-label">Map layers</label>
         <div class="chipset" role="group" aria-labelledby="layer-label">
           <button class="chip" id="chip-counties" aria-pressed="true">County lines</button>
+          <button class="chip" id="chip-cities" aria-pressed="false">City boundaries</button>
+          <button class="chip" id="chip-towns" aria-pressed="false">Town boundaries</button>
           <button class="chip" id="chip-zips" aria-pressed="false">ZIP boundaries</button>
           <button class="chip" id="chip-svi" aria-pressed="false">SVI index</button>
           <button class="chip" id="chip-labels" aria-pressed="true">Place labels</button>
           <button class="chip" id="chip-cluster" aria-pressed="true">Cluster markers</button>
         </div></div>
+    </div>
+    <div class="filterbar site-pick-bar" style="border-top:none;margin-top:-1px">
+      <div class="field" style="flex:1;min-width:260px">
+        <label for="site-limit">DEC cleanup site selection</label>
+        <label class="pdf-opt" style="margin:4px 0 0"><input type="checkbox" id="site-limit"> Limit map &amp; PNG/PDF to selected DEC cleanup sites</label>
+        <p class="hint" style="margin-top:4px">Pick individual <strong>NYSDEC cleanup sites</strong> by program — State Superfund, Brownfield Cleanup, Environmental Restoration, Voluntary Cleanup, and RCRA corrective action. Federal Superfund, chemical exposure, and bulk-storage still follow the dataset chips above.</p>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="site-pick-count" id="site-pick-count">0 DEC selected</div>
+        <button type="button" class="reset" id="site-pick-clear" style="margin-top:6px">Clear selection</button>
+      </div>
+    </div>
+    <div class="site-pick-grid site-pick-panel disabled" id="site-pick-panel" aria-disabled="true">
+      <div class="site-pick-col">
+        <h3>NYS DEC cleanup sites by program</h3>
+        <div class="site-pick-prog-tabs" id="site-pick-prog-tabs" role="tablist" aria-label="DEC cleanup program"></div>
+        <input id="site-pick-dec-q" type="search" placeholder="Search name, city, ID…" autocomplete="off">
+        <div class="site-pick-actions-row">
+          <button type="button" id="site-pick-dec-all">Select listed</button>
+          <button type="button" id="site-pick-dec-none">Clear program</button>
+          <button type="button" id="site-pick-dec-none-all">Clear all DEC</button>
+        </div>
+        <div class="site-pick-list" id="site-pick-dec-list" role="group" aria-label="DEC sites"></div>
+      </div>
     </div>
   </section>
 
@@ -313,7 +384,7 @@ footer strong{color:var(--ink)}
       <div class="map-card">
         <div class="map-toolbar">
           <button type="button" class="export-pdf" id="btn-export-pdf">Export map (PDF / PNG)</button>
-          <span class="hint">Map layers: enable <strong>SVI index</strong> for CDC themes &amp; indicators choropleth</span>
+          <span class="hint">Map layers: enable <strong>SVI index</strong> for CDC themes &amp; indicators choropleth · export dialog supports SVI-ranked figures &amp; customizable legends</span>
           <span class="hint mono" id="map-shown">—</span>
         </div>
         <div class="map-stage">
@@ -330,16 +401,9 @@ footer strong{color:var(--ink)}
             <input type="range" class="map-zoom-slider" id="zoom-slider" min="8" max="16" step="0.25" value="10">
             <button type="button" class="map-zoom-reset" id="zoom-reset" title="Reset regional view">Reset view</button>
           </div>
-          <div class="map-legend" id="map-legend">
+          <div class="map-legend" id="map-legend" aria-live="polite">
             <strong>Legend</strong>
-            <div class="lg"><span class="sw" style="background:var(--c-npl)"></span>Federal Superfund (NPL)</div>
-            <div class="lg"><span class="sw" style="background:var(--c-ssf)"></span>State Superfund</div>
-            <div class="lg"><span class="sw" style="background:var(--c-bcp)"></span>Brownfield Cleanup</div>
-            <div class="lg"><span class="sw" style="background:var(--c-erp)"></span>Environmental Restoration</div>
-            <div class="lg"><span class="sw" style="background:var(--c-vcp)"></span>Voluntary Cleanup</div>
-            <div class="lg"><span class="sw" style="background:var(--c-rcra)"></span>RCRA / other DEC</div>
-            <div class="lg"><span class="sw" style="background:var(--c-ceam)"></span>Chemical-release facility</div>
-            <div class="lg"><span class="sw sq" style="background:var(--c-cbs)"></span>Chemical bulk storage</div>
+            <div id="map-legend-items"></div>
           </div>
           <div class="svi-ctrl" id="svi-ctrl" aria-hidden="true">
             <strong>CDC/ATSDR SVI</strong>
@@ -511,6 +575,7 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="current" checked> Match current map view</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="satellite"> Satellite (Esri World Imagery)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="gsat"> Satellite (Google)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="ghybrid"> Satellite + labels (Google)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="streets"> OpenStreetMap (street)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="topography"> Topographic (Esri)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="none"> None (boundaries &amp; markers only)</label>
@@ -522,6 +587,18 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="checkbox" id="pdf-dec" checked> DEC cleanup sites</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-ceam" checked> Chemical exposure (CEAM)</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-cbs" checked> Chemical bulk storage</label>
+      <div class="pdf-site-pick" id="pdf-site-pick">
+        <label class="pdf-opt"><input type="checkbox" id="pdf-site-limit"> Only selected DEC cleanup sites</label>
+        <p style="font-size:12px;color:var(--steel);margin:4px 0 8px">Uses the program-categorized DEC site picker on the dashboard. Chemical exposure follows the dataset checkbox above. <span id="pdf-site-pick-summary">No sites selected.</span></p>
+        <div class="site-pick-prog-tabs" id="pdf-site-prog-tabs" role="tablist" aria-label="DEC cleanup program"></div>
+        <div class="site-pick-actions-row" style="margin-bottom:4px">
+          <strong style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--slate)">DEC</strong>
+          <button type="button" id="pdf-site-dec-all">Select listed</button>
+          <button type="button" id="pdf-site-dec-none">Clear program</button>
+        </div>
+        <input id="pdf-site-dec-q" type="search" placeholder="Search DEC…" autocomplete="off" style="width:100%;border:1px solid var(--hairline);background:#fff;padding:6px 8px;margin-bottom:4px">
+        <div class="site-pick-list" id="pdf-site-dec-list"></div>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -542,18 +619,39 @@ footer strong{color:var(--ink)}
     </fieldset>
 
     <fieldset>
+      <legend>City &amp; town boundaries</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-cities"> Show Erie County city boundaries</label>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-towns"> Show Erie County town boundaries</label>
+      <p style="font-size:12px;color:var(--steel);margin:4px 0 6px">Outline only — Erie County municipalities (same set as the city/town AOI list).</p>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-city-color">City line color</label>
+          <input type="color" id="pdf-city-color" value="#B7431C"></div>
+        <div class="pdf-field"><label for="pdf-town-color">Town line color</label>
+          <input type="color" id="pdf-town-color" value="#0B6E7A"></div>
+        <div class="pdf-field"><label for="pdf-muni-width">Line thickness (px)</label>
+          <input type="number" id="pdf-muni-width" min="0.5" max="6" step="0.5" value="1.4"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>SVI-ranked choropleth</legend>
+      <label class="pdf-opt"><input type="checkbox" id="pdf-svi"> Show SVI-ranked ZCTA choropleth</label>
+      <div id="pdf-svi-panel" class="pdf-colors" style="margin-top:8px">
+        <div class="pdf-field"><label for="pdf-svi-metric">SVI theme / indicator</label>
+          <select id="pdf-svi-metric" disabled></select></div>
+        <div class="pdf-field"><label for="pdf-svi-fill">Fill opacity</label>
+          <input type="number" id="pdf-svi-fill" min="0.2" max="0.95" step="0.05" value="0.72" disabled></div>
+        <p style="font-size:12px;color:var(--steel);margin-top:6px">NY statewide percentile ranks · 2022 CDC/ATSDR SVI · WNY ZCTAs. Mutually exclusive with ZIP boundary outlines.</p>
+      </div>
+    </fieldset>
+
+    <fieldset>
       <legend>ZIP code boundaries</legend>
       <label class="pdf-opt"><input type="checkbox" id="pdf-zips"> Show ZIP boundaries</label>
-      <div class="pdf-field"><label for="pdf-zip-mode">Fill style</label>
-        <select id="pdf-zip-mode">
-          <option value="distinct" selected>Distinct color per ZIP</option>
-          <option value="single">Single color (all ZIPs)</option>
-        </select></div>
+      <p style="font-size:12px;color:var(--steel);margin:4px 0 6px">Outline only — no fill colors.</p>
       <div class="pdf-grid">
-        <div class="pdf-field"><label for="pdf-zip-color">Line / fill color</label>
+        <div class="pdf-field"><label for="pdf-zip-color">Line color</label>
           <input type="color" id="pdf-zip-color" value="#14707E"></div>
-        <div class="pdf-field"><label for="pdf-zip-fill">Fill opacity</label>
-          <input type="number" id="pdf-zip-fill" min="0" max="0.8" step="0.05" value="0.34"></div>
         <div class="pdf-field"><label for="pdf-zip-width">Line thickness (px)</label>
           <input type="number" id="pdf-zip-width" min="0.5" max="6" step="0.5" value="1.1"></div>
         <div class="pdf-field"><label for="pdf-zip-style">Line type</label>
@@ -563,6 +661,8 @@ footer strong{color:var(--ink)}
             <option value="dotted">Dotted</option>
           </select></div>
       </div>
+      <input type="hidden" id="pdf-zip-mode" value="single">
+      <input type="hidden" id="pdf-zip-fill" value="0">
     </fieldset>
 
     <fieldset>
@@ -570,17 +670,16 @@ footer strong{color:var(--ink)}
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-npl-shape">Symbol type</label>
           <select id="pdf-npl-shape">
-            <option value="circle" selected>Circle</option>
+            <option value="star" selected>Star</option>
+            <option value="circle">Circle</option>
             <option value="square">Square</option>
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
+            <option value="hexagon">Hexagon</option>
+            <option value="cross">Cross</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-npl-size">Symbol size</label>
-          <select id="pdf-npl-size">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-npl-size">Symbol size (px)</label>
+          <input type="number" id="pdf-npl-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -589,17 +688,15 @@ footer strong{color:var(--ink)}
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-dec-shape">Symbol type</label>
           <select id="pdf-dec-shape">
-            <option value="circle" selected>Circle</option>
-            <option value="square">Square</option>
-            <option value="diamond">Diamond</option>
-            <option value="triangle">Triangle</option>
+            <option value="by-program" selected>By program (distinct shapes)</option>
+            <option value="circle">Circle (all DEC)</option>
+            <option value="square">Square (all DEC)</option>
+            <option value="diamond">Diamond (all DEC)</option>
+            <option value="triangle">Triangle (all DEC)</option>
+            <option value="hexagon">Hexagon (all DEC)</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-dec-size">Symbol size</label>
-          <select id="pdf-dec-size">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-dec-size">Symbol size (px)</label>
+          <input type="number" id="pdf-dec-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -608,17 +705,16 @@ footer strong{color:var(--ink)}
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-ceam-shape">Symbol type</label>
           <select id="pdf-ceam-shape">
-            <option value="circle" selected>Circle</option>
+            <option value="cross" selected>Cross</option>
+            <option value="circle">Circle</option>
             <option value="square">Square</option>
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
+            <option value="hexagon">Hexagon</option>
+            <option value="star">Star</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-ceam-size">Symbol size</label>
-          <select id="pdf-ceam-size">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-ceam-size">Symbol size (px)</label>
+          <input type="number" id="pdf-ceam-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -628,38 +724,38 @@ footer strong{color:var(--ink)}
         <div class="pdf-field"><label for="pdf-cbs-shape">Symbol type</label>
           <select id="pdf-cbs-shape">
             <option value="square" selected>Square</option>
-            <option value="circle">Circle</option>
             <option value="diamond">Diamond</option>
+            <option value="circle">Circle</option>
             <option value="triangle">Triangle</option>
+            <option value="hexagon">Hexagon</option>
+            <option value="cross">Cross</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-cbs-size">Symbol size</label>
-          <select id="pdf-cbs-size">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-cbs-size">Symbol size (px)</label>
+          <input type="number" id="pdf-cbs-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
     <fieldset>
       <legend>Symbol colors</legend>
-      <div class="pdf-field"><label for="pdf-color-mode">Color mode</label>
-        <select id="pdf-color-mode">
-          <option value="default" selected>Default (color by status / program)</option>
-          <option value="custom">Custom colors</option>
-        </select></div>
-      <div id="pdf-custom-colors" class="pdf-colors" hidden>
-        <label class="pdf-color-row">NPL — cleanup ongoing <input type="color" id="pdf-col-npl-a" value="#B7431C"></label>
-        <label class="pdf-color-row">NPL — construction complete <input type="color" id="pdf-col-npl-c" value="#C9930F"></label>
-        <label class="pdf-color-row">NPL — deleted <input type="color" id="pdf-col-npl-d" value="#2F7D4E"></label>
-        <label class="pdf-color-row">DEC — State Superfund <input type="color" id="pdf-col-dec-ssf" value="#8A2D12"></label>
-        <label class="pdf-color-row">DEC — Brownfield Cleanup <input type="color" id="pdf-col-dec-bcp" value="#14707E"></label>
-        <label class="pdf-color-row">DEC — Environmental Restoration <input type="color" id="pdf-col-dec-erp" value="#C9930F"></label>
-        <label class="pdf-color-row">DEC — Voluntary Cleanup <input type="color" id="pdf-col-dec-vcp" value="#2F7D4E"></label>
-        <label class="pdf-color-row">DEC — RCRA / other <input type="color" id="pdf-col-dec-rcra" value="#5A6E78"></label>
-        <label class="pdf-color-row">CEAM — chemical exposure <input type="color" id="pdf-col-ceam" value="#7A1F6B"></label>
-        <label class="pdf-color-row">CBS — bulk storage <input type="color" id="pdf-col-cbs" value="#3D5A6C"></label>
+      <label class="pdf-opt"><input type="radio" name="pdf-color-mode" value="default" checked> Dashboard defaults (by status / program)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-color-mode" value="custom"> Custom colors — pick before export</label>
+      <div id="pdf-custom-colors" class="pdf-colors" style="margin-top:8px">
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:6px">NPL (Federal Superfund)</span>
+        <label class="pdf-color-row">Cleanup ongoing <input type="color" id="pdf-col-npl-a" value="#E85D04" disabled></label>
+        <label class="pdf-color-row">Construction complete <input type="color" id="pdf-col-npl-c" value="#D4A017" disabled></label>
+        <label class="pdf-color-row">Deleted from NPL <input type="color" id="pdf-col-npl-d" value="#1B7A45" disabled></label>
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin:10px 0 6px">DEC cleanup programs</span>
+        <label class="pdf-color-row">State Superfund <input type="color" id="pdf-col-dec-ssf" value="#6B1D0E" disabled></label>
+        <label class="pdf-color-row">Brownfield Cleanup <input type="color" id="pdf-col-dec-bcp" value="#0B6E7A" disabled></label>
+        <label class="pdf-color-row">Environmental Restoration <input type="color" id="pdf-col-dec-erp" value="#D4A017" disabled></label>
+        <label class="pdf-color-row">Voluntary Cleanup <input type="color" id="pdf-col-dec-vcp" value="#1B7A45" disabled></label>
+        <label class="pdf-color-row">RCRA / other <input type="color" id="pdf-col-dec-rcra" value="#455A64" disabled></label>
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin:10px 0 6px">Other datasets</span>
+        <label class="pdf-color-row">CEAM — chemical exposure <input type="color" id="pdf-col-ceam" value="#9B1B7A" disabled></label>
+        <label class="pdf-color-row">CBS — bulk storage <input type="color" id="pdf-col-cbs" value="#1E3A5F" disabled></label>
+        <button type="button" class="pdf-cancel" id="pdf-color-reset" style="margin-top:10px;width:100%" disabled>Reset to dashboard defaults</button>
       </div>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">Select <strong>Custom colors</strong> to choose symbol fill colors for each site type. Legend swatches update to match.</p>
     </fieldset>
 
     <fieldset>
@@ -678,8 +774,17 @@ footer strong{color:var(--ink)}
     <fieldset>
       <legend>Legend</legend>
       <label class="pdf-opt"><input type="checkbox" id="pdf-legend" checked> Draw legend on figure</label>
-      <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
-        <input type="number" id="pdf-legend-font" min="9" max="20" step="1" value="13"></div>
+      <div class="pdf-grid">
+        <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
+          <input type="number" id="pdf-legend-font" min="12" max="28" step="1" value="18"></div>
+        <div class="pdf-field"><label for="pdf-legend-pos">Legend position</label>
+          <select id="pdf-legend-pos">
+            <option value="top-right">Top right</option>
+            <option value="top-left">Top left</option>
+            <option value="bottom-right">Bottom right</option>
+            <option value="bottom-left" selected>Bottom left</option>
+          </select></div>
+      </div>
       <div id="legend-items-panel" class="pdf-colors" style="margin-top:8px">
         <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:6px">Legend content</span>
         <label class="pdf-opt"><input type="checkbox" id="legend-npl" checked> NPL site symbols</label>
@@ -687,7 +792,10 @@ footer strong{color:var(--ink)}
         <label class="pdf-opt"><input type="checkbox" id="legend-ceam" checked> CEAM symbols</label>
         <label class="pdf-opt"><input type="checkbox" id="legend-cbs" checked> Bulk storage symbols</label>
         <label class="pdf-opt"><input type="checkbox" id="legend-counties" checked> County boundaries</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-cities"> City boundaries</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-towns"> Town boundaries</label>
         <label class="pdf-opt"><input type="checkbox" id="legend-zips"> ZIP boundaries</label>
+        <label class="pdf-opt"><input type="checkbox" id="legend-svi" checked> SVI vulnerability scale</label>
       </div>
     </fieldset>
 
@@ -708,11 +816,40 @@ footer strong{color:var(--ink)}
     </fieldset>
 
     <fieldset>
-      <legend>Map extent</legend>
+      <legend>Area of interest (AOI)</legend>
       <label class="pdf-opt"><input type="radio" name="pdf-extent" value="current" checked> Current map view (matches zoom &amp; pan on screen)</label>
-      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="region"> Full WNY region (fixed regional view)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="region"> Full WNY region (8 counties)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-extent" value="core"> Buffalo–Niagara core</label>
-      <p style="font-size:12px;color:var(--steel);margin-top:6px">PNG/PDF always render from the selected extent. Use <strong>Full WNY region</strong> for a consistent figure; use <strong>Current view</strong> to export a zoomed detail.</p>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="county"> County AOI</label>
+      <div id="pdf-aoi-county-panel" class="pdf-field" style="margin-top:6px;margin-left:26px">
+        <label for="pdf-aoi-county">Select county</label>
+        <select id="pdf-aoi-county" disabled></select>
+      </div>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="erie-muni"> Erie County city / town</label>
+      <div id="pdf-aoi-muni-panel" class="pdf-field" style="margin-top:6px;margin-left:26px">
+        <label for="pdf-aoi-muni">Select city or town</label>
+        <select id="pdf-aoi-muni" disabled></select>
+      </div>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="bbox"> User-defined bounding box</label>
+      <div id="pdf-aoi-bbox-panel" style="margin-top:6px;margin-left:26px;opacity:.45">
+        <div class="pdf-grid">
+          <div class="pdf-field"><label for="pdf-bbox-west">West (lng)</label>
+            <input type="number" id="pdf-bbox-west" step="0.0001" placeholder="-79.15" disabled></div>
+          <div class="pdf-field"><label for="pdf-bbox-east">East (lng)</label>
+            <input type="number" id="pdf-bbox-east" step="0.0001" placeholder="-78.45" disabled></div>
+          <div class="pdf-field"><label for="pdf-bbox-south">South (lat)</label>
+            <input type="number" id="pdf-bbox-south" step="0.0001" placeholder="42.70" disabled></div>
+          <div class="pdf-field"><label for="pdf-bbox-north">North (lat)</label>
+            <input type="number" id="pdf-bbox-north" step="0.0001" placeholder="43.35" disabled></div>
+        </div>
+        <div class="site-pick-actions-row" style="margin-top:8px">
+          <button type="button" id="pdf-bbox-from-view" disabled>Use current map view</button>
+          <button type="button" id="pdf-bbox-draw" disabled>Draw box on map</button>
+          <button type="button" id="pdf-bbox-clear" disabled>Clear box</button>
+        </div>
+        <p id="pdf-bbox-status" style="font-size:12px;color:var(--steel);margin-top:6px">Enter W/E/S/N in decimal degrees, fill from the map view, or draw a box on the map.</p>
+      </div>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">County / municipality AOIs zoom the figure and draw a boundary. <strong>User-defined bounding box</strong> crops the PNG/PDF to your coordinates and outlines the box. Cities/towns match the <a href="https://www3.erie.gov/gis/erie-county-map-gallery" target="_blank" rel="noopener">Erie County Map Gallery</a>.</p>
     </fieldset>
 
     <fieldset>
@@ -725,7 +862,7 @@ footer strong{color:var(--ink)}
           <option value="3600">Extra large — 3600 px wide</option>
           <option value="4800">Print — 4800 px wide</option>
         </select></div>
-      <p style="font-size:12px;color:var(--steel);margin-top:6px">Height is calculated automatically from the selected map extent and output width.</p>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">Height is calculated automatically from the selected AOI and output width.</p>
     </fieldset>
 
     <div class="pdf-modal-actions">
@@ -751,15 +888,23 @@ const $ = id => document.getElementById(id);
 
 /* ---- program / dataset metadata ---- */
 const PROG_META = {
-  SSF:{label:'State Superfund',color:'#8A2D12'},
-  BCP:{label:'Brownfield Cleanup',color:'#14707E'},
-  ERP:{label:'Environmental Restoration',color:'#C9930F'},
-  VCP:{label:'Voluntary Cleanup',color:'#2F7D4E'},
-  RCRA:{label:'RCRA corrective action',color:'#5A6E78'},
-  DWC:{label:'Drinking Water Contaminant',color:'#6B4FA0'},
-  PRP:{label:'Petroleum Remediation',color:'#5A6E78'}
+  SSF:{label:'State Superfund',color:'#6B1D0E',shape:'circle'},
+  BCP:{label:'Brownfield Cleanup',color:'#0B6E7A',shape:'square'},
+  ERP:{label:'Environmental Restoration',color:'#D4A017',shape:'diamond'},
+  VCP:{label:'Voluntary Cleanup',color:'#1B7A45',shape:'triangle'},
+  RCRA:{label:'RCRA corrective action',color:'#455A64',shape:'hexagon'},
+  DWC:{label:'Drinking Water Contaminant',color:'#6B4FA0',shape:'triangle-down'},
+  PRP:{label:'Petroleum Remediation',color:'#5A6E78',shape:'triangle-down'}
 };
-const NPL_COLOR='#B7431C', CEAM_COLOR='#7A1F6B', CBS_COLOR='#3D5A6C';
+/* Primary DEC programs shown in the site picker (counts match regional inventory). */
+const SITE_PICK_PROGS = ['SSF','BCP','ERP','VCP','RCRA'];
+const NPL_COLOR='#E85D04', CEAM_COLOR='#9B1B7A', CBS_COLOR='#1E3A5F';
+const TYPE_SHAPE = {NPL:'star', CEAM:'cross', CBS:'square'};
+
+function recordSymbolShape(rec){
+  if (rec.type === 'DEC') return (PROG_META[rec.prog] || {}).shape || 'circle';
+  return TYPE_SHAPE[rec.type] || 'circle';
+}
 
 /* DEC site-class meanings */
 const CLASS_MEANING = {
@@ -908,7 +1053,12 @@ RECORDS.forEach(r => {
 
 let show = {NPL:true,DEC:true,CEAM:true,CBS:true};
 let fCounty='',fProgram='',fStatus='',fSearch='';
-let showCounties=true, showLabels=true, useCluster=true;
+let limitToSelectedSites=false;
+const selectedSiteKeys=new Set();
+let sitePickDecQ='', pdfSiteDecQ='';
+let sitePickProg='SSF', pdfSitePickProg='SSF';
+let showCounties=true, showCities=false, showTowns=false, showLabels=true, useCluster=true;
+let cityLayer=null, townLayer=null;
 let selectedKey=null;
 let sortKey='n', sortDir=1;
 let ceamSortKey='rel5', ceamSortDir=-1;
@@ -961,7 +1111,7 @@ const countyLayer = L.geoJSON(PAYLOAD.counties,{
   onEachFeature:(f,l)=>{ l.bindTooltip(f.properties.name+' County',{sticky:true,className:'mono'});}
 }).addTo(map);
 
-/* ZIP code (ZCTA) boundaries — distinct fill per ZIP, off by default */
+/* ZIP code (ZCTA) boundaries — outline only (no fill), off by default */
 function zipPaletteColor(zip){
   let h=0;
   const s=String(zip||'0');
@@ -969,16 +1119,13 @@ function zipPaletteColor(zip){
   const hue=h%360;
   return {stroke:`hsl(${hue},52%,34%)`, fill:`hsl(${hue},48%,68%)`};
 }
+const ZIP_OUTLINE = {color:'#14707E', weight:1.15, opacity:0.9, fillColor:'#14707E', fillOpacity:0};
 const zipLayer = L.geoJSON(PAYLOAD.zips,{
-  style:f=>{
-    const c=zipPaletteColor(f.properties.zip);
-    return {color:c.stroke,weight:1.1,opacity:0.88,fillColor:c.fill,fillOpacity:0.34};
-  },
+  style:()=> ({...ZIP_OUTLINE}),
   onEachFeature:(f,l)=>{
-    const c=zipPaletteColor(f.properties.zip);
     l.bindTooltip('ZIP '+f.properties.zip,{sticky:true,className:'mono'});
-    l.on('mouseover',()=>l.setStyle({weight:2.2,fillOpacity:0.52}));
-    l.on('mouseout',()=>l.setStyle({weight:1.1,fillOpacity:0.34,color:c.stroke,fillColor:c.fill}));
+    l.on('mouseover',()=>l.setStyle({weight:2.4, opacity:1, fillOpacity:0}));
+    l.on('mouseout',()=>l.setStyle({...ZIP_OUTLINE}));
   }
 });
 let showZips=false;
@@ -1066,6 +1213,31 @@ function initSviMetricSelect(){
   });
   sel.value=sviMetric;
   updateSviVarHint();
+}
+
+function initPdfSviMetricSelect(){
+  const sel=$('pdf-svi-metric');
+  if(!sel) return;
+  sel.innerHTML='';
+  SVI_CATALOG.forEach(sec=>{
+    if(sec.group){
+      const og=document.createElement('optgroup');
+      og.label=sec.group;
+      sec.items.forEach(it=>{
+        const o=document.createElement('option');
+        o.value=it.field; o.textContent=it.label;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    } else {
+      sec.items.forEach(it=>{
+        const o=document.createElement('option');
+        o.value=it.field; o.textContent=it.label;
+        sel.appendChild(o);
+      });
+    }
+  });
+  sel.value=sviMetric;
 }
 
 function getSviMetricMeta(field){ return SVI_METRIC_INDEX[field]||{field,label:field,ep:null}; }
@@ -1184,7 +1356,7 @@ function applySviVisibility(){
       updateSviLayerStyles();
       if(!map.hasLayer(sviLayer)) sviLayer.addTo(map);
       if(map.hasLayer(zipLayer)) map.removeLayer(zipLayer);
-      if(map.hasLayer(countyLayer)) countyLayer.bringToFront();
+      syncBoundaryLayerOrder();
       if(map.hasLayer(clusterGroup)) clusterGroup.bringToFront();
       if(map.hasLayer(plainGroup)) plainGroup.bringToFront();
     }
@@ -1192,7 +1364,8 @@ function applySviVisibility(){
     ctrl.style.display='none';
     ctrl.setAttribute('aria-hidden','true');
     if(sviLayer&&map.hasLayer(sviLayer)) map.removeLayer(sviLayer);
-    if(showZips&&!map.hasLayer(zipLayer)){ zipLayer.addTo(map); if(map.hasLayer(countyLayer)) countyLayer.bringToFront(); }
+    if(showZips&&!map.hasLayer(zipLayer)) zipLayer.addTo(map);
+    syncBoundaryLayerOrder();
   }
 }
 
@@ -1245,22 +1418,60 @@ const clusterGroup = L.markerClusterGroup({
 const plainGroup = L.layerGroup();
 let markerIndex = {}; // key -> marker
 
-function makeMarker(rec){
-  const isCBS = rec.type==='CBS';
-  const isNPL = rec.type==='NPL';
-  const isCEAM = rec.type==='CEAM';
-  let radius = isNPL?9 : isCEAM?8 : isCBS?5 : 6;
-  let marker;
-  if (isCBS){
-    // square marker for bulk storage
-    const icon=L.divIcon({className:'',html:`<div style="width:11px;height:11px;background:${rec.color};border:1.5px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.5)"></div>`,iconSize:[11,11],iconAnchor:[5.5,5.5]});
-    marker=L.marker([rec.lat,rec.lng],{icon});
+function markerShapeSvg(shape, color, px){
+  const s = px;
+  const c = color;
+  const stroke = '#ffffff';
+  const sw = Math.max(1.2, s * 0.1);
+  const mid = s / 2;
+  const poly = (pts) => `<polygon points="${pts}" fill="${c}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  let body = '';
+  if (shape === 'circle'){
+    body = `<circle cx="${mid}" cy="${mid}" r="${mid - sw}" fill="${c}" stroke="${stroke}" stroke-width="${sw}"/>`;
+  } else if (shape === 'square'){
+    const m = sw * 0.8;
+    body = `<rect x="${m}" y="${m}" width="${s - m*2}" height="${s - m*2}" rx="1.2" fill="${c}" stroke="${stroke}" stroke-width="${sw}"/>`;
+  } else if (shape === 'diamond'){
+    body = poly(`${mid},${sw} ${s-sw},${mid} ${mid},${s-sw} ${sw},${mid}`);
+  } else if (shape === 'triangle'){
+    body = poly(`${mid},${sw} ${s-sw},${s-sw} ${sw},${s-sw}`);
+  } else if (shape === 'triangle-down'){
+    body = poly(`${sw},${sw} ${s-sw},${sw} ${mid},${s-sw}`);
+  } else if (shape === 'hexagon'){
+    const r = mid - sw;
+    const pts = [0,1,2,3,4,5].map(i => {
+      const a = Math.PI / 3 * i - Math.PI / 6;
+      return `${(mid + r * Math.cos(a)).toFixed(2)},${(mid + r * Math.sin(a)).toFixed(2)}`;
+    }).join(' ');
+    body = poly(pts);
+  } else if (shape === 'star'){
+    const pts = [];
+    for (let i = 0; i < 10; i++){
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const rad = i % 2 === 0 ? mid - sw : (mid - sw) * 0.42;
+      pts.push(`${(mid + rad * Math.cos(a)).toFixed(2)},${(mid + rad * Math.sin(a)).toFixed(2)}`);
+    }
+    body = poly(pts.join(' '));
+  } else if (shape === 'cross'){
+    const t = s * 0.32;
+    const m = sw * 0.5;
+    body = `<path d="M${mid-t},${m} H${mid+t} V${mid-t} H${s-m} V${mid+t} H${mid+t} V${s-m} H${mid-t} V${mid+t} H${m} V${mid-t} H${mid-t} Z" fill="${c}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
   } else {
-    marker=L.circleMarker([rec.lat,rec.lng],{
-      radius, color:'#fff', weight:isNPL?2:1.2, fillColor:rec.color,
-      fillOpacity:isNPL?0.95:0.85
-    });
+    body = `<circle cx="${mid}" cy="${mid}" r="${mid - sw}" fill="${c}" stroke="${stroke}" stroke-width="${sw}"/>`;
   }
+  return `<svg class="map-marker-sym" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${body}</svg>`;
+}
+
+function makeMarker(rec){
+  const shape = recordSymbolShape(rec);
+  const px = rec.type === 'NPL' ? 18 : rec.type === 'CEAM' ? 15 : rec.type === 'CBS' ? 12 : 14;
+  const icon = L.divIcon({
+    className: '',
+    html: markerShapeSvg(shape, rec.color, px),
+    iconSize: [px, px],
+    iconAnchor: [px / 2, px / 2]
+  });
+  const marker = L.marker([rec.lat, rec.lng], {icon});
   marker.bindTooltip(`<b>${esc(rec.n)}</b><br>${rec.typeLabel}${rec.progLabel&&rec.type==='DEC'?' · '+rec.progLabel:''}`,{className:'mono',direction:'top'});
   marker.on('click',()=>selectRecord(rec.key));
   markerIndex[rec.key]=marker;
@@ -1268,8 +1479,202 @@ function makeMarker(rec){
 }
 
 /* =========================== FILTER + RENDER =========================== */
+
+/* ============================ DEC SITE PICKER (by program) ============================ */
+function decProgCounts(){
+  const m = {};
+  SITE_PICK_PROGS.forEach(p => { m[p] = 0; });
+  let other = 0;
+  RECORDS.forEach(r => {
+    if (r.type !== 'DEC') return;
+    if (fCounty && r.co !== fCounty) return;
+    if (SITE_PICK_PROGS.includes(r.prog)) m[r.prog] = (m[r.prog] || 0) + 1;
+    else other++;
+  });
+  return {m, other};
+}
+
+function renderSitePickProgTabs(tabsId, activeProg, onPick){
+  const box = $(tabsId);
+  if (!box) return;
+  const {m, other} = decProgCounts();
+  const tabs = SITE_PICK_PROGS.map(p => {
+    const meta = PROG_META[p] || {label:p, color:'#5A6E78'};
+    const pressed = activeProg === p ? 'true' : 'false';
+    return `<button type="button" role="tab" data-prog="${p}" aria-pressed="${pressed}"><span class="sw shape-${meta.shape||'circle'}" style="background:${meta.color}"></span>${meta.label}<span class="cnt">(${m[p]||0})</span></button>`;
+  });
+  if (other > 0){
+    const pressed = activeProg === 'OTHER' ? 'true' : 'false';
+    const om = PROG_META.DWC;
+    tabs.push(`<button type="button" role="tab" data-prog="OTHER" aria-pressed="${pressed}"><span class="sw shape-${om.shape}" style="background:${om.color}"></span>Other DEC<span class="cnt">(${other})</span></button>`);
+  }
+  box.innerHTML = tabs.join('');
+  if (!box._progTabsBound){
+    box._progTabsBound = true;
+    box.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-prog]');
+      if (!btn) return;
+      onPick(btn.getAttribute('data-prog'));
+    });
+  }
+}
+
+function sitePickCandidates(query, prog){
+  const q = (query || '').trim().toLowerCase();
+  const useProg = prog || sitePickProg;
+  return RECORDS.filter(r => {
+    if (r.type !== 'DEC') return false;
+    if (fCounty && r.co !== fCounty) return false;
+    if (fProgram && r.prog !== fProgram) return false;
+    if (useProg === 'OTHER'){
+      if (SITE_PICK_PROGS.includes(r.prog)) return false;
+    } else if (r.prog !== useProg) return false;
+    if (!q) return true;
+    const hay = (r.n+' '+r.city+' '+r.co+' '+(r.zip||'')+' '+(r.progLabel||'')+' '+(r.id||'')+' '+(r.contam||'')).toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b) => a.n.localeCompare(b.n));
+}
+
+function selectedSiteCounts(){
+  let dec = 0;
+  const byProg = {};
+  SITE_PICK_PROGS.forEach(p => { byProg[p] = 0; });
+  selectedSiteKeys.forEach(k => {
+    if (!k.startsWith('dec-')) return;
+    dec++;
+    const r = RECORDS.find(x => x.key === k);
+    if (r && byProg[r.prog] != null) byProg[r.prog]++;
+  });
+  return {dec, byProg};
+}
+
+function updateSitePickCount(){
+  const {dec, byProg} = selectedSiteCounts();
+  const el = $('site-pick-count');
+  if (el){
+    if (!dec) el.textContent = '0 DEC selected';
+    else {
+      const short = {SSF:'SSF', BCP:'BCP', ERP:'ERP', VCP:'VCP', RCRA:'RCRA'};
+      const parts = SITE_PICK_PROGS.filter(p => byProg[p]).map(p => `${short[p]} ${byProg[p]}`);
+      el.textContent = `${dec} DEC selected` + (parts.length ? ` · ${parts.join(' · ')}` : '');
+    }
+  }
+  const sum = $('pdf-site-pick-summary');
+  if (sum){
+    if (!dec) sum.textContent = 'No sites selected.';
+    else sum.textContent = `Selected: ${dec} DEC cleanup site${dec===1?'':'s'}.`;
+  }
+}
+
+function renderSitePickList(listId, query, prog, opts={}){
+  const box = $(listId);
+  if (!box) return;
+  const rows = sitePickCandidates(query, prog);
+  const maxShow = opts.maxShow || 400;
+  const slice = rows.slice(0, maxShow);
+  const meta = PROG_META[prog] || {label: prog === 'OTHER' ? 'Other DEC' : 'DEC'};
+  if (!slice.length){
+    box.innerHTML = `<div class="site-pick-item meta" style="cursor:default">No matching ${meta.label} sites</div>`;
+    return;
+  }
+  const more = rows.length > maxShow ? `<div class="site-pick-item meta" style="cursor:default">Showing ${maxShow} of ${rows.length} — refine search</div>` : '';
+  box.innerHTML = slice.map(r => {
+    const checked = selectedSiteKeys.has(r.key) ? 'checked' : '';
+    const sub = `${r.city || '—'}, ${r.co || ''}${r.id ? ' · '+r.id : ''}${r.cl ? ' · class '+r.cl : ''}`;
+    const name = String(r.n || '').replace(/</g,'&lt;');
+    const subEsc = String(sub).replace(/</g,'&lt;');
+    return `<label class="site-pick-item"><input type="checkbox" data-site-key="${r.key}" ${checked}><span><strong>${name}</strong><div class="meta">${subEsc}</div></span></label>`;
+  }).join('') + more;
+}
+
+function refreshSitePickLists(){
+  if (fProgram && (SITE_PICK_PROGS.includes(fProgram) || fProgram === 'DWC' || fProgram === 'PRP')){
+    sitePickProg = SITE_PICK_PROGS.includes(fProgram) ? fProgram : 'OTHER';
+    pdfSitePickProg = sitePickProg;
+  }
+  renderSitePickProgTabs('site-pick-prog-tabs', sitePickProg, p => {
+    sitePickProg = p;
+    refreshSitePickLists();
+  });
+  renderSitePickProgTabs('pdf-site-prog-tabs', pdfSitePickProg, p => {
+    pdfSitePickProg = p;
+    refreshSitePickLists();
+  });
+  renderSitePickList('site-pick-dec-list', sitePickDecQ, sitePickProg, {maxShow:500});
+  renderSitePickList('pdf-site-dec-list', pdfSiteDecQ, pdfSitePickProg, {maxShow:300});
+  updateSitePickCount();
+}
+
+function setLimitToSelectedSites(on, syncPdf=true){
+  limitToSelectedSites = !!on;
+  const dash = $('site-limit');
+  if (dash) dash.checked = limitToSelectedSites;
+  if (syncPdf){
+    const pdf = $('pdf-site-limit');
+    if (pdf) pdf.checked = limitToSelectedSites;
+  }
+  const panel = $('site-pick-panel');
+  if (panel){
+    panel.classList.toggle('disabled', !limitToSelectedSites);
+    panel.setAttribute('aria-disabled', limitToSelectedSites ? 'false' : 'true');
+  }
+  const pdfWrap = $('pdf-site-pick');
+  if (pdfWrap) pdfWrap.style.opacity = limitToSelectedSites ? '1' : '0.7';
+}
+
+function toggleSiteKey(key, checked){
+  if (checked) selectedSiteKeys.add(key);
+  else selectedSiteKeys.delete(key);
+  updateSitePickCount();
+  // sync checkbox state in both lists without full rerender when possible
+  document.querySelectorAll(`input[data-site-key="${key}"]`).forEach(inp => { inp.checked = checked; });
+  if (limitToSelectedSites) refresh();
+}
+
+function selectListedSites(query, prog, checked){
+  sitePickCandidates(query, prog).forEach(r => {
+    if (checked) selectedSiteKeys.add(r.key);
+    else selectedSiteKeys.delete(r.key);
+  });
+  refreshSitePickLists();
+  if (limitToSelectedSites) refresh();
+  else updateSitePickCount();
+}
+
+function clearSelectedSites(scope){
+  if (!scope){
+    selectedSiteKeys.clear();
+  } else if (scope === 'DEC'){
+    [...selectedSiteKeys].forEach(k => { if (k.startsWith('dec-')) selectedSiteKeys.delete(k); });
+  } else {
+    /* clear one program */
+    [...selectedSiteKeys].forEach(k => {
+      if (!k.startsWith('dec-')) return;
+      const r = RECORDS.find(x => x.key === k);
+      if (!r) return;
+      if (scope === 'OTHER' ? !SITE_PICK_PROGS.includes(r.prog) : r.prog === scope) selectedSiteKeys.delete(k);
+    });
+  }
+  /* drop any legacy CEAM keys from earlier picker versions */
+  [...selectedSiteKeys].forEach(k => { if (k.startsWith('ceam-')) selectedSiteKeys.delete(k); });
+  refreshSitePickLists();
+  if (limitToSelectedSites) refresh();
+}
+
+function bindSitePickListClicks(listId){
+  const box = $(listId);
+  if (!box || box._sitePickBound) return;
+  box._sitePickBound = true;
+  box.addEventListener('change', e => {
+    const inp = e.target.closest('input[data-site-key]');
+    if (!inp) return;
+    toggleSiteKey(inp.getAttribute('data-site-key'), inp.checked);
+  });
+}
+
 function passFilters(r){
   if(!show[r.type]) return false;
+  if(limitToSelectedSites && r.type==='DEC' && !selectedSiteKeys.has(r.key)) return false;
   if(fCounty && r.co!==fCounty) return false;
   if(fProgram && r.prog!==fProgram) return false;
   if(fStatus){ if(statusGroup(r)!==fStatus) return false; }
@@ -1290,6 +1695,48 @@ function renderMap(recs){
   if(useCluster){ if(map.hasLayer(plainGroup))map.removeLayer(plainGroup); if(!map.hasLayer(clusterGroup))map.addLayer(clusterGroup); }
   else { if(map.hasLayer(clusterGroup))map.removeLayer(clusterGroup); if(!map.hasLayer(plainGroup))map.addLayer(plainGroup); }
   $('map-shown').textContent = recs.length+' mapped';
+  renderMapLegend(recs);
+}
+
+/* Map legend tracks currently mapped datasets / DEC programs (incl. site selection). */
+function renderMapLegend(recs){
+  const box = $('map-legend-items');
+  if (!box) return;
+  const npl = recs.filter(r => r.type === 'NPL').length;
+  const ceam = recs.filter(r => r.type === 'CEAM').length;
+  const cbs = recs.filter(r => r.type === 'CBS').length;
+  const progCount = {};
+  recs.forEach(r => {
+    if (r.type !== 'DEC') return;
+    const p = SITE_PICK_PROGS.includes(r.prog) ? r.prog : 'OTHER';
+    progCount[p] = (progCount[p] || 0) + 1;
+  });
+  const rows = [];
+  const row = (color, label, n, shape='circle') =>
+    `<div class="lg"><span class="sw shape-${shape}" style="background:${color}"></span><span>${label}</span><span class="cnt">${n}</span></div>`;
+  if (npl) rows.push(row(NPL_COLOR, 'Federal Superfund (NPL)', npl, TYPE_SHAPE.NPL));
+  SITE_PICK_PROGS.forEach(p => {
+    if (!progCount[p]) return;
+    const meta = PROG_META[p];
+    rows.push(row(meta.color, meta.label, progCount[p], meta.shape));
+  });
+  if (progCount.OTHER){
+    const meta = PROG_META.DWC;
+    rows.push(row(meta.color, 'Other DEC', progCount.OTHER, meta.shape));
+  }
+  if (ceam) rows.push(row(CEAM_COLOR, 'Chemical-release facility', ceam, TYPE_SHAPE.CEAM));
+  if (cbs) rows.push(row(CBS_COLOR, 'Chemical bulk storage', cbs, TYPE_SHAPE.CBS));
+  if (!rows.length){
+    box.innerHTML = '<div class="lg-empty">No sites on map — adjust filters or site selection.</div>';
+    return;
+  }
+  const title = $('map-legend')?.querySelector('strong');
+  if (title){
+    title.textContent = limitToSelectedSites
+      ? 'Legend · selected sites'
+      : (fProgram || fCounty || fStatus || fSearch ? 'Legend · filtered' : 'Legend');
+  }
+  box.innerHTML = rows.join('');
 }
 
 function renderKPIs(recs){
@@ -1480,13 +1927,19 @@ function refresh(){
 }
 
 /* =========================== INTERACTIONS =========================== */
-$('f-county').addEventListener('change',e=>{fCounty=e.target.value;refresh();});
-$('f-program').addEventListener('change',e=>{fProgram=e.target.value; if(fProgram){show.DEC=true;syncChips();} refresh();});
+$('f-county').addEventListener('change',e=>{fCounty=e.target.value;refreshSitePickLists();refresh();});
+$('f-program').addEventListener('change',e=>{fProgram=e.target.value; if(fProgram){show.DEC=true;syncChips();} refreshSitePickLists(); refresh();});
 $('f-status').addEventListener('change',e=>{fStatus=e.target.value;refresh();});
 $('f-search').addEventListener('input',e=>{fSearch=e.target.value.trim();refresh();});
 $('f-reset').addEventListener('click',()=>{
   fCounty=fProgram=fStatus=fSearch='';show={NPL:true,DEC:true,CEAM:true,CBS:true};
   $('f-county').value='';$('f-program').value='';$('f-status').value='';$('f-search').value='';
+  selectedSiteKeys.clear();
+  setLimitToSelectedSites(false);
+  sitePickDecQ=pdfSiteDecQ='';
+  sitePickProg=pdfSitePickProg='SSF';
+  ['site-pick-dec-q','pdf-site-dec-q'].forEach(id=>{ if($(id)) $(id).value=''; });
+  refreshSitePickLists();
   syncChips(); resetView(); refresh();
 });
 
@@ -1502,21 +1955,48 @@ function syncChips(){
   $('chip-cbs').setAttribute('aria-pressed',show.CBS);
 }
 
+function syncBoundaryLayerOrder(){
+  if(map.hasLayer(zipLayer)) zipLayer.bringToFront();
+  if(typeof sviLayer!=='undefined' && sviLayer && map.hasLayer(sviLayer)) sviLayer.bringToFront();
+  if(townLayer && map.hasLayer(townLayer)) townLayer.bringToFront();
+  if(cityLayer && map.hasLayer(cityLayer)) cityLayer.bringToFront();
+  if(map.hasLayer(countyLayer)) countyLayer.bringToFront();
+}
+function toggleMuniLayer(kind){
+  const isCity = kind === 'city';
+  if(isCity){
+    showCities=!showCities;
+    $('chip-cities').setAttribute('aria-pressed', showCities);
+    if(showCities){ if(cityLayer) cityLayer.addTo(map); }
+    else if(cityLayer) map.removeLayer(cityLayer);
+  } else {
+    showTowns=!showTowns;
+    $('chip-towns').setAttribute('aria-pressed', showTowns);
+    if(showTowns){ if(townLayer) townLayer.addTo(map); }
+    else if(townLayer) map.removeLayer(townLayer);
+  }
+  syncBoundaryLayerOrder();
+}
 $('chip-counties').addEventListener('click',function(){
   showCounties=!showCounties; this.setAttribute('aria-pressed',showCounties);
   if(showCounties){countyLayer.addTo(map);} else {map.removeLayer(countyLayer);} toggleCountyLabels();
+  syncBoundaryLayerOrder();
 });
+$('chip-cities').addEventListener('click',()=>toggleMuniLayer('city'));
+$('chip-towns').addEventListener('click',()=>toggleMuniLayer('town'));
 $('chip-zips').addEventListener('click',function(){
   showZips=!showZips; this.setAttribute('aria-pressed',showZips);
   if(showSvi){ showSvi=false; applySviVisibility(); }
-  if(showZips){ zipLayer.addTo(map); if(map.hasLayer(countyLayer))countyLayer.bringToFront(); }
+  if(showZips){ zipLayer.addTo(map); }
   else { map.removeLayer(zipLayer); }
+  syncBoundaryLayerOrder();
 });
 $('chip-svi').addEventListener('click',function(){
   if(this.disabled) return;
   showSvi=!showSvi;
   if(showSvi&&showZips){ showZips=false; $('chip-zips').setAttribute('aria-pressed','false'); if(map.hasLayer(zipLayer)) map.removeLayer(zipLayer); }
   applySviVisibility();
+  syncBoundaryLayerOrder();
 });
 $('svi-metric').addEventListener('change',function(){
   sviMetric=this.value;
@@ -1646,14 +2126,66 @@ const EXPORT_EXTENTS = {
   region: {west:-79.90, east:-77.65, south:41.98, north:43.48},
   core:   {west:-79.15, east:-78.45, south:42.70, north:43.35}
 };
-const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, streets:19, topography:18, none:4, current:18};
-const SYMBOL_SIZES = { small:{r:4,half:3.5}, medium:{r:6,half:5}, large:{r:9,half:7.5} };
+const ERIE_MUNI_AOIS = [{"id":"city:Buffalo","label":"City of Buffalo","kind":"city","name":"Buffalo","west":-78.91252,"east":-78.79513,"south":42.8261,"north":42.96641,"rings":[[[-78.85361,42.95864],[-78.89069,42.95857],[-78.89883,42.96641],[-78.91252,42.95631],[-78.90961,42.95164],[-78.90875,42.93835],[-78.89913,42.92889],[-78.90177,42.91485],[-78.90197,42.89666],[-78.88953,42.8867],[-78.88835,42.88324],[-78.88484,42.88276],[-78.88417,42.88009],[-78.88651,42.87978],[-78.89069,42.88492],[-78.88787,42.8789],[-78.8904,42.87598],[-78.88549,42.87094],[-78.88383,42.87165],[-78.88463,42.86974],[-78.88044,42.87006],[-78.88367,42.86841],[-78.87927,42.86869],[-78.88273,42.86753],[-78.87667,42.85996],[-78.87382,42.86054],[-78.87613,42.85891],[-78.87508,42.85645],[-78.87276,42.85311],[-78.86923,42.8536],[-78.87178,42.85168],[-78.86544,42.85258],[-78.86229,42.84726],[-78.86552,42.84645],[-78.86696,42.85058],[-78.86823,42.84993],[-78.86386,42.84359],[-78.86092,42.84442],[-78.85961,42.84096],[-78.86302,42.83895],[-78.85845,42.83984],[-78.85786,42.83836],[-78.86111,42.83749],[-78.86051,42.83377],[-78.8465,42.83571],[-78.86024,42.83227],[-78.83672,42.83206],[-78.83454,42.82627],[-78.83293,42.8261],[-78.82401,42.82688],[-78.82521,42.83204],[-78.80109,42.83199],[-78.80078,42.84127],[-78.80025,42.83941],[-78.79662,42.83847],[-78.79513,42.84089],[-78.79858,42.84303],[-78.79687,42.8454],[-78.80065,42.84547],[-78.79904,42.94934],[-78.81138,42.94944],[-78.80894,42.95472],[-78.80399,42.95466],[-78.80397,42.95645],[-78.80784,42.95647],[-78.80902,42.96139],[-78.81889,42.95741],[-78.85314,42.95863],[-78.85361,42.95864]],[[-78.90847,42.93387],[-78.90266,42.91276],[-78.90126,42.92978],[-78.90699,42.93455],[-78.90829,42.93381],[-78.90847,42.93387]],[[-78.87582,42.83239],[-78.86571,42.83231],[-78.8743,42.83574],[-78.87573,42.83327],[-78.87582,42.83239]]]},{"id":"city:Lackawanna","label":"City of Lackawanna","kind":"city","name":"Lackawanna","west":-78.87588,"east":-78.79344,"south":42.80431,"north":42.83239,"rings":[[[-78.87582,42.83239],[-78.87225,42.82791],[-78.87177,42.82216],[-78.86294,42.80589],[-78.79344,42.80431],[-78.79957,42.82517],[-78.79422,42.82508],[-78.7941,42.82802],[-78.80048,42.82799],[-78.8018,42.83199],[-78.82521,42.83204],[-78.82401,42.82688],[-78.83293,42.8261],[-78.83454,42.82627],[-78.83672,42.83206],[-78.86024,42.83227],[-78.86162,42.8315],[-78.85715,42.82107],[-78.86211,42.83091],[-78.87016,42.83235],[-78.87582,42.83239]]]},{"id":"city:Tonawanda","label":"City of Tonawanda","kind":"city","name":"Tonawanda","west":-78.91292,"east":-78.85192,"south":42.99677,"north":43.02407,"rings":[[[-78.91292,43.0089],[-78.90155,42.99677],[-78.88877,43.00123],[-78.85266,43.00129],[-78.85194,43.01934],[-78.85797,43.02256],[-78.86835,43.02335],[-78.87773,43.02155],[-78.88194,43.02407],[-78.89174,43.01656],[-78.91276,43.00898],[-78.91292,43.0089]]]},{"id":"town:Alden","label":"Town of Alden","kind":"town","name":"Alden","west":-78.57835,"east":-78.46378,"south":42.86739,"north":42.95471,"rings":[[[-78.57797,42.95467],[-78.57762,42.86773],[-78.4644,42.86739],[-78.4643,42.95441],[-78.5749,42.95469],[-78.57797,42.95467]]]},{"id":"town:Amherst","label":"Town of Amherst","kind":"town","name":"Amherst","west":-78.8325,"east":-78.69688,"south":42.94584,"north":43.08705,"rings":[[[-78.83011,43.02975],[-78.82222,43.03107],[-78.82385,42.95813],[-78.81889,42.95741],[-78.80902,42.96139],[-78.80784,42.95647],[-78.80397,42.95645],[-78.80399,42.95466],[-78.80894,42.95472],[-78.81138,42.94944],[-78.73682,42.94912],[-78.73817,42.9568],[-78.7446,42.95682],[-78.74459,42.95421],[-78.74912,42.95685],[-78.75543,42.95685],[-78.75544,42.96696],[-78.74602,42.96693],[-78.74603,42.96845],[-78.74331,42.96887],[-78.74428,42.97384],[-78.73949,42.97398],[-78.73951,42.97592],[-78.7378,42.9759],[-78.73771,42.96691],[-78.73395,42.96696],[-78.73393,42.97005],[-78.72966,42.97239],[-78.72967,42.96953],[-78.73319,42.96895],[-78.73386,42.96463],[-78.73212,42.96479],[-78.732,42.95417],[-78.73015,42.95107],[-78.73245,42.95104],[-78.72986,42.94712],[-78.72474,42.94585],[-78.72472,42.95113],[-78.69694,42.95125],[-78.69688,43.08626],[-78.70729,43.08702],[-78.70959,43.08248],[-78.71496,43.08321],[-78.71893,43.08104],[-78.72714,43.08622],[-78.73354,43.08427],[-78.74139,43.07497],[-78.73963,43.06982],[-78.74102,43.06817],[-78.75934,43.07107],[-78.77032,43.06979],[-78.77763,43.06552],[-78.80195,43.06583],[-78.80709,43.06207],[-78.80446,43.05593],[-78.80598,43.05394],[-78.81436,43.05157],[-78.82851,43.05165],[-78.83194,43.04944],[-78.83222,43.04683],[-78.82676,43.03967],[-78.82547,43.03445],[-78.8301,43.02977],[-78.83011,43.02975]]]},{"id":"town:Aurora","label":"Town of Aurora","kind":"town","name":"Aurora","west":-78.69696,"east":-78.57747,"south":42.69275,"north":42.78198,"rings":[[[-78.69694,42.78185],[-78.69679,42.69584],[-78.57936,42.69275],[-78.57747,42.7819],[-78.60476,42.78191],[-78.60513,42.77701],[-78.61013,42.77749],[-78.6102,42.77384],[-78.59314,42.77484],[-78.59321,42.77006],[-78.59615,42.7694],[-78.59642,42.76761],[-78.59955,42.76767],[-78.59953,42.77049],[-78.60124,42.7705],[-78.60133,42.76205],[-78.59839,42.76243],[-78.59925,42.75692],[-78.60135,42.75998],[-78.60139,42.75699],[-78.60801,42.7572],[-78.60803,42.7559],[-78.60933,42.75724],[-78.62982,42.75786],[-78.62936,42.75641],[-78.63491,42.75801],[-78.63767,42.75674],[-78.64016,42.76221],[-78.63735,42.76163],[-78.6372,42.77423],[-78.61333,42.77379],[-78.61383,42.78018],[-78.60562,42.78191],[-78.69683,42.78185],[-78.69694,42.78185]],[[-78.60076,42.76034],[-78.60078,42.76194],[-78.60135,42.76034],[-78.60076,42.76034]]]},{"id":"town:Boston","label":"Town of Boston","kind":"town","name":"Boston","west":-78.81443,"east":-78.69677,"south":42.60889,"north":42.69669,"rings":[[[-78.81443,42.69669],[-78.8136,42.60952],[-78.69689,42.60889],[-78.69679,42.69584],[-78.81358,42.69668],[-78.81443,42.69669]]]},{"id":"town:Brant","label":"Town of Brant","kind":"town","name":"Brant","west":-79.13139,"east":-78.94334,"south":42.5518,"north":42.61046,"rings":[[[-78.94351,42.60881],[-79.11223,42.61038],[-79.11569,42.60386],[-79.11957,42.60279],[-79.12297,42.59342],[-79.12985,42.59097],[-79.13139,42.5857],[-79.10113,42.58562],[-79.10113,42.58307],[-79.0619,42.58259],[-79.06212,42.56843],[-78.96324,42.56674],[-78.96305,42.55217],[-78.94334,42.5518],[-78.94342,42.60881],[-78.94351,42.60881]]]},{"id":"town:Cheektowaga","label":"Town of Cheektowaga","kind":"town","name":"Cheektowaga","west":-78.79986,"east":-78.69692,"south":42.86353,"north":42.95125,"rings":[[[-78.73245,42.95104],[-78.73461,42.95123],[-78.73461,42.94914],[-78.79904,42.94934],[-78.79928,42.89862],[-78.7843,42.90039],[-78.78459,42.88436],[-78.79948,42.88461],[-78.79986,42.87173],[-78.78337,42.87132],[-78.78276,42.87549],[-78.77763,42.87579],[-78.7816,42.87372],[-78.7705,42.87101],[-78.76961,42.87401],[-78.76581,42.87438],[-78.76375,42.87266],[-78.76312,42.87471],[-78.75912,42.8748],[-78.75949,42.86422],[-78.69696,42.86365],[-78.69694,42.8959],[-78.71948,42.8959],[-78.71947,42.90265],[-78.72817,42.90291],[-78.72811,42.9075],[-78.74008,42.92206],[-78.71062,42.92187],[-78.71057,42.92803],[-78.69695,42.92897],[-78.69694,42.95125],[-78.72472,42.95113],[-78.72536,42.94584],[-78.73012,42.94731],[-78.7323,42.95087],[-78.73245,42.95104]]]},{"id":"town:Clarence","label":"Town of Clarence","kind":"town","name":"Clarence","west":-78.69697,"east":-78.57574,"south":42.95467,"north":43.09742,"rings":[[[-78.69688,43.08626],[-78.69695,42.95641],[-78.57797,42.95467],[-78.57574,43.07984],[-78.57927,43.08537],[-78.57811,43.08792],[-78.58199,43.08884],[-78.58497,43.08592],[-78.58026,43.08056],[-78.58443,43.07649],[-78.58271,43.07511],[-78.58673,43.07307],[-78.59116,43.0761],[-78.59211,43.0712],[-78.59457,43.06949],[-78.5951,43.07251],[-78.60018,43.07218],[-78.60141,43.07418],[-78.60316,43.07212],[-78.60687,43.07285],[-78.60185,43.07674],[-78.60682,43.07567],[-78.61214,43.07801],[-78.61213,43.07612],[-78.61615,43.0745],[-78.61714,43.07841],[-78.61278,43.08387],[-78.61955,43.08754],[-78.62651,43.08516],[-78.63259,43.09084],[-78.63007,43.09375],[-78.63631,43.09333],[-78.64102,43.0974],[-78.64222,43.09672],[-78.64096,43.08939],[-78.64309,43.08828],[-78.6471,43.08981],[-78.649,43.08707],[-78.64656,43.08562],[-78.64692,43.08077],[-78.6638,43.08644],[-78.67413,43.08388],[-78.67937,43.08469],[-78.68218,43.08011],[-78.69047,43.08851],[-78.69679,43.08625],[-78.69688,43.08626]]]},{"id":"town:Colden","label":"Town of Colden","kind":"town","name":"Colden","west":-78.69698,"east":-78.57936,"south":42.60582,"north":42.69584,"rings":[[[-78.57936,42.69275],[-78.69679,42.69584],[-78.69689,42.60889],[-78.58106,42.60582],[-78.57936,42.69193],[-78.57936,42.69275]]]},{"id":"town:Collins","label":"Town of Collins","kind":"town","name":"Collins","west":-78.98835,"east":-78.77002,"south":42.43801,"north":42.53377,"rings":[[[-78.98497,42.50482],[-78.98248,42.5062],[-78.98234,42.52164],[-78.98835,42.52174],[-78.98641,42.51912],[-78.98781,42.51343],[-78.98269,42.51109],[-78.98535,42.50477],[-78.98497,42.50482]],[[-78.78331,42.5335],[-78.93082,42.53272],[-78.93081,42.53147],[-78.94373,42.53096],[-78.94385,42.47566],[-78.92891,42.47562],[-78.92905,42.45971],[-78.91828,42.45267],[-78.91838,42.44955],[-78.92101,42.44881],[-78.92204,42.44563],[-78.92045,42.44256],[-78.91568,42.44367],[-78.91238,42.44798],[-78.90551,42.44623],[-78.90022,42.44916],[-78.8947,42.4396],[-78.88751,42.44228],[-78.8838,42.43801],[-78.87771,42.44174],[-78.87106,42.43951],[-78.86757,42.44223],[-78.84989,42.44271],[-78.84533,42.44503],[-78.8381,42.44282],[-78.832,42.44905],[-78.82766,42.44841],[-78.82635,42.452],[-78.82202,42.45063],[-78.80968,42.45888],[-78.8051,42.45829],[-78.79713,42.46266],[-78.78135,42.4552],[-78.77159,42.45709],[-78.77004,42.45847],[-78.77106,42.46005],[-78.77881,42.46131],[-78.77979,42.52195],[-78.78306,42.52199],[-78.78313,42.52502],[-78.78331,42.5335]]]},{"id":"town:Concord","label":"Town of Concord","kind":"town","name":"Concord","west":-78.78421,"east":-78.62411,"south":42.46115,"north":42.60952,"rings":[[[-78.62641,42.52174],[-78.62411,42.60666],[-78.7842,42.60952],[-78.78306,42.52199],[-78.77979,42.52195],[-78.77881,42.46131],[-78.77242,42.46514],[-78.76558,42.46167],[-78.76151,42.46198],[-78.7583,42.46574],[-78.76443,42.46881],[-78.76451,42.47039],[-78.75145,42.46833],[-78.7498,42.47374],[-78.73814,42.47332],[-78.73831,42.48046],[-78.73133,42.47869],[-78.72883,42.48255],[-78.7181,42.4837],[-78.7151,42.48687],[-78.71237,42.48358],[-78.70332,42.48675],[-78.70104,42.48562],[-78.70019,42.47465],[-78.69277,42.47203],[-78.69185,42.47641],[-78.68655,42.4754],[-78.68278,42.47794],[-78.68385,42.4799],[-78.6806,42.48465],[-78.67521,42.48368],[-78.67407,42.48695],[-78.67022,42.48886],[-78.66726,42.48716],[-78.66315,42.48959],[-78.6624,42.49245],[-78.65549,42.49213],[-78.65318,42.48985],[-78.65035,42.49276],[-78.64487,42.49083],[-78.63868,42.49807],[-78.63412,42.49661],[-78.63145,42.49825],[-78.62703,42.49742],[-78.62647,42.51883],[-78.62641,42.52174]]]},{"id":"town:Eden","label":"Town of Eden","kind":"town","name":"Eden","west":-78.94351,"east":-78.8136,"south":42.60881,"north":42.69684,"rings":[[[-78.93612,42.69631],[-78.94331,42.69618],[-78.94351,42.60881],[-78.8136,42.60952],[-78.81443,42.69669],[-78.93607,42.69631],[-78.93612,42.69631]]]},{"id":"town:Elma","label":"Town of Elma","kind":"town","name":"Elma","west":-78.69697,"east":-78.57721,"south":42.78185,"north":42.86484,"rings":[[[-78.5776,42.86484],[-78.69696,42.86365],[-78.69694,42.78185],[-78.57747,42.7819],[-78.5776,42.86474],[-78.5776,42.86484]]]},{"id":"town:Evans","label":"Town of Evans","kind":"town","name":"Evans","west":-79.11223,"east":-78.93612,"south":42.60881,"north":42.71834,"rings":[[[-78.96936,42.71834],[-78.9728,42.71454],[-78.9903,42.70508],[-79.0083,42.7036],[-79.01417,42.70071],[-79.01864,42.70106],[-79.0271,42.69594],[-79.03357,42.69589],[-79.04423,42.69087],[-79.04782,42.69144],[-79.05337,42.67644],[-79.06319,42.66772],[-79.0638,42.64471],[-79.06914,42.64098],[-79.07961,42.63964],[-79.08488,42.63166],[-79.08904,42.62946],[-79.09347,42.62968],[-79.09669,42.62379],[-79.11114,42.61392],[-79.11223,42.61038],[-78.94351,42.60881],[-78.94331,42.69618],[-78.93612,42.69631],[-78.93877,42.69692],[-78.93847,42.70077],[-78.94756,42.7004],[-78.94653,42.70351],[-78.94996,42.70575],[-78.95319,42.70631],[-78.9562,42.70445],[-78.95921,42.70831],[-78.96388,42.70662],[-78.96337,42.71071],[-78.96974,42.71374],[-78.96973,42.71767],[-78.96936,42.71834]]]},{"id":"town:Grand Island","label":"Town of Grand Island","kind":"town","name":"Grand Island","west":-79.02181,"east":-78.89391,"south":42.95722,"north":43.0697,"rings":[[[-79.00601,43.06706],[-79.00753,43.06967],[-79.00612,43.06717],[-79.00601,43.06706]],[[-78.99977,43.06464],[-79.00343,43.06492],[-79.00512,43.06728],[-79.00326,43.06411],[-78.99846,43.06249],[-78.99669,43.05662],[-79.00777,43.03744],[-79.01178,43.02665],[-79.00994,43.02142],[-79.01239,43.02639],[-79.02133,43.01645],[-79.02065,43.00385],[-79.0177,42.99471],[-79.01053,42.987],[-79.00285,42.98235],[-78.97885,42.97331],[-78.96544,42.96266],[-78.95832,42.96238],[-78.95572,42.95875],[-78.9489,42.95888],[-78.94615,42.95722],[-78.93909,42.95873],[-78.93986,42.96494],[-78.9443,42.97024],[-78.94762,42.98032],[-78.94985,42.98139],[-78.94756,42.98084],[-78.94616,42.99229],[-78.9369,43.00197],[-78.92416,43.00992],[-78.89556,43.02091],[-78.89391,43.02536],[-78.89943,43.04021],[-78.90592,43.04559],[-78.9156,43.0494],[-78.91869,43.05296],[-78.93799,43.05816],[-78.94615,43.06288],[-78.96767,43.06034],[-78.97904,43.06355],[-78.99967,43.06463],[-78.99977,43.06464]],[[-78.93457,42.9654],[-78.93316,42.96346],[-78.93428,42.96526],[-78.93457,42.9654]],[[-78.95665,42.95854],[-78.95884,42.96184],[-78.96379,42.96151],[-78.95689,42.95855],[-78.95665,42.95854]]]},{"id":"town:Hamburg","label":"Town of Hamburg","kind":"town","name":"Hamburg","west":-78.9705,"east":-78.78435,"south":42.69631,"north":42.80589,"rings":[[[-78.84015,42.80513],[-78.86294,42.80589],[-78.85934,42.80077],[-78.8563,42.8004],[-78.8545,42.79789],[-78.85261,42.78821],[-78.85426,42.78326],[-78.85931,42.78054],[-78.86616,42.77133],[-78.87726,42.76609],[-78.88064,42.76196],[-78.90181,42.74759],[-78.90749,42.74575],[-78.9167,42.73755],[-78.94604,42.73106],[-78.96069,42.72236],[-78.96744,42.72085],[-78.97017,42.71694],[-78.96994,42.71399],[-78.96357,42.71097],[-78.96388,42.70662],[-78.95921,42.70831],[-78.9562,42.70445],[-78.95319,42.70631],[-78.94996,42.70575],[-78.94653,42.70351],[-78.94748,42.70036],[-78.93847,42.70077],[-78.93747,42.69634],[-78.78435,42.69644],[-78.79834,42.70922],[-78.79609,42.78201],[-78.78993,42.78196],[-78.79727,42.80438],[-78.82326,42.80492],[-78.82322,42.7988],[-78.82096,42.79759],[-78.82321,42.79633],[-78.82059,42.79695],[-78.82058,42.7942],[-78.82319,42.79421],[-78.8232,42.78954],[-78.83448,42.78955],[-78.83173,42.78822],[-78.83174,42.78468],[-78.83476,42.78469],[-78.83471,42.78955],[-78.84032,42.78956],[-78.84016,42.80498],[-78.84015,42.80513]]]},{"id":"town:Holland","label":"Town of Holland","kind":"town","name":"Holland","west":-78.58106,"east":-78.46171,"south":42.60582,"north":42.69402,"rings":[[[-78.57936,42.69275],[-78.58106,42.60582],[-78.46171,42.60697],[-78.46401,42.69402],[-78.57876,42.69275],[-78.57936,42.69275]]]},{"id":"town:Lancaster","label":"Town of Lancaster","kind":"town","name":"Lancaster","west":-78.69702,"east":-78.5776,"south":42.86365,"north":42.95641,"rings":[[[-78.69695,42.95641],[-78.69694,42.92785],[-78.68952,42.92735],[-78.6895,42.92494],[-78.67713,42.92472],[-78.6771,42.91502],[-78.65733,42.91807],[-78.65805,42.88584],[-78.68626,42.88563],[-78.68597,42.89272],[-78.68288,42.89289],[-78.68283,42.89581],[-78.6902,42.89591],[-78.69037,42.89249],[-78.69247,42.8924],[-78.69238,42.89402],[-78.69694,42.89544],[-78.69696,42.86365],[-78.5776,42.86484],[-78.57797,42.95467],[-78.69585,42.95639],[-78.69695,42.95641]]]},{"id":"town:Marilla","label":"Town of Marilla","kind":"town","name":"Marilla","west":-78.57766,"east":-78.4861,"south":42.78154,"north":42.86858,"rings":[[[-78.48612,42.86763],[-78.57762,42.86773],[-78.57747,42.7819],[-78.48797,42.78154],[-78.48612,42.86749],[-78.48612,42.86763]]]},{"id":"town:Newstead","label":"Town of Newstead","kind":"town","name":"Newstead","west":-78.57797,"east":-78.46314,"south":42.95441,"north":43.09872,"rings":[[[-78.49159,43.08391],[-78.49264,43.08178],[-78.4994,43.08326],[-78.49706,43.08654],[-78.50284,43.0866],[-78.50074,43.08907],[-78.5062,43.08983],[-78.50623,43.09316],[-78.50352,43.0915],[-78.50359,43.09306],[-78.50911,43.0934],[-78.50825,43.09611],[-78.51003,43.09805],[-78.51515,43.09459],[-78.51614,43.09189],[-78.51433,43.0903],[-78.52032,43.08877],[-78.52183,43.08999],[-78.52248,43.08803],[-78.52676,43.08749],[-78.52848,43.09053],[-78.52885,43.08836],[-78.53235,43.08864],[-78.53594,43.08567],[-78.53829,43.08741],[-78.54022,43.08592],[-78.54206,43.08789],[-78.54031,43.08857],[-78.54165,43.09111],[-78.54274,43.0889],[-78.54682,43.09012],[-78.54655,43.09315],[-78.5412,43.09368],[-78.54202,43.09651],[-78.54584,43.09872],[-78.55012,43.09662],[-78.54923,43.09464],[-78.55142,43.0926],[-78.56072,43.09005],[-78.55471,43.09515],[-78.56029,43.09719],[-78.56388,43.09493],[-78.56293,43.09347],[-78.56507,43.08851],[-78.57639,43.08873],[-78.57438,43.08717],[-78.57449,43.08261],[-78.57244,43.08192],[-78.57574,43.07984],[-78.57596,43.07633],[-78.57797,42.95467],[-78.4643,42.95441],[-78.46314,43.00938],[-78.46454,43.06503],[-78.49181,43.0654],[-78.49159,43.08391]]]},{"id":"town:North Collins","label":"Town of North Collins","kind":"town","name":"North Collins","west":-78.94373,"east":-78.78331,"south":42.53096,"north":42.60953,"rings":[[[-78.7842,42.60952],[-78.94334,42.60881],[-78.94351,42.60325],[-78.93021,42.60316],[-78.93016,42.59062],[-78.93021,42.58649],[-78.94353,42.58652],[-78.94373,42.53096],[-78.93081,42.53147],[-78.93082,42.53272],[-78.78331,42.5335],[-78.7842,42.60943],[-78.7842,42.60952]]]},{"id":"town:Orchard Park","label":"Town of Orchard Park","kind":"town","name":"Orchard Park","west":-78.79834,"east":-78.69675,"south":42.69584,"north":42.81129,"rings":[[[-78.79344,42.80431],[-78.79727,42.80438],[-78.78993,42.78196],[-78.79609,42.78201],[-78.79834,42.70922],[-78.78435,42.69644],[-78.69679,42.69584],[-78.69693,42.81117],[-78.7384,42.81129],[-78.73842,42.80387],[-78.79049,42.80425],[-78.79344,42.80431]]]},{"id":"town:Sardinia","label":"Town of Sardinia","kind":"town","name":"Sardinia","west":-78.62681,"east":-78.46171,"south":42.49807,"north":42.60697,"rings":[[[-78.46171,42.60697],[-78.62411,42.60666],[-78.62681,42.49807],[-78.62376,42.50375],[-78.61548,42.50462],[-78.61154,42.50289],[-78.60532,42.50704],[-78.606,42.50922],[-78.59784,42.51298],[-78.58783,42.50898],[-78.58373,42.51416],[-78.5795,42.51415],[-78.57898,42.5121],[-78.57375,42.51004],[-78.56886,42.51283],[-78.56741,42.50982],[-78.56396,42.50874],[-78.56025,42.51324],[-78.55743,42.5135],[-78.55788,42.51178],[-78.55598,42.51115],[-78.55289,42.51429],[-78.54783,42.51514],[-78.54819,42.51794],[-78.53934,42.51393],[-78.53876,42.51729],[-78.53362,42.51699],[-78.53285,42.52019],[-78.52827,42.52191],[-78.5186,42.51906],[-78.51821,42.52122],[-78.51218,42.52439],[-78.5118,42.52775],[-78.50729,42.52643],[-78.49953,42.52766],[-78.49796,42.52985],[-78.49117,42.5301],[-78.48848,42.53485],[-78.48414,42.53533],[-78.48308,42.53278],[-78.47705,42.53278],[-78.47532,42.53443],[-78.46881,42.53301],[-78.46391,42.53649],[-78.46184,42.60479],[-78.46171,42.60697]]]},{"id":"town:Tonawanda","label":"Town of Tonawanda","kind":"town","name":"Tonawanda","west":-78.9415,"east":-78.82219,"south":42.95329,"north":43.03107,"rings":[[[-78.91292,43.0089],[-78.92326,43.00433],[-78.93691,42.9949],[-78.9415,42.98166],[-78.94014,42.97781],[-78.9347,42.97401],[-78.93646,42.97353],[-78.9328,42.97004],[-78.91352,42.9568],[-78.89883,42.96641],[-78.88938,42.95858],[-78.88744,42.96942],[-78.87875,42.96952],[-78.87872,42.97306],[-78.87152,42.97329],[-78.86599,42.97331],[-78.86763,42.96843],[-78.85325,42.96838],[-78.85361,42.95864],[-78.82385,42.95813],[-78.82222,43.03107],[-78.83011,43.02975],[-78.83228,43.02571],[-78.84035,43.01923],[-78.85194,43.01934],[-78.85266,43.00129],[-78.88877,43.00123],[-78.90155,42.99677],[-78.91289,43.00887],[-78.91292,43.0089]],[[-78.92342,42.95622],[-78.92302,42.95433],[-78.92608,42.95544],[-78.92585,42.95383],[-78.92177,42.95426],[-78.92338,42.95622],[-78.92342,42.95622]]]},{"id":"town:Wales","label":"Town of Wales","kind":"town","name":"Wales","west":-78.57937,"east":-78.46333,"south":42.69271,"north":42.78194,"rings":[[[-78.48797,42.78154],[-78.57747,42.7819],[-78.57936,42.69275],[-78.46401,42.69402],[-78.46333,42.78047],[-78.48797,42.78047],[-78.48797,42.78154]]]},{"id":"town:West Seneca","label":"Town of West Seneca","kind":"town","name":"West Seneca","west":-78.8018,"east":-78.69691,"south":42.80387,"north":42.87581,"rings":[[[-78.79986,42.87173],[-78.80065,42.84547],[-78.79687,42.8454],[-78.79858,42.84303],[-78.79513,42.84089],[-78.79662,42.83847],[-78.80025,42.83941],[-78.80078,42.84127],[-78.8018,42.83199],[-78.80048,42.82799],[-78.7941,42.82802],[-78.79422,42.82508],[-78.79957,42.82517],[-78.79344,42.80431],[-78.73842,42.80387],[-78.7384,42.81129],[-78.69693,42.81117],[-78.69696,42.86365],[-78.75949,42.86422],[-78.75912,42.8748],[-78.76312,42.87471],[-78.76375,42.87266],[-78.76581,42.87438],[-78.76961,42.87401],[-78.7705,42.87101],[-78.7816,42.87372],[-78.77763,42.87579],[-78.78276,42.87549],[-78.78337,42.87132],[-78.79932,42.87173],[-78.79986,42.87173]]]}];
+/* Erie County city / town boundaries (outline only) — from ERIE_MUNI_AOIS */
+function muniAoisToGeoJSON(kind){
+  return {
+    type:'FeatureCollection',
+    features:(ERIE_MUNI_AOIS||[]).filter(a => a.kind === kind).map(a => ({
+      type:'Feature',
+      properties:{id:a.id, name:a.name, label:a.label, kind:a.kind},
+      geometry:{
+        type:'MultiPolygon',
+        coordinates:(a.rings||[]).filter(r => r && r.length >= 3).map(r => [r])
+      }
+    }))
+  };
+}
+const CITY_OUTLINE = {color:'#B7431C', weight:1.6, opacity:0.92, fillColor:'#B7431C', fillOpacity:0};
+const TOWN_OUTLINE = {color:'#0B6E7A', weight:1.35, opacity:0.9, fillColor:'#0B6E7A', fillOpacity:0, dashArray:'5 4'};
+function buildMuniBoundaryLayer(kind, style){
+  return L.geoJSON(muniAoisToGeoJSON(kind), {
+    style:() => ({...style}),
+    onEachFeature:(f,l)=>{
+      l.bindTooltip(f.properties.label || f.properties.name, {sticky:true, className:'mono'});
+      l.on('mouseover',()=>l.setStyle({weight:style.weight+1, opacity:1, fillOpacity:0}));
+      l.on('mouseout',()=>l.setStyle({...style}));
+    }
+  });
+}
+cityLayer = buildMuniBoundaryLayer('city', CITY_OUTLINE);
+townLayer = buildMuniBoundaryLayer('town', TOWN_OUTLINE);
+
+const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, ghybrid:20, streets:19, topography:18, none:4, current:18};
+const EXPORT_SYMBOL_PX = {min:12, max:30, default:22};
 const FIGURE_PT = {
   small:  {w:288, h:180},
   medium: {w:468, h:288},
   large:  {w:540, h:324},
   full:   null
 };
+
+function getDefaultExportColors(){
+  return {
+    nplA: NPL_COLOR, nplC: '#D4A017', nplD: '#1B7A45',
+    decSSF: PROG_META.SSF.color, decBCP: PROG_META.BCP.color, decERP: PROG_META.ERP.color,
+    decVCP: PROG_META.VCP.color, decRCRA: PROG_META.RCRA.color,
+    ceam: CEAM_COLOR, cbs: CBS_COLOR
+  };
+}
+
+function applyExportColorsToForm(colors){
+  $('pdf-col-npl-a').value = colors.nplA;
+  $('pdf-col-npl-c').value = colors.nplC;
+  $('pdf-col-npl-d').value = colors.nplD;
+  $('pdf-col-dec-ssf').value = colors.decSSF;
+  $('pdf-col-dec-bcp').value = colors.decBCP;
+  $('pdf-col-dec-erp').value = colors.decERP;
+  $('pdf-col-dec-vcp').value = colors.decVCP;
+  $('pdf-col-dec-rcra').value = colors.decRCRA;
+  $('pdf-col-ceam').value = colors.ceam;
+  $('pdf-col-cbs').value = colors.cbs;
+}
 
 function readCustomColorsFromForm(){
   return {
@@ -1716,50 +2248,422 @@ function hslToRgba(hsl, alpha){
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function clampSymbolPx(px){
+  const n = parseFloat(px);
+  if (isNaN(n)) return EXPORT_SYMBOL_PX.default;
+  return Math.max(EXPORT_SYMBOL_PX.min, Math.min(EXPORT_SYMBOL_PX.max, n));
+}
+
+function symbolSizeFromPx(diameterPx){
+  const d = clampSymbolPx(diameterPx);
+  const r = d / 2;
+  return {r, half: r * 0.85};
+}
+
+function readSymbolPxFromInput(id){
+  return clampSymbolPx(parseInt($(id).value, 10));
+}
+
 function getDatasetSymbolSize(rec, opts){
   const key = rec.type === 'NPL' ? 'npl' : rec.type === 'DEC' ? 'dec' : rec.type === 'CEAM' ? 'ceam' : 'cbs';
-  return SYMBOL_SIZES[opts[key + 'SymbolSize']] || SYMBOL_SIZES.medium;
+  return symbolSizeFromPx(opts[key + 'SymbolPx']);
 }
 
 function getDatasetSymbolShape(rec, opts){
-  const key = rec.type === 'NPL' ? 'npl' : rec.type === 'DEC' ? 'dec' : rec.type === 'CEAM' ? 'ceam' : 'cbs';
-  return opts[key + 'SymbolShape'] || 'circle';
+  if (rec.type === 'DEC'){
+    const override = opts.decSymbolShape;
+    if (override && override !== 'by-program') return override;
+    return recordSymbolShape(rec);
+  }
+  const key = rec.type === 'NPL' ? 'npl' : rec.type === 'CEAM' ? 'ceam' : 'cbs';
+  return opts[key + 'SymbolShape'] || recordSymbolShape(rec);
 }
 
-function drawSiteSymbol(ctx, x, y, rec, opts){
+function drawSiteSymbol(ctx, x, y, rec, opts, scale = 1){
   const sz = getDatasetSymbolSize(rec, opts);
   const shape = getDatasetSymbolShape(rec, opts);
   const color = getSymbolColor(rec, opts);
+  const r = sz.r * scale;
+  const h = sz.half * scale;
   ctx.fillStyle = color;
   ctx.strokeStyle = '#fff';
-  ctx.lineWidth = Math.max(1.5, sz.r * 0.35);
-  const h = sz.half;
+  ctx.lineWidth = Math.max(1.5, r * 0.35);
   ctx.beginPath();
-  if (shape === 'circle') ctx.arc(x, y, sz.r, 0, Math.PI * 2);
+  if (shape === 'circle') ctx.arc(x, y, r, 0, Math.PI * 2);
   else if (shape === 'square') ctx.rect(x - h, y - h, h * 2, h * 2);
   else if (shape === 'diamond'){
     ctx.moveTo(x, y - h * 1.15); ctx.lineTo(x + h * 1.15, y); ctx.lineTo(x, y + h * 1.15); ctx.lineTo(x - h * 1.15, y);
     ctx.closePath();
-  } else {
+  } else if (shape === 'triangle'){
     ctx.moveTo(x, y - h * 1.2); ctx.lineTo(x + h * 1.1, y + h * 0.9); ctx.lineTo(x - h * 1.1, y + h * 0.9);
     ctx.closePath();
+  } else if (shape === 'triangle-down'){
+    ctx.moveTo(x - h * 1.1, y - h * 0.9); ctx.lineTo(x + h * 1.1, y - h * 0.9); ctx.lineTo(x, y + h * 1.2);
+    ctx.closePath();
+  } else if (shape === 'hexagon'){
+    for (let i = 0; i < 6; i++){
+      const a = Math.PI / 3 * i - Math.PI / 6;
+      const px = x + r * Math.cos(a), py = y + r * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === 'star'){
+    for (let i = 0; i < 10; i++){
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const rad = i % 2 === 0 ? r : r * 0.42;
+      const px = x + rad * Math.cos(a), py = y + rad * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (shape === 'cross'){
+    const t = h * 0.55;
+    ctx.moveTo(x - t, y - h); ctx.lineTo(x + t, y - h); ctx.lineTo(x + t, y - t);
+    ctx.lineTo(x + h, y - t); ctx.lineTo(x + h, y + t); ctx.lineTo(x + t, y + t);
+    ctx.lineTo(x + t, y + h); ctx.lineTo(x - t, y + h); ctx.lineTo(x - t, y + t);
+    ctx.lineTo(x - h, y + t); ctx.lineTo(x - h, y - t); ctx.lineTo(x - t, y - t);
+    ctx.closePath();
+  } else {
+    ctx.arc(x, y, r, 0, Math.PI * 2);
   }
   ctx.fill();
   ctx.stroke();
 }
 
 function getCurrentBasemap(){
-  if (map.hasLayer(streets) && !map.hasLayer(satellite) && !map.hasLayer(topo)) return 'streets';
-  if (map.hasLayer(topo) && !map.hasLayer(satellite) && !map.hasLayer(streets)) return 'topography';
+  if (map.hasLayer(streets) && !map.hasLayer(satellite) && !map.hasLayer(topo) && !map.hasLayer(hybrid) && !map.hasLayer(satelliteAlt)) return 'streets';
+  if (map.hasLayer(topo) && !map.hasLayer(satellite) && !map.hasLayer(streets) && !map.hasLayer(hybrid) && !map.hasLayer(satelliteAlt)) return 'topography';
+  if (map.hasLayer(hybrid)) return 'ghybrid';
   if (map.hasLayer(satelliteAlt) && !map.hasLayer(satellite)) return 'gsat';
   if (map.hasLayer(satellite)) return 'satellite';
   if (map.hasLayer(topo)) return 'topography';
   return 'satellite';
 }
 
+function padBounds(b, padFrac){
+  const lngPad = (b.east - b.west) * padFrac;
+  const latPad = (b.north - b.south) * padFrac;
+  return {
+    west: b.west - lngPad,
+    east: b.east + lngPad,
+    south: b.south - latPad,
+    north: b.north + latPad
+  };
+}
+
+function boundsFromRingCoords(coords){
+  let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+  const walk = c => {
+    if (typeof c[0] === 'number'){
+      const lng = c[0], lat = c[1];
+      if (lng < west) west = lng;
+      if (lng > east) east = lng;
+      if (lat < south) south = lat;
+      if (lat > north) north = lat;
+      return;
+    }
+    c.forEach(walk);
+  };
+  walk(coords);
+  return {west, east, south, north};
+}
+
+function getCountyExportBounds(countyName){
+  const feat = (PAYLOAD.counties?.features || []).find(f => f.properties?.name === countyName);
+  if (!feat) return null;
+  return padBounds(boundsFromRingCoords(feat.geometry.coordinates), 0.04);
+}
+
+function getErieMuniAoi(muniId){
+  return (ERIE_MUNI_AOIS || []).find(a => a.id === muniId) || null;
+}
+
+function getErieMuniExportBounds(muniId){
+  const aoi = getErieMuniAoi(muniId);
+  if (!aoi) return null;
+  return padBounds({west:aoi.west, east:aoi.east, south:aoi.south, north:aoi.north}, 0.06);
+}
+
+function pointInRing(lng, lat, ring){
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat)) &&
+      (lng < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-15) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInErieMuni(lng, lat, aoi){
+  if (!aoi?.rings?.length){
+    return lng >= aoi.west && lng <= aoi.east && lat >= aoi.south && lat <= aoi.north;
+  }
+  return aoi.rings.some(ring => pointInRing(lng, lat, ring));
+}
+
+function filterRowsToExportAoi(rows, opts){
+  if (opts.exportExtent === 'current') return rows;
+  const b = getExportBounds(opts);
+  if (!b) return rows;
+  return rows.filter(r => r.lng >= b.west && r.lng <= b.east && r.lat >= b.south && r.lat <= b.north);
+}
+
+/* ---- user-defined bounding box AOI ---- */
+let bboxPreviewLayer = null;
+let bboxDrawActive = false;
+let bboxDrawStart = null;
+let bboxDrawRect = null;
+let bboxDrawHandlers = null;
+
+function readBboxFromForm(){
+  const west = parseFloat($('pdf-bbox-west')?.value);
+  const east = parseFloat($('pdf-bbox-east')?.value);
+  const south = parseFloat($('pdf-bbox-south')?.value);
+  const north = parseFloat($('pdf-bbox-north')?.value);
+  if ([west,east,south,north].some(v => isNaN(v))) return null;
+  return {west, east, south, north};
+}
+
+function normalizeBbox(b){
+  if (!b) return null;
+  const west = Math.min(b.west, b.east);
+  const east = Math.max(b.west, b.east);
+  const south = Math.min(b.south, b.north);
+  const north = Math.max(b.south, b.north);
+  if (!(east > west) || !(north > south)) return null;
+  if (east - west < 0.0005 || north - south < 0.0005) return null;
+  return {west, east, south, north};
+}
+
+function validateCustomBbox(b){
+  const n = normalizeBbox(b);
+  if (!n) return {ok:false, message:'Enter a valid bounding box (west < east, south < north, non-zero size).'};
+  if (n.west < -180 || n.east > 180 || n.south < -90 || n.north > 90)
+    return {ok:false, message:'Coordinates must be in decimal degrees (lng −180…180, lat −90…90).'};
+  return {ok:true, bbox:n};
+}
+
+function setBboxForm(b, opts={}){
+  const n = normalizeBbox(b);
+  if (!n) return;
+  const fmt = v => (Math.round(v * 1e5) / 1e5).toFixed(5);
+  if ($('pdf-bbox-west')) $('pdf-bbox-west').value = fmt(n.west);
+  if ($('pdf-bbox-east')) $('pdf-bbox-east').value = fmt(n.east);
+  if ($('pdf-bbox-south')) $('pdf-bbox-south').value = fmt(n.south);
+  if ($('pdf-bbox-north')) $('pdf-bbox-north').value = fmt(n.north);
+  updateBboxStatus();
+  if (opts.preview !== false) updateBboxPreview(n);
+  if (opts.selectRadio){
+    const r = document.querySelector('input[name="pdf-extent"][value="bbox"]');
+    if (r){ r.checked = true; togglePdfAoiPanels(); }
+  }
+}
+
+function updateBboxStatus(){
+  const el = $('pdf-bbox-status');
+  if (!el) return;
+  const v = validateCustomBbox(readBboxFromForm());
+  if (!v.ok){
+    el.textContent = bboxDrawActive
+      ? 'Click and drag on the map to draw a bounding box…'
+      : 'Enter W/E/S/N in decimal degrees, fill from the map view, or draw a box on the map.';
+    el.style.color = 'var(--steel)';
+    return;
+  }
+  const b = v.bbox;
+  const wKm = Math.abs(b.east - b.west) * 111 * Math.cos(((b.north + b.south) / 2) * Math.PI / 180);
+  const hKm = Math.abs(b.north - b.south) * 111;
+  el.textContent = `AOI ready · ~${wKm.toFixed(1)} × ${hKm.toFixed(1)} km · PNG/PDF will crop to this box.`;
+  el.style.color = 'var(--clean)';
+}
+
+function updateBboxPreview(b){
+  if (bboxPreviewLayer){ map.removeLayer(bboxPreviewLayer); bboxPreviewLayer = null; }
+  const n = normalizeBbox(b);
+  if (!n) return;
+  bboxPreviewLayer = L.rectangle([[n.south, n.west],[n.north, n.east]], {
+    color:'#B7431C', weight:2, dashArray:'6 4', fillColor:'#B7431C', fillOpacity:0.08,
+    interactive:false
+  }).addTo(map);
+}
+
+function clearCustomBbox(){
+  ['pdf-bbox-west','pdf-bbox-east','pdf-bbox-south','pdf-bbox-north'].forEach(id => {
+    if ($(id)) $(id).value = '';
+  });
+  if (bboxPreviewLayer){ map.removeLayer(bboxPreviewLayer); bboxPreviewLayer = null; }
+  updateBboxStatus();
+}
+
+function fillBboxFromMapView(){
+  const b = map.getBounds();
+  setBboxForm({
+    west:b.getWest(), east:b.getEast(), south:b.getSouth(), north:b.getNorth()
+  }, {selectRadio:true, preview:true});
+}
+
+function stopBboxDraw(opts={}){
+  bboxDrawActive = false;
+  document.body.classList.remove('pdf-bbox-drawing');
+  const banner = $('pdf-bbox-banner');
+  if (banner) banner.remove();
+  if (bboxDrawHandlers){
+    map.off('mousedown', bboxDrawHandlers.down);
+    map.off('mousemove', bboxDrawHandlers.move);
+    map.off('mouseup', bboxDrawHandlers.up);
+    map.off('mouseout', bboxDrawHandlers.up);
+    bboxDrawHandlers = null;
+  }
+  if (bboxDrawRect){ map.removeLayer(bboxDrawRect); bboxDrawRect = null; }
+  bboxDrawStart = null;
+  map.dragging.enable();
+  map.doubleClickZoom.enable();
+  if (map.boxZoom) map.boxZoom.enable();
+  if (opts.reopenModal) openExportModal({preserveExtent:true, prevExtent:'bbox'});
+}
+
+function startBboxDraw(){
+  if (bboxDrawActive) return;
+  closeExportModal();
+  document.querySelector('input[name="pdf-extent"][value="bbox"]').checked = true;
+  bboxDrawActive = true;
+  document.body.classList.add('pdf-bbox-drawing');
+  map.dragging.disable();
+  map.doubleClickZoom.disable();
+  if (map.boxZoom) map.boxZoom.disable();
+
+  let banner = $('pdf-bbox-banner');
+  if (!banner){
+    banner = document.createElement('div');
+    banner.id = 'pdf-bbox-banner';
+    banner.className = 'pdf-bbox-banner';
+    $('map').parentElement.appendChild(banner);
+  }
+  banner.textContent = 'Draw AOI: click and drag a box on the map · Esc to cancel';
+
+  const finish = (bounds) => {
+    if (!bounds){ stopBboxDraw({reopenModal:true}); return; }
+    setBboxForm({
+      west:bounds.getWest(), east:bounds.getEast(),
+      south:bounds.getSouth(), north:bounds.getNorth()
+    }, {selectRadio:true, preview:true});
+    stopBboxDraw({reopenModal:true});
+  };
+
+  const onDown = (e) => {
+    if (!bboxDrawActive) return;
+    L.DomEvent.preventDefault(e.originalEvent);
+    bboxDrawStart = e.latlng;
+    if (bboxDrawRect){ map.removeLayer(bboxDrawRect); bboxDrawRect = null; }
+    bboxDrawRect = L.rectangle([bboxDrawStart, bboxDrawStart], {
+      color:'#B7431C', weight:2, dashArray:'4 3', fillColor:'#B7431C', fillOpacity:0.12
+    }).addTo(map);
+  };
+  const onMove = (e) => {
+    if (!bboxDrawActive || !bboxDrawStart || !bboxDrawRect) return;
+    bboxDrawRect.setBounds(L.latLngBounds(bboxDrawStart, e.latlng));
+  };
+  const onUp = (e) => {
+    if (!bboxDrawActive || !bboxDrawStart) return;
+    const end = e.latlng || (bboxDrawRect && bboxDrawRect.getBounds().getNorthEast());
+    if (!end){ finish(null); return; }
+    const bounds = L.latLngBounds(bboxDrawStart, end);
+    if (Math.abs(bounds.getWest() - bounds.getEast()) < 0.0003 ||
+        Math.abs(bounds.getNorth() - bounds.getSouth()) < 0.0003){
+      alert('Bounding box is too small — drag a larger area.');
+      if (bboxDrawRect){ map.removeLayer(bboxDrawRect); bboxDrawRect = null; }
+      bboxDrawStart = null;
+      return;
+    }
+    finish(bounds);
+  };
+
+  bboxDrawHandlers = {down:onDown, move:onMove, up:onUp};
+  map.on('mousedown', onDown);
+  map.on('mousemove', onMove);
+  map.on('mouseup', onUp);
+}
+
+function drawBboxOutline(ctx, xy, bbox, scale){
+  if (!bbox) return;
+  const [[x1,y1],[x2,y2],[x3,y3],[x4,y4]] = [
+    xy(bbox.north, bbox.west),
+    xy(bbox.north, bbox.east),
+    xy(bbox.south, bbox.east),
+    xy(bbox.south, bbox.west)
+  ];
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.lineTo(x4,y4); ctx.closePath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+  ctx.lineWidth = Math.max(6, 8 * scale);
+  ctx.setLineDash([]);
+  ctx.stroke();
+  ctx.strokeStyle = '#B7431C';
+  ctx.lineWidth = Math.max(3, 4 * scale);
+  ctx.setLineDash([10 * scale, 6 * scale]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawErieMuniOutline(ctx, xy, aoi, scale){
+  if (!aoi?.rings?.length) return;
+  ctx.save();
+  aoi.rings.forEach(ring => {
+    if (ring.length < 3) return;
+    ctx.beginPath();
+    ring.forEach((c, i) => {
+      const [x, y] = xy(c[1], c[0]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    /* halo then solid boundary so AOI reads clearly on satellite */
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = Math.max(6, 8 * scale);
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.strokeStyle = '#B7431C';
+    ctx.lineWidth = Math.max(3, 4 * scale);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function clipToErieMuni(ctx, xy, aoi, width, height){
+  if (!aoi?.rings?.length) return false;
+  ctx.beginPath();
+  aoi.rings.forEach(ring => {
+    if (ring.length < 3) return;
+    ring.forEach((c, i) => {
+      const [x, y] = xy(c[1], c[0]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+  });
+  ctx.clip('nonzero');
+  return true;
+}
+
 function getExportBounds(opts){
   if (opts.exportExtent === 'region') return {...EXPORT_EXTENTS.region};
   if (opts.exportExtent === 'core') return {...EXPORT_EXTENTS.core};
+  if (opts.exportExtent === 'county'){
+    const county = opts.exportCounty || $('pdf-aoi-county')?.value;
+    const cb = county && getCountyExportBounds(county);
+    if (cb) return cb;
+  }
+  if (opts.exportExtent === 'erie-muni'){
+    const muniId = opts.exportMuni || $('pdf-aoi-muni')?.value;
+    const mb = muniId && getErieMuniExportBounds(muniId);
+    if (mb) return mb;
+  }
+  if (opts.exportExtent === 'bbox'){
+    const v = validateCustomBbox(opts.exportBbox || readBboxFromForm());
+    if (!v.ok) throw new Error(v.message + ' Or choose another AOI.');
+    return {...v.bbox};
+  }
   const b = map.getBounds();
   return {west:b.getWest(), east:b.getEast(), south:b.getSouth(), north:b.getNorth()};
 }
@@ -1780,6 +2684,8 @@ function basemapTileUrl(basemap, z, y, x){
     return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
   if (basemap === 'gsat')
     return `https://mt${(x + y) % 4}.google.com/vt/lyrs=s&x=${x}&y=${y}&z=${z}`;
+  if (basemap === 'ghybrid')
+    return `https://mt${(x + y) % 4}.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${z}`;
   if (basemap === 'topography')
     return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`;
   if (basemap === 'streets')
@@ -1851,103 +2757,190 @@ function drawPolyRings(ctx, geom, xy, fillStyle){
 }
 
 function drawZipBoundaries(ctx, xy, opts, scale){
-  const fillOp = opts.zipFillOpacity;
+  /* Outline only — no fill colors */
+  ctx.fillStyle = 'rgba(0,0,0,0)';
+  ctx.strokeStyle = opts.zipColor || '#14707E';
+  applyCanvasLineStyle(ctx, opts.zipLineStyle, opts.zipLineWidth * scale);
   PAYLOAD.zips.features.forEach(f => {
-    const zip = f.properties.zip;
-    if (opts.zipColorMode === 'distinct'){
-      const c = zipPaletteColor(zip);
-      ctx.fillStyle = hslToRgba(c.fill, fillOp);
-      ctx.strokeStyle = c.stroke;
-    } else {
-      ctx.fillStyle = hexToRgba(opts.zipColor, fillOp);
-      ctx.strokeStyle = opts.zipColor;
-    }
-    applyCanvasLineStyle(ctx, opts.zipLineStyle, opts.zipLineWidth * scale);
+    drawPolyRings(ctx, f.geometry, xy, null);
+  });
+  ctx.setLineDash([]);
+}
+
+function drawMuniBoundaries(ctx, xy, opts, scale, kind){
+  const color = kind === 'city'
+    ? (opts.cityColor || '#B7431C')
+    : (opts.townColor || '#0B6E7A');
+  const width = (opts.muniLineWidth || 1.4) * scale;
+  ctx.strokeStyle = color;
+  applyCanvasLineStyle(ctx, kind === 'town' ? 'dashed' : 'solid', width);
+  (ERIE_MUNI_AOIS || []).filter(a => a.kind === kind).forEach(a => {
+    const geom = {
+      type:'MultiPolygon',
+      coordinates:(a.rings||[]).filter(r => r && r.length >= 3).map(r => [r])
+    };
+    drawPolyRings(ctx, geom, xy, null);
+  });
+  ctx.setLineDash([]);
+}
+
+function drawSviChoropleth(ctx, xy, opts, scale){
+  const fillOp = opts.sviFillOpacity ?? 0.72;
+  const metric = opts.sviMetric || 'RPL_THEMES';
+  PAYLOAD.zips.features.forEach(f => {
+    const zip = String(f.properties.zip).padStart(5, '0');
+    const rpl = sviRankValue(sviByZip[zip], metric);
+    const c = sviColorForRpl(rpl);
+    ctx.fillStyle = hexToRgba(c.fill, fillOp);
+    ctx.strokeStyle = c.stroke;
+    applyCanvasLineStyle(ctx, 'solid', 0.85 * scale);
     drawPolyRings(ctx, f.geometry, xy, ctx.fillStyle);
     ctx.setLineDash([]);
   });
 }
 
-function getLegendItems(opts){
+function getLegendItems(opts, exportRows){
   const c = opts.colorMode === 'custom' ? opts.customColors : {
-    nplA: NPL_COLOR, nplC: '#C9930F', nplD: '#2F7D4E',
+    nplA: NPL_COLOR, nplC: '#D4A017', nplD: '#1B7A45',
     decSSF: PROG_META.SSF.color, decBCP: PROG_META.BCP.color, decERP: PROG_META.ERP.color,
     decVCP: PROG_META.VCP.color, decRCRA: PROG_META.RCRA.color,
     ceam: CEAM_COLOR, cbs: CBS_COLOR
   };
+  const rows = exportRows || currentRecords().filter(r =>
+    (r.type==='NPL'&&opts.showNPL) || (r.type==='DEC'&&opts.showDEC) ||
+    (r.type==='CEAM'&&opts.showCEAM) || (r.type==='CBS'&&opts.showCBS)
+  );
+  const hasType = t => rows.some(r => r.type === t);
+  const hasProg = p => rows.some(r => r.type === 'DEC' && (p === 'OTHER' ? !SITE_PICK_PROGS.includes(r.prog) : r.prog === p));
   const items = [];
-  if (opts.legendNpl !== false && opts.showNPL){
-    items.push({shape: opts.nplSymbolShape, color: c.nplA, label: 'NPL — cleanup ongoing'});
-    items.push({shape: opts.nplSymbolShape, color: c.nplC, label: 'NPL — construction complete'});
-    items.push({shape: opts.nplSymbolShape, color: c.nplD, label: 'NPL — deleted'});
+  const decShape = (prog) => {
+    if (opts.decSymbolShape && opts.decSymbolShape !== 'by-program') return opts.decSymbolShape;
+    return (PROG_META[prog] || {}).shape || 'circle';
+  };
+  if (opts.legendNpl !== false && opts.showNPL && hasType('NPL')){
+    const sh = opts.nplSymbolShape || TYPE_SHAPE.NPL;
+    items.push({shape: sh, color: c.nplA, label: 'NPL — cleanup ongoing'});
+    items.push({shape: sh, color: c.nplC, label: 'NPL — construction complete'});
+    items.push({shape: sh, color: c.nplD, label: 'NPL — deleted'});
   }
-  if (opts.legendDec !== false && opts.showDEC){
-    items.push({shape: opts.decSymbolShape, color: c.decSSF, label: 'DEC — State Superfund'});
-    items.push({shape: opts.decSymbolShape, color: c.decBCP, label: 'DEC — Brownfield Cleanup'});
-    items.push({shape: opts.decSymbolShape, color: c.decERP, label: 'DEC — Environmental Restoration'});
-    items.push({shape: opts.decSymbolShape, color: c.decVCP, label: 'DEC — Voluntary Cleanup'});
-    items.push({shape: opts.decSymbolShape, color: c.decRCRA, label: 'DEC — RCRA / other'});
+  if (opts.legendDec !== false && opts.showDEC && hasType('DEC')){
+    if (hasProg('SSF')) items.push({shape: decShape('SSF'), color: c.decSSF, label: 'DEC — State Superfund'});
+    if (hasProg('BCP')) items.push({shape: decShape('BCP'), color: c.decBCP, label: 'DEC — Brownfield Cleanup'});
+    if (hasProg('ERP')) items.push({shape: decShape('ERP'), color: c.decERP, label: 'DEC — Environmental Restoration'});
+    if (hasProg('VCP')) items.push({shape: decShape('VCP'), color: c.decVCP, label: 'DEC — Voluntary Cleanup'});
+    if (hasProg('RCRA') || hasProg('OTHER')) items.push({shape: decShape('RCRA'), color: c.decRCRA, label: 'DEC — RCRA / other'});
   }
-  if (opts.legendCeam !== false && opts.showCEAM)
-    items.push({shape: opts.ceamSymbolShape, color: c.ceam, label: 'Chemical-release facility (CEAM)'});
-  if (opts.legendCbs !== false && opts.showCBS)
-    items.push({shape: opts.cbsSymbolShape, color: c.cbs, label: 'Chemical bulk storage'});
+  if (opts.legendCeam !== false && opts.showCEAM && hasType('CEAM'))
+    items.push({shape: opts.ceamSymbolShape || TYPE_SHAPE.CEAM, color: c.ceam, label: 'Chemical-release facility (CEAM)'});
+  if (opts.legendCbs !== false && opts.showCBS && hasType('CBS'))
+    items.push({shape: opts.cbsSymbolShape || TYPE_SHAPE.CBS, color: c.cbs, label: 'Chemical bulk storage'});
   if (opts.legendCounties !== false && opts.showCounties)
     items.push({shape: 'line', color: opts.countyColor, label: 'County boundary', dashed: opts.countyLineStyle === 'dashed', dotted: opts.countyLineStyle === 'dotted'});
+  if (opts.legendCities !== false && opts.showCities)
+    items.push({shape: 'line', color: opts.cityColor || '#B7431C', label: 'City boundary (Erie Co.)'});
+  if (opts.legendTowns !== false && opts.showTowns)
+    items.push({shape: 'line', color: opts.townColor || '#0B6E7A', label: 'Town boundary (Erie Co.)', dashed: true});
   if (opts.legendZips !== false && opts.showZips)
-    items.push({shape: 'line', color: opts.zipColorMode === 'distinct' ? '#14707E' : opts.zipColor, label: opts.zipColorMode === 'distinct' ? 'ZIP boundaries (distinct colors)' : 'ZIP boundaries', dashed: opts.zipLineStyle === 'dashed', dotted: opts.zipLineStyle === 'dotted'});
+    items.push({shape: 'line', color: opts.zipColor || '#14707E', label: 'ZIP boundaries', dashed: opts.zipLineStyle === 'dashed', dotted: opts.zipLineStyle === 'dotted'});
+  if (opts.legendSvi !== false && opts.showSvi){
+    const meta = getSviMetricMeta(opts.sviMetric || 'RPL_THEMES');
+    items.push({shape: 'svi-header', label: `CDC/ATSDR SVI — ${meta.label} (NY statewide rank)`});
+    SVI_COLOR_BINS.forEach(b => items.push({shape: 'swatch', color: b.color, label: b.label}));
+    items.push({shape: 'swatch', color: SVI_NO_DATA.fill, label: 'No data'});
+  }
   return items;
 }
 
-function drawLegendBox(ctx, width, height, opts){
-  const items = getLegendItems(opts);
+function legendBoxOrigin(width, height, boxW, boxH, pos){
+  const m = Math.max(18, width / 120);
+  switch (pos){
+    case 'top-left': return {x0: m, y0: m};
+    case 'bottom-left': return {x0: m, y0: height - boxH - m};
+    case 'bottom-right': return {x0: width - boxW - m, y0: height - boxH - m};
+    default: return {x0: width - boxW - m, y0: m};
+  }
+}
+
+function legendItemRowHeight(item, legendFont, rowH, headerH, swatchH){
+  if (item.shape === 'svi-header') return headerH;
+  if (item.shape === 'swatch') return swatchH;
+  return rowH;
+}
+
+function drawLegendBox(ctx, width, height, opts, exportRows){
+  const items = getLegendItems(opts, exportRows);
   if (!items.length) return;
-  const sz = {r: Math.max(8, (SYMBOL_SIZES[opts.nplSymbolSize] || SYMBOL_SIZES.medium).r + 2), half: 7};
-  const pad = 16;
-  const legendFont = opts.legendFontSize || 13;
-  const rowH = Math.max(22, legendFont + 12);
+  const exportScale = Math.max(width / 900, 2.2);
+  const baseSz = symbolSizeFromPx(opts.nplSymbolPx);
+  const sz = {r: Math.max(10, baseSz.r + 2) * exportScale, half: Math.max(8, baseSz.half) * exportScale};
+  const pad = 16 * exportScale;
+  const legendFont = Math.max(14, (opts.legendFontSize || 18) * exportScale);
+  const rowH = Math.max(26, legendFont + 14);
+  const headerH = Math.max(22, legendFont + 6);
+  const swatchH = Math.max(22, legendFont + 8);
   ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-  const maxLabelW = Math.max(...items.map(it => ctx.measureText(it.label).width));
-  const boxW = Math.min(width - 24, Math.max(280, pad + sz.r * 2 + 18 + maxLabelW + pad));
-  const boxH = pad * 2 + items.length * rowH + 20;
-  const x0 = width - boxW - 14;
-  const y0 = 14;
+  const maxLabelW = Math.max(...items.map(it => {
+    if (it.shape === 'svi-header') ctx.font = `bold ${Math.max(12, legendFont - 1)}px "Segoe UI", sans-serif`;
+    else ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+    return ctx.measureText(it.label).width;
+  }));
+  const boxW = Math.min(width - 24, Math.max(320 * exportScale, pad + sz.r * 2 + 22 * exportScale + maxLabelW + pad));
+  const boxH = pad * 2 + 24 * exportScale + items.reduce((sum, it) => sum + legendItemRowHeight(it, legendFont, rowH, headerH, swatchH), 0);
+  const {x0, y0} = legendBoxOrigin(width, height, boxW, boxH, opts.legendPosition || 'bottom-left');
   ctx.save();
-  ctx.shadowColor = 'rgba(20,38,46,0.45)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+  ctx.shadowColor = 'rgba(20,38,46,0.45)'; ctx.shadowBlur = 10 * exportScale; ctx.shadowOffsetY = 3 * exportScale;
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x0, y0, boxW, boxH);
   ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#14262E'; ctx.lineWidth = 2.5; ctx.strokeRect(x0, y0, boxW, boxH);
+  ctx.strokeStyle = '#14262E'; ctx.lineWidth = Math.max(2, 2.5 * exportScale); ctx.strokeRect(x0, y0, boxW, boxH);
   ctx.restore();
   ctx.fillStyle = '#14262E';
-  ctx.font = `bold ${legendFont + 3}px "Segoe UI", sans-serif`;
-  ctx.fillText('Legend', x0 + pad, y0 + pad + 11);
-  ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-  items.forEach((item, i) => {
-    const cy = y0 + pad + 22 + i * rowH + rowH / 2;
-    const ix = x0 + pad + sz.r + 4;
-    if (item.shape === 'line'){
+  ctx.font = `bold ${legendFont + 4}px "Segoe UI", sans-serif`;
+  ctx.fillText('Legend', x0 + pad, y0 + pad + legendFont * 0.75);
+  let cy = y0 + pad + legendFont + 10;
+  items.forEach(item => {
+    const ih = legendItemRowHeight(item, legendFont, rowH, headerH, swatchH);
+    const midY = cy + ih / 2;
+    const ix = x0 + pad + sz.r + 6 * exportScale;
+    if (item.shape === 'svi-header'){
+      ctx.fillStyle = '#5A6E78';
+      ctx.font = `bold ${Math.max(12, legendFont - 1)}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad, midY + 4);
+    } else if (item.shape === 'swatch'){
+      const sw = 18 * exportScale, sh = 12 * exportScale;
+      ctx.fillStyle = item.color;
+      ctx.fillRect(ix - sw, midY - sh / 2, sw, sh);
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = Math.max(1, exportScale);
+      ctx.strokeRect(ix - sw, midY - sh / 2, sw, sh);
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
+    } else if (item.shape === 'line'){
       ctx.strokeStyle = item.color;
-      ctx.lineWidth = item.dashed || item.dotted ? 3 : 2;
-      if (item.dashed) ctx.setLineDash([6, 4]);
-      else if (item.dotted) ctx.setLineDash([2, 4]);
+      ctx.lineWidth = (item.dashed || item.dotted ? 3 : 2) * exportScale;
+      if (item.dashed) ctx.setLineDash([6 * exportScale, 4 * exportScale]);
+      else if (item.dotted) ctx.setLineDash([2 * exportScale, 4 * exportScale]);
       else ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(ix - 14, cy); ctx.lineTo(ix + 14, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ix - 16 * exportScale, midY); ctx.lineTo(ix + 16 * exportScale, midY); ctx.stroke();
       ctx.setLineDash([]);
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
     } else {
-      drawSiteSymbol(ctx, ix, cy, {
+      drawSiteSymbol(ctx, ix, midY, {
         type: item.label.includes('CEAM') ? 'CEAM' : item.label.includes('bulk') ? 'CBS' : item.label.includes('DEC') ? 'DEC' : 'NPL',
         st: item.label.includes('construction complete') ? 'C' : item.label.includes('deleted') ? 'D' : 'A',
         prog: item.label.includes('Brownfield') ? 'BCP' : item.label.includes('State Superfund') ? 'SSF' : item.label.includes('Environmental') ? 'ERP' : item.label.includes('Voluntary') ? 'VCP' : 'RCRA'
       }, {
         colorMode: 'custom',
         customColors: {nplA:item.color,nplC:item.color,nplD:item.color,decSSF:item.color,decBCP:item.color,decERP:item.color,decVCP:item.color,decRCRA:item.color,ceam:item.color,cbs:item.color},
-        nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape,
-        nplSymbolSize: opts.nplSymbolSize, decSymbolSize: opts.decSymbolSize, ceamSymbolSize: opts.ceamSymbolSize, cbsSymbolSize: opts.cbsSymbolSize
-      });
+        nplSymbolPx: opts.nplSymbolPx, decSymbolPx: opts.decSymbolPx, ceamSymbolPx: opts.ceamSymbolPx, cbsSymbolPx: opts.cbsSymbolPx,
+        nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape
+      }, exportScale);
+      ctx.fillStyle = '#14262E';
+      ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
     }
-    ctx.fillStyle = '#14262E';
-    ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-    ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, cy + 5);
+    cy += ih;
   });
 }
 
@@ -1963,7 +2956,12 @@ function readExportOptionsFromForm(){
     showCEAM: $('pdf-ceam').checked,
     showCBS: $('pdf-cbs').checked,
     showCounties: $('pdf-counties').checked,
+    showCities: $('pdf-cities').checked,
+    showTowns: $('pdf-towns').checked,
     showZips: $('pdf-zips').checked,
+    showSvi: $('pdf-svi').checked,
+    sviMetric: $('pdf-svi-metric').value || 'RPL_THEMES',
+    sviFillOpacity: parseFloat($('pdf-svi-fill').value) || 0.72,
     showLabels: $('pdf-labels').checked,
     showLegend: $('pdf-legend').checked,
     includeRegister: $('pdf-register').checked,
@@ -1971,30 +2969,43 @@ function readExportOptionsFromForm(){
     dataSource: $('pdf-data-source').value.trim(),
     figureSize: $('pdf-fig-size').value,
     exportExtent: document.querySelector('input[name="pdf-extent"]:checked')?.value || 'current',
+    exportCounty: $('pdf-aoi-county')?.value || '',
+    exportMuni: $('pdf-aoi-muni')?.value || '',
+    exportBbox: (() => {
+      const v = validateCustomBbox(readBboxFromForm());
+      return v.ok ? v.bbox : null;
+    })(),
     pngWidth: parseInt($('pdf-png-size').value, 10) || 2400,
     nplSymbolShape: $('pdf-npl-shape').value,
     decSymbolShape: $('pdf-dec-shape').value,
     ceamSymbolShape: $('pdf-ceam-shape').value,
     cbsSymbolShape: $('pdf-cbs-shape').value,
-    nplSymbolSize: $('pdf-npl-size').value,
-    decSymbolSize: $('pdf-dec-size').value,
-    ceamSymbolSize: $('pdf-ceam-size').value,
-    cbsSymbolSize: $('pdf-cbs-size').value,
-    colorMode: $('pdf-color-mode').value,
+    nplSymbolPx: readSymbolPxFromInput('pdf-npl-size'),
+    decSymbolPx: readSymbolPxFromInput('pdf-dec-size'),
+    ceamSymbolPx: readSymbolPxFromInput('pdf-ceam-size'),
+    cbsSymbolPx: readSymbolPxFromInput('pdf-cbs-size'),
+    colorMode: document.querySelector('input[name="pdf-color-mode"]:checked')?.value || 'default',
     customColors: readCustomColorsFromForm(),
-    legendFontSize: parseInt($('pdf-legend-font').value, 10) || 13,
+    legendFontSize: parseInt($('pdf-legend-font').value, 10) || 18,
     legendNpl: $('legend-npl').checked,
     legendDec: $('legend-dec').checked,
     legendCeam: $('legend-ceam').checked,
     legendCbs: $('legend-cbs').checked,
     legendCounties: $('legend-counties').checked,
+    legendCities: $('legend-cities').checked,
+    legendTowns: $('legend-towns').checked,
     legendZips: $('legend-zips').checked,
+    legendSvi: $('legend-svi').checked,
+    legendPosition: $('pdf-legend-pos').value || 'bottom-left',
     countyColor: $('pdf-co-color').value,
     countyLineWidth: parseFloat($('pdf-co-width').value) || 1.5,
     countyLineStyle: $('pdf-co-style').value,
-    zipColorMode: $('pdf-zip-mode').value,
+    cityColor: $('pdf-city-color').value,
+    townColor: $('pdf-town-color').value,
+    muniLineWidth: parseFloat($('pdf-muni-width').value) || 1.4,
+    zipColorMode: 'single',
     zipColor: $('pdf-zip-color').value,
-    zipFillOpacity: parseFloat($('pdf-zip-fill').value) || 0.34,
+    zipFillOpacity: 0,
     zipLineWidth: parseFloat($('pdf-zip-width').value) || 1.1,
     zipLineStyle: $('pdf-zip-style').value,
     labelFontSize: parseInt($('pdf-label-font').value, 10) || 12,
@@ -2005,23 +3016,137 @@ function readExportOptionsFromForm(){
 
 function toggleLegendItemsPanel(){
   $('legend-items-panel').style.opacity = $('pdf-legend').checked ? '1' : '0.45';
-  $('legend-items-panel').querySelectorAll('input').forEach(inp => { inp.disabled = !$('pdf-legend').checked; });
+  $('legend-items-panel').querySelectorAll('input').forEach(inp => {
+    if (inp.id === 'legend-svi') inp.disabled = !$('pdf-legend').checked || !$('pdf-svi').checked;
+    else inp.disabled = !$('pdf-legend').checked;
+  });
 }
 
-function togglePdfCustomColors(){
-  $('pdf-custom-colors').hidden = $('pdf-color-mode').value !== 'custom';
+function togglePdfSviPanel(){
+  const on = $('pdf-svi').checked;
+  $('pdf-svi-panel').style.opacity = on ? '1' : '0.45';
+  $('pdf-svi-panel').querySelectorAll('select,input').forEach(inp => { inp.disabled = !on; });
+  if (on && $('pdf-zips').checked) $('pdf-zips').checked = false;
+  $('pdf-zips').disabled = on;
+  if (on) $('legend-svi').checked = true;
+  toggleLegendItemsPanel();
 }
 
-function syncExportModalFromMap(){
+function togglePdfZipsForExport(){
+  if ($('pdf-zips').checked && $('pdf-svi').checked){
+    $('pdf-svi').checked = false;
+    togglePdfSviPanel();
+  }
+}
+
+function togglePdfSymbolColors(){
+  const custom = document.querySelector('input[name="pdf-color-mode"]:checked')?.value === 'custom';
+  $('pdf-custom-colors').style.opacity = custom ? '1' : '0.5';
+  $('pdf-custom-colors').querySelectorAll('input[type="color"]').forEach(inp => { inp.disabled = !custom; });
+  $('pdf-color-reset').disabled = !custom;
+}
+
+function resetExportColorsToDefaults(){
+  applyExportColorsToForm(getDefaultExportColors());
+}
+
+function populatePdfAoiCounties(){
+  const sel = $('pdf-aoi-county');
+  if (!sel || sel.options.length) return;
+  const names = (PAYLOAD.counties?.features || [])
+    .map(f => f.properties?.name)
+    .filter(Boolean)
+    .sort((a,b) => a.localeCompare(b));
+  names.forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  if (!sel.value && names.length) sel.value = names.includes('Erie') ? 'Erie' : names[0];
+}
+
+function populatePdfAoiMunicipalities(){
+  const sel = $('pdf-aoi-muni');
+  if (!sel || sel.options.length) return;
+  const cities = (ERIE_MUNI_AOIS || []).filter(a => a.kind === 'city');
+  const towns = (ERIE_MUNI_AOIS || []).filter(a => a.kind === 'town');
+  const addGroup = (label, items) => {
+    const og = document.createElement('optgroup');
+    og.label = label;
+    items.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.id; o.textContent = a.label;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  };
+  addGroup('Cities', cities);
+  addGroup('Towns', towns);
+  if (!sel.value && cities.length) sel.value = cities[0].id;
+}
+
+function togglePdfAoiPanels(){
+  const extent = document.querySelector('input[name="pdf-extent"]:checked')?.value;
+  const countyOn = extent === 'county';
+  const muniOn = extent === 'erie-muni';
+  const bboxOn = extent === 'bbox';
+  const countyPanel = $('pdf-aoi-county-panel');
+  const countySel = $('pdf-aoi-county');
+  const muniPanel = $('pdf-aoi-muni-panel');
+  const muniSel = $('pdf-aoi-muni');
+  const bboxPanel = $('pdf-aoi-bbox-panel');
+  if (countyPanel) countyPanel.style.opacity = countyOn ? '1' : '0.45';
+  if (countySel) countySel.disabled = !countyOn;
+  if (muniPanel) muniPanel.style.opacity = muniOn ? '1' : '0.45';
+  if (muniSel) muniSel.disabled = !muniOn;
+  if (bboxPanel) bboxPanel.style.opacity = bboxOn ? '1' : '0.45';
+  ['pdf-bbox-west','pdf-bbox-east','pdf-bbox-south','pdf-bbox-north',
+   'pdf-bbox-from-view','pdf-bbox-draw','pdf-bbox-clear'].forEach(id => {
+    if ($(id)) $(id).disabled = !bboxOn;
+  });
+  if (bboxOn){
+    updateBboxStatus();
+    const b = normalizeBbox(readBboxFromForm());
+    if (b) updateBboxPreview(b);
+  } else if (bboxPreviewLayer && !bboxDrawActive){
+    map.removeLayer(bboxPreviewLayer);
+    bboxPreviewLayer = null;
+  }
+}
+
+function syncExportModalFromMap(opts={}){
+  const keepExtent = opts.preserveExtent
+    ? (opts.prevExtent || document.querySelector('input[name="pdf-extent"]:checked')?.value)
+    : null;
   document.querySelector('input[name="pdf-basemap"][value="current"]').checked = true;
   $('pdf-npl').checked = show.NPL;
   $('pdf-dec').checked = show.DEC;
   $('pdf-ceam').checked = show.CEAM;
   $('pdf-cbs').checked = show.CBS;
+  if ($('pdf-site-limit')) $('pdf-site-limit').checked = limitToSelectedSites;
+  refreshSitePickLists();
   $('pdf-counties').checked = showCounties;
+  if ($('pdf-cities')) $('pdf-cities').checked = showCities;
+  if ($('pdf-towns')) $('pdf-towns').checked = showTowns;
+  if ($('legend-cities')) $('legend-cities').checked = showCities;
+  if ($('legend-towns')) $('legend-towns').checked = showTowns;
   $('pdf-zips').checked = showZips;
+  $('pdf-svi').checked = showSvi;
+  $('pdf-svi-metric').value = sviMetric;
   $('pdf-labels').checked = showLabels;
-  togglePdfCustomColors();
+  populatePdfAoiCounties();
+  populatePdfAoiMunicipalities();
+  if (keepExtent){
+    const r = document.querySelector(`input[name="pdf-extent"][value="${keepExtent}"]`);
+    if (r) r.checked = true;
+  } else if (fCounty){
+    const countyRadio = document.querySelector('input[name="pdf-extent"][value="county"]');
+    if (countyRadio) countyRadio.checked = true;
+    if ($('pdf-aoi-county')) $('pdf-aoi-county').value = fCounty;
+  }
+  togglePdfAoiPanels();
+  togglePdfSviPanel();
+  togglePdfSymbolColors();
   toggleLegendItemsPanel();
 }
 
@@ -2033,8 +3158,8 @@ function figureDimensions(pdfOpts, pageW, yStart, pageH, margin){
   return {w: maxW, h: Math.min(maxH, maxW * 0.58)};
 }
 
-function openExportModal(){
-  syncExportModalFromMap();
+function openExportModal(opts={}){
+  syncExportModalFromMap(opts);
   $('pdf-modal').classList.add('open');
   $('pdf-modal').setAttribute('aria-hidden', 'false');
 }
@@ -2045,11 +3170,18 @@ function closeExportModal(){
 }
 
 function getExportRows(opts){
-  if (!opts.showNPL && !opts.showDEC && !opts.showCEAM && !opts.showCBS)
-    throw new Error('Select at least one dataset to export');
+  const anyDataset = opts.showNPL || opts.showDEC || opts.showCEAM || opts.showCBS;
+  if (!anyDataset && !opts.showSvi)
+    throw new Error('Select at least one dataset or SVI choropleth to export');
+  if (!anyDataset) return [];
   const typeOK = {NPL: opts.showNPL, DEC: opts.showDEC, CEAM: opts.showCEAM, CBS: opts.showCBS};
-  const rows = currentRecords().filter(r => typeOK[r.type]);
-  if (!rows.length) throw new Error('No records match the selected datasets and filters');
+  let rows = currentRecords().filter(r => typeOK[r.type]);
+  rows = filterRowsToExportAoi(rows, opts);
+  if (!rows.length){
+    if (limitToSelectedSites && opts.showDEC && !selectedSiteKeys.size)
+      throw new Error('Site selection is on, but no DEC cleanup sites are checked — select sites or turn off “Only selected”');
+    throw new Error('No records match the selected datasets, filters, and AOI');
+  }
   return rows;
 }
 
@@ -2076,10 +3208,19 @@ async function renderExportCanvas(width, opts, rows){
   const latSpan = north - south || 1;
   const xy = (lat, lng) => [((lng - west) / lngSpan) * width, ((north - lat) / latSpan) * height];
   const scale = width / 2400;
+  /* Selected px (12–30) is a base size; scale up with canvas so markers stay readable on city/town figures */
+  const symbolScale = Math.max(width / 900, 2.2);
   const basemap = opts.basemap === 'current' ? getCurrentBasemap() : opts.basemap;
+  const muniAoi = opts.exportExtent === 'erie-muni' ? getErieMuniAoi(opts.exportMuni) : null;
+  const customBbox = opts.exportExtent === 'bbox' ? normalizeBbox(opts.exportBbox) : null;
+
   const basemapDrawn = await drawBasemapTiles(ctx, width, height, basemap, bounds);
 
-  if (opts.showZips) drawZipBoundaries(ctx, xy, opts, scale);
+  if (opts.showSvi) drawSviChoropleth(ctx, xy, opts, scale);
+  else if (opts.showZips) drawZipBoundaries(ctx, xy, opts, scale);
+
+  if (opts.showTowns) drawMuniBoundaries(ctx, xy, opts, scale, 'town');
+  if (opts.showCities) drawMuniBoundaries(ctx, xy, opts, scale, 'city');
 
   if (opts.showCounties){
     ctx.strokeStyle = opts.countyColor;
@@ -2088,10 +3229,14 @@ async function renderExportCanvas(width, opts, rows){
     ctx.setLineDash([]);
   }
 
+  /* AOI boundary under markers so sites stay on top */
+  if (muniAoi) drawErieMuniOutline(ctx, xy, muniAoi, Math.max(scale, 1.2));
+  if (customBbox) drawBboxOutline(ctx, xy, customBbox, Math.max(scale, 1.2));
+
   rows.forEach(rec => {
     const [x, y] = xy(rec.lat, rec.lng);
     if (x < -30 || y < -30 || x > width + 30 || y > height + 30) return;
-    drawSiteSymbol(ctx, x, y, rec, opts);
+    drawSiteSymbol(ctx, x, y, rec, opts, symbolScale);
   });
 
   if (opts.showLabels){
@@ -2099,19 +3244,37 @@ async function renderExportCanvas(width, opts, rows){
       const [x, y] = xy(g.lat, g.lng);
       if (x < 0 || y < 0 || x > width || y > height) return;
       const water = /water/.test(g.cls);
-      const fs = (water ? opts.labelFontSize : opts.labelFontSize * 0.85) * scale;
+      const fs = (water ? opts.labelFontSize : opts.labelFontSize * 0.85) * Math.max(scale, 1);
       ctx.font = `${water ? 'italic ' : ''}bold ${fs}px "Arial Narrow", Arial, sans-serif`;
       ctx.fillStyle = water ? opts.labelWaterColor : opts.labelColor;
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3 * scale;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3 * Math.max(scale, 1);
       ctx.strokeText(g.t, x, y); ctx.fillText(g.t, x, y);
     });
   }
 
-  if (opts.showLegend) drawLegendBox(ctx, width, height, opts);
+  if (muniAoi || customBbox){
+    ctx.save();
+    const labelFs = Math.round(18 * Math.max(scale, 1.2));
+    ctx.font = `700 ${labelFs}px "Segoe UI", sans-serif`;
+    ctx.fillStyle = '#B7431C';
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 5 * Math.max(scale, 1);
+    const label = muniAoi
+      ? (muniAoi.label || opts.exportMuni)
+      : `Custom AOI  ${customBbox.west.toFixed(3)}, ${customBbox.south.toFixed(3)} → ${customBbox.east.toFixed(3)}, ${customBbox.north.toFixed(3)}`;
+    ctx.strokeText(label, 16, 32);
+    ctx.fillText(label, 16, 32);
+    ctx.restore();
+  }
+
+  if (opts.showLegend) drawLegendBox(ctx, width, height, opts, rows);
 
   const afs = Math.max(9, width / 160);
   ctx.font = `${afs}px Arial, sans-serif`;
-  const attr = basemap === 'none' ? '' : basemap === 'streets' ? '© OpenStreetMap contributors' : basemap === 'gsat' ? 'Imagery © Google' : 'Tiles © Esri — Maxar, Earthstar Geographics';
+  const attr = basemap === 'none' ? ''
+    : basemap === 'streets' ? '© OpenStreetMap contributors'
+    : (basemap === 'gsat' || basemap === 'ghybrid') ? 'Imagery © Google'
+    : 'Tiles © Esri — Maxar, Earthstar Geographics';
   if (attr){
     const w = ctx.measureText(attr).width + 10;
     ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(width - w - 4, height - afs - 10, w + 4, afs + 10);
@@ -2164,7 +3327,7 @@ async function exportPdfReport(opts){
     const rows = getExportRows(opts);
     const margin = 40;
     const figDims = figureDimensions(opts, 792, margin, 612, margin);
-    const canvasW = Math.round(figDims.w * 2.2);
+    const canvasW = Math.max(2400, Math.round(figDims.w * 4));
     const {canvas, basemapDrawn, basemapUsed} = await renderExportCanvas(canvasW, opts, rows);
     const imgData = canvas.toDataURL('image/jpeg', 0.92);
     const {jsPDF} = window.jspdf;
@@ -2231,12 +3394,80 @@ async function exportPdfReport(opts){
 $('btn-export-pdf').addEventListener('click', openExportModal);
 $('pdf-cancel').addEventListener('click', closeExportModal);
 $('pdf-modal-backdrop').addEventListener('click', closeExportModal);
-$('pdf-color-mode').addEventListener('change', togglePdfCustomColors);
+document.querySelectorAll('input[name="pdf-color-mode"]').forEach(r => r.addEventListener('change', togglePdfSymbolColors));
+$('pdf-color-reset').addEventListener('click', resetExportColorsToDefaults);
 $('pdf-legend').addEventListener('change', toggleLegendItemsPanel);
+$('pdf-svi').addEventListener('change', togglePdfSviPanel);
+$('pdf-zips').addEventListener('change', togglePdfZipsForExport);
+
+/* site picker events */
+$('site-limit').addEventListener('change', e => {
+  setLimitToSelectedSites(e.target.checked);
+  if (e.target.checked && !selectedSiteKeys.size){
+    /* enable picking without wiping map until user selects — still refresh to apply empty DEC selection */
+  }
+  refresh();
+});
+$('pdf-site-limit').addEventListener('change', e => {
+  setLimitToSelectedSites(e.target.checked);
+  refresh();
+});
+$('site-pick-clear').addEventListener('click', () => clearSelectedSites());
+$('site-pick-dec-all').addEventListener('click', () => selectListedSites(sitePickDecQ, sitePickProg, true));
+$('site-pick-dec-none').addEventListener('click', () => clearSelectedSites(sitePickProg));
+$('site-pick-dec-none-all').addEventListener('click', () => clearSelectedSites('DEC'));
+$('pdf-site-dec-all').addEventListener('click', () => selectListedSites(pdfSiteDecQ, pdfSitePickProg, true));
+$('pdf-site-dec-none').addEventListener('click', () => clearSelectedSites(pdfSitePickProg));
+$('site-pick-dec-q').addEventListener('input', e => { sitePickDecQ = e.target.value; renderSitePickList('site-pick-dec-list', sitePickDecQ, sitePickProg, {maxShow:500}); });
+$('pdf-site-dec-q').addEventListener('input', e => { pdfSiteDecQ = e.target.value; renderSitePickList('pdf-site-dec-list', pdfSiteDecQ, pdfSitePickProg, {maxShow:300}); });
+['site-pick-dec-list','pdf-site-dec-list'].forEach(bindSitePickListClicks);
+setLimitToSelectedSites(false);
+refreshSitePickLists();
+
+document.querySelectorAll('input[name="pdf-extent"]').forEach(r => r.addEventListener('change', togglePdfAoiPanels));
+$('pdf-aoi-county').addEventListener('change', () => {
+  document.querySelector('input[name="pdf-extent"][value="county"]').checked = true;
+  togglePdfAoiPanels();
+});
+$('pdf-aoi-muni').addEventListener('change', () => {
+  document.querySelector('input[name="pdf-extent"][value="erie-muni"]').checked = true;
+  togglePdfAoiPanels();
+});
+$('pdf-aoi-muni').addEventListener('focus', () => {
+  document.querySelector('input[name="pdf-extent"][value="erie-muni"]').checked = true;
+  togglePdfAoiPanels();
+});
+['pdf-bbox-west','pdf-bbox-east','pdf-bbox-south','pdf-bbox-north'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    document.querySelector('input[name="pdf-extent"][value="bbox"]').checked = true;
+    togglePdfAoiPanels();
+    const b = normalizeBbox(readBboxFromForm());
+    if (b) updateBboxPreview(b);
+    else updateBboxStatus();
+  });
+  $(id).addEventListener('focus', () => {
+    document.querySelector('input[name="pdf-extent"][value="bbox"]').checked = true;
+    togglePdfAoiPanels();
+  });
+});
+$('pdf-bbox-from-view').addEventListener('click', fillBboxFromMapView);
+$('pdf-bbox-draw').addEventListener('click', startBboxDraw);
+$('pdf-bbox-clear').addEventListener('click', clearCustomBbox);
+populatePdfAoiCounties();
+populatePdfAoiMunicipalities();
+togglePdfAoiPanels();
 $('export-png').addEventListener('click', () => exportPngReport(readExportOptionsFromForm()));
 $('export-pdf').addEventListener('click', () => exportPdfReport(readExportOptionsFromForm()));
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pdf-modal').classList.contains('open')) closeExportModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    if (bboxDrawActive){ stopBboxDraw({reopenModal:true}); return; }
+    if ($('pdf-modal').classList.contains('open')) closeExportModal();
+  }
+});
 toggleLegendItemsPanel();
+togglePdfSviPanel();
+togglePdfSymbolColors();
+initPdfSviMetricSelect();
 
 /* dataset totals in the About section reflect the loaded data */
 $('dc-npl').textContent=PAYLOAD.npl.length;
