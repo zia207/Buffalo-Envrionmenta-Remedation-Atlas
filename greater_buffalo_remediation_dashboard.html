@@ -590,8 +590,8 @@ footer strong{color:var(--ink)}
         <div class="pdf-field"><label for="pdf-npl-size">Symbol size</label>
           <select id="pdf-npl-size">
             <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
+            <option value="medium">Medium</option>
+            <option value="large" selected>Large</option>
           </select></div>
       </div>
     </fieldset>
@@ -609,8 +609,8 @@ footer strong{color:var(--ink)}
         <div class="pdf-field"><label for="pdf-dec-size">Symbol size</label>
           <select id="pdf-dec-size">
             <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
+            <option value="medium">Medium</option>
+            <option value="large" selected>Large</option>
           </select></div>
       </div>
     </fieldset>
@@ -628,8 +628,8 @@ footer strong{color:var(--ink)}
         <div class="pdf-field"><label for="pdf-ceam-size">Symbol size</label>
           <select id="pdf-ceam-size">
             <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
+            <option value="medium">Medium</option>
+            <option value="large" selected>Large</option>
           </select></div>
       </div>
     </fieldset>
@@ -647,8 +647,8 @@ footer strong{color:var(--ink)}
         <div class="pdf-field"><label for="pdf-cbs-size">Symbol size</label>
           <select id="pdf-cbs-size">
             <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
+            <option value="medium">Medium</option>
+            <option value="large" selected>Large</option>
           </select></div>
       </div>
     </fieldset>
@@ -692,13 +692,13 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="checkbox" id="pdf-legend" checked> Draw legend on figure</label>
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-legend-font">Legend font size (px)</label>
-          <input type="number" id="pdf-legend-font" min="9" max="20" step="1" value="13"></div>
+          <input type="number" id="pdf-legend-font" min="12" max="28" step="1" value="18"></div>
         <div class="pdf-field"><label for="pdf-legend-pos">Legend position</label>
           <select id="pdf-legend-pos">
-            <option value="top-right" selected>Top right</option>
+            <option value="top-right">Top right</option>
             <option value="top-left">Top left</option>
             <option value="bottom-right">Bottom right</option>
-            <option value="bottom-left">Bottom left</option>
+            <option value="bottom-left" selected>Bottom left</option>
           </select></div>
       </div>
       <div id="legend-items-panel" class="pdf-colors" style="margin-top:8px">
@@ -1694,7 +1694,7 @@ const EXPORT_EXTENTS = {
   core:   {west:-79.15, east:-78.45, south:42.70, north:43.35}
 };
 const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, streets:19, topography:18, none:4, current:18};
-const SYMBOL_SIZES = { small:{r:4,half:3.5}, medium:{r:6,half:5}, large:{r:9,half:7.5} };
+const SYMBOL_SIZES = { small:{r:7,half:6}, medium:{r:10,half:8.5}, large:{r:15,half:12.5} };
 const FIGURE_PT = {
   small:  {w:288, h:180},
   medium: {w:468, h:288},
@@ -1773,16 +1773,17 @@ function getDatasetSymbolShape(rec, opts){
   return opts[key + 'SymbolShape'] || 'circle';
 }
 
-function drawSiteSymbol(ctx, x, y, rec, opts){
+function drawSiteSymbol(ctx, x, y, rec, opts, scale = 1){
   const sz = getDatasetSymbolSize(rec, opts);
   const shape = getDatasetSymbolShape(rec, opts);
   const color = getSymbolColor(rec, opts);
+  const r = sz.r * scale;
+  const h = sz.half * scale;
   ctx.fillStyle = color;
   ctx.strokeStyle = '#fff';
-  ctx.lineWidth = Math.max(1.5, sz.r * 0.35);
-  const h = sz.half;
+  ctx.lineWidth = Math.max(1.5, r * 0.35);
   ctx.beginPath();
-  if (shape === 'circle') ctx.arc(x, y, sz.r, 0, Math.PI * 2);
+  if (shape === 'circle') ctx.arc(x, y, r, 0, Math.PI * 2);
   else if (shape === 'square') ctx.rect(x - h, y - h, h * 2, h * 2);
   else if (shape === 'diamond'){
     ctx.moveTo(x, y - h * 1.15); ctx.lineTo(x + h * 1.15, y); ctx.lineTo(x, y + h * 1.15); ctx.lineTo(x - h * 1.15, y);
@@ -1968,7 +1969,7 @@ function getLegendItems(opts){
 }
 
 function legendBoxOrigin(width, height, boxW, boxH, pos){
-  const m = 14;
+  const m = Math.max(18, width / 120);
   switch (pos){
     case 'top-left': return {x0: m, y0: m};
     case 'bottom-left': return {x0: m, y0: height - boxH - m};
@@ -1986,59 +1987,61 @@ function legendItemRowHeight(item, legendFont, rowH, headerH, swatchH){
 function drawLegendBox(ctx, width, height, opts){
   const items = getLegendItems(opts);
   if (!items.length) return;
-  const sz = {r: Math.max(8, (SYMBOL_SIZES[opts.nplSymbolSize] || SYMBOL_SIZES.medium).r + 2), half: 7};
-  const pad = 16;
-  const legendFont = opts.legendFontSize || 13;
-  const rowH = Math.max(22, legendFont + 12);
-  const headerH = Math.max(18, legendFont + 4);
-  const swatchH = Math.max(18, legendFont + 6);
+  const exportScale = width / 2400;
+  const baseSz = SYMBOL_SIZES[opts.nplSymbolSize] || SYMBOL_SIZES.large;
+  const sz = {r: Math.max(10, baseSz.r + 2) * exportScale, half: Math.max(8, baseSz.half) * exportScale};
+  const pad = 16 * exportScale;
+  const legendFont = Math.max(14, (opts.legendFontSize || 18) * exportScale);
+  const rowH = Math.max(26, legendFont + 14);
+  const headerH = Math.max(22, legendFont + 6);
+  const swatchH = Math.max(22, legendFont + 8);
   ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
   const maxLabelW = Math.max(...items.map(it => {
-    if (it.shape === 'svi-header') ctx.font = `bold ${Math.max(9, legendFont - 1)}px "Segoe UI", sans-serif`;
+    if (it.shape === 'svi-header') ctx.font = `bold ${Math.max(12, legendFont - 1)}px "Segoe UI", sans-serif`;
     else ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
     return ctx.measureText(it.label).width;
   }));
-  const boxW = Math.min(width - 24, Math.max(280, pad + sz.r * 2 + 18 + maxLabelW + pad));
-  const boxH = pad * 2 + 20 + items.reduce((sum, it) => sum + legendItemRowHeight(it, legendFont, rowH, headerH, swatchH), 0);
-  const {x0, y0} = legendBoxOrigin(width, height, boxW, boxH, opts.legendPosition || 'top-right');
+  const boxW = Math.min(width - 24, Math.max(320 * exportScale, pad + sz.r * 2 + 22 * exportScale + maxLabelW + pad));
+  const boxH = pad * 2 + 24 * exportScale + items.reduce((sum, it) => sum + legendItemRowHeight(it, legendFont, rowH, headerH, swatchH), 0);
+  const {x0, y0} = legendBoxOrigin(width, height, boxW, boxH, opts.legendPosition || 'bottom-left');
   ctx.save();
-  ctx.shadowColor = 'rgba(20,38,46,0.45)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+  ctx.shadowColor = 'rgba(20,38,46,0.45)'; ctx.shadowBlur = 10 * exportScale; ctx.shadowOffsetY = 3 * exportScale;
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x0, y0, boxW, boxH);
   ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#14262E'; ctx.lineWidth = 2.5; ctx.strokeRect(x0, y0, boxW, boxH);
+  ctx.strokeStyle = '#14262E'; ctx.lineWidth = Math.max(2, 2.5 * exportScale); ctx.strokeRect(x0, y0, boxW, boxH);
   ctx.restore();
   ctx.fillStyle = '#14262E';
-  ctx.font = `bold ${legendFont + 3}px "Segoe UI", sans-serif`;
-  ctx.fillText('Legend', x0 + pad, y0 + pad + 11);
-  let cy = y0 + pad + 22;
+  ctx.font = `bold ${legendFont + 4}px "Segoe UI", sans-serif`;
+  ctx.fillText('Legend', x0 + pad, y0 + pad + legendFont * 0.75);
+  let cy = y0 + pad + legendFont + 10;
   items.forEach(item => {
     const ih = legendItemRowHeight(item, legendFont, rowH, headerH, swatchH);
     const midY = cy + ih / 2;
-    const ix = x0 + pad + sz.r + 4;
+    const ix = x0 + pad + sz.r + 6 * exportScale;
     if (item.shape === 'svi-header'){
       ctx.fillStyle = '#5A6E78';
-      ctx.font = `bold ${Math.max(9, legendFont - 1)}px "Segoe UI", sans-serif`;
+      ctx.font = `bold ${Math.max(12, legendFont - 1)}px "Segoe UI", sans-serif`;
       ctx.fillText(item.label, x0 + pad, midY + 4);
     } else if (item.shape === 'swatch'){
-      const sw = 14, sh = 10;
+      const sw = 18 * exportScale, sh = 12 * exportScale;
       ctx.fillStyle = item.color;
-      ctx.fillRect(ix - 14, midY - sh / 2, sw, sh);
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1;
-      ctx.strokeRect(ix - 14, midY - sh / 2, sw, sh);
+      ctx.fillRect(ix - sw, midY - sh / 2, sw, sh);
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = Math.max(1, exportScale);
+      ctx.strokeRect(ix - sw, midY - sh / 2, sw, sh);
       ctx.fillStyle = '#14262E';
       ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
     } else if (item.shape === 'line'){
       ctx.strokeStyle = item.color;
-      ctx.lineWidth = item.dashed || item.dotted ? 3 : 2;
-      if (item.dashed) ctx.setLineDash([6, 4]);
-      else if (item.dotted) ctx.setLineDash([2, 4]);
+      ctx.lineWidth = (item.dashed || item.dotted ? 3 : 2) * exportScale;
+      if (item.dashed) ctx.setLineDash([6 * exportScale, 4 * exportScale]);
+      else if (item.dotted) ctx.setLineDash([2 * exportScale, 4 * exportScale]);
       else ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(ix - 14, midY); ctx.lineTo(ix + 14, midY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ix - 16 * exportScale, midY); ctx.lineTo(ix + 16 * exportScale, midY); ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = '#14262E';
       ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
     } else {
       drawSiteSymbol(ctx, ix, midY, {
         type: item.label.includes('CEAM') ? 'CEAM' : item.label.includes('bulk') ? 'CBS' : item.label.includes('DEC') ? 'DEC' : 'NPL',
@@ -2049,10 +2052,10 @@ function drawLegendBox(ctx, width, height, opts){
         customColors: {nplA:item.color,nplC:item.color,nplD:item.color,decSSF:item.color,decBCP:item.color,decERP:item.color,decVCP:item.color,decRCRA:item.color,ceam:item.color,cbs:item.color},
         nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape,
         nplSymbolSize: opts.nplSymbolSize, decSymbolSize: opts.decSymbolSize, ceamSymbolSize: opts.ceamSymbolSize, cbsSymbolSize: opts.cbsSymbolSize
-      });
+      }, exportScale);
       ctx.fillStyle = '#14262E';
       ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
-      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 18, midY + 5);
+      ctx.fillText(item.label, x0 + pad + sz.r * 2 + 22 * exportScale, midY + legendFont * 0.3);
     }
     cy += ih;
   });
@@ -2092,7 +2095,7 @@ function readExportOptionsFromForm(){
     cbsSymbolSize: $('pdf-cbs-size').value,
     colorMode: $('pdf-color-mode').value,
     customColors: readCustomColorsFromForm(),
-    legendFontSize: parseInt($('pdf-legend-font').value, 10) || 13,
+    legendFontSize: parseInt($('pdf-legend-font').value, 10) || 18,
     legendNpl: $('legend-npl').checked,
     legendDec: $('legend-dec').checked,
     legendCeam: $('legend-ceam').checked,
@@ -2100,7 +2103,7 @@ function readExportOptionsFromForm(){
     legendCounties: $('legend-counties').checked,
     legendZips: $('legend-zips').checked,
     legendSvi: $('legend-svi').checked,
-    legendPosition: $('pdf-legend-pos').value || 'top-right',
+    legendPosition: $('pdf-legend-pos').value || 'bottom-left',
     countyColor: $('pdf-co-color').value,
     countyLineWidth: parseFloat($('pdf-co-width').value) || 1.5,
     countyLineStyle: $('pdf-co-style').value,
@@ -2229,7 +2232,7 @@ async function renderExportCanvas(width, opts, rows){
   rows.forEach(rec => {
     const [x, y] = xy(rec.lat, rec.lng);
     if (x < -30 || y < -30 || x > width + 30 || y > height + 30) return;
-    drawSiteSymbol(ctx, x, y, rec, opts);
+    drawSiteSymbol(ctx, x, y, rec, opts, scale);
   });
 
   if (opts.showLabels){
