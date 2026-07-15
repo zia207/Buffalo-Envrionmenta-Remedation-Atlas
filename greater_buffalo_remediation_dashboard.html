@@ -587,12 +587,8 @@ footer strong{color:var(--ink)}
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-npl-size">Symbol size</label>
-          <select id="pdf-npl-size">
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large" selected>Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-npl-size">Symbol size (px)</label>
+          <input type="number" id="pdf-npl-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -606,12 +602,8 @@ footer strong{color:var(--ink)}
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-dec-size">Symbol size</label>
-          <select id="pdf-dec-size">
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large" selected>Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-dec-size">Symbol size (px)</label>
+          <input type="number" id="pdf-dec-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -625,12 +617,8 @@ footer strong{color:var(--ink)}
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-ceam-size">Symbol size</label>
-          <select id="pdf-ceam-size">
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large" selected>Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-ceam-size">Symbol size (px)</label>
+          <input type="number" id="pdf-ceam-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
@@ -644,34 +632,32 @@ footer strong{color:var(--ink)}
             <option value="diamond">Diamond</option>
             <option value="triangle">Triangle</option>
           </select></div>
-        <div class="pdf-field"><label for="pdf-cbs-size">Symbol size</label>
-          <select id="pdf-cbs-size">
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large" selected>Large</option>
-          </select></div>
+        <div class="pdf-field"><label for="pdf-cbs-size">Symbol size (px)</label>
+          <input type="number" id="pdf-cbs-size" min="12" max="30" step="1" value="22" title="Symbol diameter in pixels (12–30)"></div>
       </div>
     </fieldset>
 
     <fieldset>
       <legend>Symbol colors</legend>
-      <div class="pdf-field"><label for="pdf-color-mode">Color mode</label>
-        <select id="pdf-color-mode">
-          <option value="default" selected>Default (color by status / program)</option>
-          <option value="custom">Custom colors</option>
-        </select></div>
-      <div id="pdf-custom-colors" class="pdf-colors" hidden>
-        <label class="pdf-color-row">NPL — cleanup ongoing <input type="color" id="pdf-col-npl-a" value="#B7431C"></label>
-        <label class="pdf-color-row">NPL — construction complete <input type="color" id="pdf-col-npl-c" value="#C9930F"></label>
-        <label class="pdf-color-row">NPL — deleted <input type="color" id="pdf-col-npl-d" value="#2F7D4E"></label>
-        <label class="pdf-color-row">DEC — State Superfund <input type="color" id="pdf-col-dec-ssf" value="#8A2D12"></label>
-        <label class="pdf-color-row">DEC — Brownfield Cleanup <input type="color" id="pdf-col-dec-bcp" value="#14707E"></label>
-        <label class="pdf-color-row">DEC — Environmental Restoration <input type="color" id="pdf-col-dec-erp" value="#C9930F"></label>
-        <label class="pdf-color-row">DEC — Voluntary Cleanup <input type="color" id="pdf-col-dec-vcp" value="#2F7D4E"></label>
-        <label class="pdf-color-row">DEC — RCRA / other <input type="color" id="pdf-col-dec-rcra" value="#5A6E78"></label>
-        <label class="pdf-color-row">CEAM — chemical exposure <input type="color" id="pdf-col-ceam" value="#7A1F6B"></label>
-        <label class="pdf-color-row">CBS — bulk storage <input type="color" id="pdf-col-cbs" value="#3D5A6C"></label>
+      <label class="pdf-opt"><input type="radio" name="pdf-color-mode" value="default" checked> Dashboard defaults (by status / program)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-color-mode" value="custom"> Custom colors — pick before export</label>
+      <div id="pdf-custom-colors" class="pdf-colors" style="margin-top:8px">
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-bottom:6px">NPL (Federal Superfund)</span>
+        <label class="pdf-color-row">Cleanup ongoing <input type="color" id="pdf-col-npl-a" value="#B7431C" disabled></label>
+        <label class="pdf-color-row">Construction complete <input type="color" id="pdf-col-npl-c" value="#C9930F" disabled></label>
+        <label class="pdf-color-row">Deleted from NPL <input type="color" id="pdf-col-npl-d" value="#2F7D4E" disabled></label>
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin:10px 0 6px">DEC cleanup programs</span>
+        <label class="pdf-color-row">State Superfund <input type="color" id="pdf-col-dec-ssf" value="#8A2D12" disabled></label>
+        <label class="pdf-color-row">Brownfield Cleanup <input type="color" id="pdf-col-dec-bcp" value="#14707E" disabled></label>
+        <label class="pdf-color-row">Environmental Restoration <input type="color" id="pdf-col-dec-erp" value="#C9930F" disabled></label>
+        <label class="pdf-color-row">Voluntary Cleanup <input type="color" id="pdf-col-dec-vcp" value="#2F7D4E" disabled></label>
+        <label class="pdf-color-row">RCRA / other <input type="color" id="pdf-col-dec-rcra" value="#5A6E78" disabled></label>
+        <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin:10px 0 6px">Other datasets</span>
+        <label class="pdf-color-row">CEAM — chemical exposure <input type="color" id="pdf-col-ceam" value="#7A1F6B" disabled></label>
+        <label class="pdf-color-row">CBS — bulk storage <input type="color" id="pdf-col-cbs" value="#3D5A6C" disabled></label>
+        <button type="button" class="pdf-cancel" id="pdf-color-reset" style="margin-top:10px;width:100%" disabled>Reset to dashboard defaults</button>
       </div>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">Select <strong>Custom colors</strong> to choose symbol fill colors for each site type. Legend swatches update to match.</p>
     </fieldset>
 
     <fieldset>
@@ -1694,13 +1680,35 @@ const EXPORT_EXTENTS = {
   core:   {west:-79.15, east:-78.45, south:42.70, north:43.35}
 };
 const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, streets:19, topography:18, none:4, current:18};
-const SYMBOL_SIZES = { small:{r:7,half:6}, medium:{r:10,half:8.5}, large:{r:15,half:12.5} };
+const EXPORT_SYMBOL_PX = {min:12, max:30, default:22};
 const FIGURE_PT = {
   small:  {w:288, h:180},
   medium: {w:468, h:288},
   large:  {w:540, h:324},
   full:   null
 };
+
+function getDefaultExportColors(){
+  return {
+    nplA: NPL_COLOR, nplC: '#C9930F', nplD: '#2F7D4E',
+    decSSF: PROG_META.SSF.color, decBCP: PROG_META.BCP.color, decERP: PROG_META.ERP.color,
+    decVCP: PROG_META.VCP.color, decRCRA: PROG_META.RCRA.color,
+    ceam: CEAM_COLOR, cbs: CBS_COLOR
+  };
+}
+
+function applyExportColorsToForm(colors){
+  $('pdf-col-npl-a').value = colors.nplA;
+  $('pdf-col-npl-c').value = colors.nplC;
+  $('pdf-col-npl-d').value = colors.nplD;
+  $('pdf-col-dec-ssf').value = colors.decSSF;
+  $('pdf-col-dec-bcp').value = colors.decBCP;
+  $('pdf-col-dec-erp').value = colors.decERP;
+  $('pdf-col-dec-vcp').value = colors.decVCP;
+  $('pdf-col-dec-rcra').value = colors.decRCRA;
+  $('pdf-col-ceam').value = colors.ceam;
+  $('pdf-col-cbs').value = colors.cbs;
+}
 
 function readCustomColorsFromForm(){
   return {
@@ -1763,9 +1771,25 @@ function hslToRgba(hsl, alpha){
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function clampSymbolPx(px){
+  const n = parseFloat(px);
+  if (isNaN(n)) return EXPORT_SYMBOL_PX.default;
+  return Math.max(EXPORT_SYMBOL_PX.min, Math.min(EXPORT_SYMBOL_PX.max, n));
+}
+
+function symbolSizeFromPx(diameterPx){
+  const d = clampSymbolPx(diameterPx);
+  const r = d / 2;
+  return {r, half: r * 0.85};
+}
+
+function readSymbolPxFromInput(id){
+  return clampSymbolPx(parseInt($(id).value, 10));
+}
+
 function getDatasetSymbolSize(rec, opts){
   const key = rec.type === 'NPL' ? 'npl' : rec.type === 'DEC' ? 'dec' : rec.type === 'CEAM' ? 'ceam' : 'cbs';
-  return SYMBOL_SIZES[opts[key + 'SymbolSize']] || SYMBOL_SIZES.medium;
+  return symbolSizeFromPx(opts[key + 'SymbolPx']);
 }
 
 function getDatasetSymbolShape(rec, opts){
@@ -1988,7 +2012,7 @@ function drawLegendBox(ctx, width, height, opts){
   const items = getLegendItems(opts);
   if (!items.length) return;
   const exportScale = width / 2400;
-  const baseSz = SYMBOL_SIZES[opts.nplSymbolSize] || SYMBOL_SIZES.large;
+  const baseSz = symbolSizeFromPx(opts.nplSymbolPx);
   const sz = {r: Math.max(10, baseSz.r + 2) * exportScale, half: Math.max(8, baseSz.half) * exportScale};
   const pad = 16 * exportScale;
   const legendFont = Math.max(14, (opts.legendFontSize || 18) * exportScale);
@@ -2050,8 +2074,8 @@ function drawLegendBox(ctx, width, height, opts){
       }, {
         colorMode: 'custom',
         customColors: {nplA:item.color,nplC:item.color,nplD:item.color,decSSF:item.color,decBCP:item.color,decERP:item.color,decVCP:item.color,decRCRA:item.color,ceam:item.color,cbs:item.color},
-        nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape,
-        nplSymbolSize: opts.nplSymbolSize, decSymbolSize: opts.decSymbolSize, ceamSymbolSize: opts.ceamSymbolSize, cbsSymbolSize: opts.cbsSymbolSize
+        nplSymbolPx: opts.nplSymbolPx, decSymbolPx: opts.decSymbolPx, ceamSymbolPx: opts.ceamSymbolPx, cbsSymbolPx: opts.cbsSymbolPx,
+        nplSymbolShape: item.shape, decSymbolShape: item.shape, ceamSymbolShape: item.shape, cbsSymbolShape: item.shape
       }, exportScale);
       ctx.fillStyle = '#14262E';
       ctx.font = `600 ${legendFont}px "Segoe UI", sans-serif`;
@@ -2089,11 +2113,11 @@ function readExportOptionsFromForm(){
     decSymbolShape: $('pdf-dec-shape').value,
     ceamSymbolShape: $('pdf-ceam-shape').value,
     cbsSymbolShape: $('pdf-cbs-shape').value,
-    nplSymbolSize: $('pdf-npl-size').value,
-    decSymbolSize: $('pdf-dec-size').value,
-    ceamSymbolSize: $('pdf-ceam-size').value,
-    cbsSymbolSize: $('pdf-cbs-size').value,
-    colorMode: $('pdf-color-mode').value,
+    nplSymbolPx: readSymbolPxFromInput('pdf-npl-size'),
+    decSymbolPx: readSymbolPxFromInput('pdf-dec-size'),
+    ceamSymbolPx: readSymbolPxFromInput('pdf-ceam-size'),
+    cbsSymbolPx: readSymbolPxFromInput('pdf-cbs-size'),
+    colorMode: document.querySelector('input[name="pdf-color-mode"]:checked')?.value || 'default',
     customColors: readCustomColorsFromForm(),
     legendFontSize: parseInt($('pdf-legend-font').value, 10) || 18,
     legendNpl: $('legend-npl').checked,
@@ -2143,8 +2167,15 @@ function togglePdfZipsForExport(){
   }
 }
 
-function togglePdfCustomColors(){
-  $('pdf-custom-colors').hidden = $('pdf-color-mode').value !== 'custom';
+function togglePdfSymbolColors(){
+  const custom = document.querySelector('input[name="pdf-color-mode"]:checked')?.value === 'custom';
+  $('pdf-custom-colors').style.opacity = custom ? '1' : '0.5';
+  $('pdf-custom-colors').querySelectorAll('input[type="color"]').forEach(inp => { inp.disabled = !custom; });
+  $('pdf-color-reset').disabled = !custom;
+}
+
+function resetExportColorsToDefaults(){
+  applyExportColorsToForm(getDefaultExportColors());
 }
 
 function syncExportModalFromMap(){
@@ -2159,7 +2190,7 @@ function syncExportModalFromMap(){
   $('pdf-svi-metric').value = sviMetric;
   $('pdf-labels').checked = showLabels;
   togglePdfSviPanel();
-  togglePdfCustomColors();
+  togglePdfSymbolColors();
   toggleLegendItemsPanel();
 }
 
@@ -2372,7 +2403,8 @@ async function exportPdfReport(opts){
 $('btn-export-pdf').addEventListener('click', openExportModal);
 $('pdf-cancel').addEventListener('click', closeExportModal);
 $('pdf-modal-backdrop').addEventListener('click', closeExportModal);
-$('pdf-color-mode').addEventListener('change', togglePdfCustomColors);
+document.querySelectorAll('input[name="pdf-color-mode"]').forEach(r => r.addEventListener('change', togglePdfSymbolColors));
+$('pdf-color-reset').addEventListener('click', resetExportColorsToDefaults);
 $('pdf-legend').addEventListener('change', toggleLegendItemsPanel);
 $('pdf-svi').addEventListener('change', togglePdfSviPanel);
 $('pdf-zips').addEventListener('change', togglePdfZipsForExport);
@@ -2381,6 +2413,7 @@ $('export-pdf').addEventListener('click', () => exportPdfReport(readExportOption
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pdf-modal').classList.contains('open')) closeExportModal(); });
 toggleLegendItemsPanel();
 togglePdfSviPanel();
+togglePdfSymbolColors();
 initPdfSviMetricSelect();
 
 /* dataset totals in the About section reflect the loaded data */
