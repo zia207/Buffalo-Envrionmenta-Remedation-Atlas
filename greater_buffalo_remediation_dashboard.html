@@ -716,11 +716,16 @@ footer strong{color:var(--ink)}
     </fieldset>
 
     <fieldset>
-      <legend>Map extent</legend>
+      <legend>Area of interest (AOI)</legend>
       <label class="pdf-opt"><input type="radio" name="pdf-extent" value="current" checked> Current map view (matches zoom &amp; pan on screen)</label>
-      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="region"> Full WNY region (fixed regional view)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="region"> Full WNY region (8 counties)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-extent" value="core"> Buffalo–Niagara core</label>
-      <p style="font-size:12px;color:var(--steel);margin-top:6px">PNG/PDF always render from the selected extent. Use <strong>Full WNY region</strong> for a consistent figure; use <strong>Current view</strong> to export a zoomed detail.</p>
+      <label class="pdf-opt"><input type="radio" name="pdf-extent" value="county"> County AOI</label>
+      <div id="pdf-aoi-county-panel" class="pdf-field" style="margin-top:6px;margin-left:26px">
+        <label for="pdf-aoi-county">Select county</label>
+        <select id="pdf-aoi-county" disabled></select>
+      </div>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">PNG/PDF render from the selected AOI. Choose a <strong>county</strong> for a focused figure, <strong>Full WNY region</strong> for a consistent regional map, or <strong>Current view</strong> for a zoomed detail.</p>
     </fieldset>
 
     <fieldset>
@@ -733,7 +738,7 @@ footer strong{color:var(--ink)}
           <option value="3600">Extra large — 3600 px wide</option>
           <option value="4800">Print — 4800 px wide</option>
         </select></div>
-      <p style="font-size:12px;color:var(--steel);margin-top:6px">Height is calculated automatically from the selected map extent and output width.</p>
+      <p style="font-size:12px;color:var(--steel);margin-top:6px">Height is calculated automatically from the selected AOI and output width.</p>
     </fieldset>
 
     <div class="pdf-modal-actions">
@@ -1829,9 +1834,48 @@ function getCurrentBasemap(){
   return 'satellite';
 }
 
+function padBounds(b, padFrac){
+  const lngPad = (b.east - b.west) * padFrac;
+  const latPad = (b.north - b.south) * padFrac;
+  return {
+    west: b.west - lngPad,
+    east: b.east + lngPad,
+    south: b.south - latPad,
+    north: b.north + latPad
+  };
+}
+
+function boundsFromRingCoords(coords){
+  let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+  const walk = c => {
+    if (typeof c[0] === 'number'){
+      const lng = c[0], lat = c[1];
+      if (lng < west) west = lng;
+      if (lng > east) east = lng;
+      if (lat < south) south = lat;
+      if (lat > north) north = lat;
+      return;
+    }
+    c.forEach(walk);
+  };
+  walk(coords);
+  return {west, east, south, north};
+}
+
+function getCountyExportBounds(countyName){
+  const feat = (PAYLOAD.counties?.features || []).find(f => f.properties?.name === countyName);
+  if (!feat) return null;
+  return padBounds(boundsFromRingCoords(feat.geometry.coordinates), 0.04);
+}
+
 function getExportBounds(opts){
   if (opts.exportExtent === 'region') return {...EXPORT_EXTENTS.region};
   if (opts.exportExtent === 'core') return {...EXPORT_EXTENTS.core};
+  if (opts.exportExtent === 'county'){
+    const county = opts.exportCounty || $('pdf-aoi-county')?.value;
+    const cb = county && getCountyExportBounds(county);
+    if (cb) return cb;
+  }
   const b = map.getBounds();
   return {west:b.getWest(), east:b.getEast(), south:b.getSouth(), north:b.getNorth()};
 }
@@ -2108,6 +2152,7 @@ function readExportOptionsFromForm(){
     dataSource: $('pdf-data-source').value.trim(),
     figureSize: $('pdf-fig-size').value,
     exportExtent: document.querySelector('input[name="pdf-extent"]:checked')?.value || 'current',
+    exportCounty: $('pdf-aoi-county')?.value || '',
     pngWidth: parseInt($('pdf-png-size').value, 10) || 2400,
     nplSymbolShape: $('pdf-npl-shape').value,
     decSymbolShape: $('pdf-dec-shape').value,
@@ -2178,6 +2223,29 @@ function resetExportColorsToDefaults(){
   applyExportColorsToForm(getDefaultExportColors());
 }
 
+function populatePdfAoiCounties(){
+  const sel = $('pdf-aoi-county');
+  if (!sel || sel.options.length) return;
+  const names = (PAYLOAD.counties?.features || [])
+    .map(f => f.properties?.name)
+    .filter(Boolean)
+    .sort((a,b) => a.localeCompare(b));
+  names.forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+  if (!sel.value && names.length) sel.value = names.includes('Erie') ? 'Erie' : names[0];
+}
+
+function togglePdfAoiCounty(){
+  const countyOn = document.querySelector('input[name="pdf-extent"]:checked')?.value === 'county';
+  const panel = $('pdf-aoi-county-panel');
+  const sel = $('pdf-aoi-county');
+  if (panel) panel.style.opacity = countyOn ? '1' : '0.45';
+  if (sel) sel.disabled = !countyOn;
+}
+
 function syncExportModalFromMap(){
   document.querySelector('input[name="pdf-basemap"][value="current"]').checked = true;
   $('pdf-npl').checked = show.NPL;
@@ -2189,6 +2257,13 @@ function syncExportModalFromMap(){
   $('pdf-svi').checked = showSvi;
   $('pdf-svi-metric').value = sviMetric;
   $('pdf-labels').checked = showLabels;
+  populatePdfAoiCounties();
+  if (fCounty){
+    const countyRadio = document.querySelector('input[name="pdf-extent"][value="county"]');
+    if (countyRadio) countyRadio.checked = true;
+    if ($('pdf-aoi-county')) $('pdf-aoi-county').value = fCounty;
+  }
+  togglePdfAoiCounty();
   togglePdfSviPanel();
   togglePdfSymbolColors();
   toggleLegendItemsPanel();
@@ -2408,6 +2483,9 @@ $('pdf-color-reset').addEventListener('click', resetExportColorsToDefaults);
 $('pdf-legend').addEventListener('change', toggleLegendItemsPanel);
 $('pdf-svi').addEventListener('change', togglePdfSviPanel);
 $('pdf-zips').addEventListener('change', togglePdfZipsForExport);
+document.querySelectorAll('input[name="pdf-extent"]').forEach(r => r.addEventListener('change', togglePdfAoiCounty));
+populatePdfAoiCounties();
+togglePdfAoiCounty();
 $('export-png').addEventListener('click', () => exportPngReport(readExportOptionsFromForm()));
 $('export-pdf').addEventListener('click', () => exportPdfReport(readExportOptionsFromForm()));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pdf-modal').classList.contains('open')) closeExportModal(); });
