@@ -575,6 +575,7 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="current" checked> Match current map view</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="satellite"> Satellite (Esri World Imagery)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="gsat"> Satellite (Google)</label>
+      <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="ghybrid"> Satellite + labels (Google)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="streets"> OpenStreetMap (street)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="topography"> Topographic (Esri)</label>
       <label class="pdf-opt"><input type="radio" name="pdf-basemap" value="none"> None (boundaries &amp; markers only)</label>
@@ -2155,7 +2156,7 @@ function buildMuniBoundaryLayer(kind, style){
 cityLayer = buildMuniBoundaryLayer('city', CITY_OUTLINE);
 townLayer = buildMuniBoundaryLayer('town', TOWN_OUTLINE);
 
-const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, streets:19, topography:18, none:4, current:18};
+const BASEMAP_MAX_ZOOM = {satellite:18, gsat:20, ghybrid:20, streets:19, topography:18, none:4, current:18};
 const EXPORT_SYMBOL_PX = {min:12, max:30, default:22};
 const FIGURE_PT = {
   small:  {w:288, h:180},
@@ -2329,8 +2330,9 @@ function drawSiteSymbol(ctx, x, y, rec, opts, scale = 1){
 }
 
 function getCurrentBasemap(){
-  if (map.hasLayer(streets) && !map.hasLayer(satellite) && !map.hasLayer(topo)) return 'streets';
-  if (map.hasLayer(topo) && !map.hasLayer(satellite) && !map.hasLayer(streets)) return 'topography';
+  if (map.hasLayer(streets) && !map.hasLayer(satellite) && !map.hasLayer(topo) && !map.hasLayer(hybrid) && !map.hasLayer(satelliteAlt)) return 'streets';
+  if (map.hasLayer(topo) && !map.hasLayer(satellite) && !map.hasLayer(streets) && !map.hasLayer(hybrid) && !map.hasLayer(satelliteAlt)) return 'topography';
+  if (map.hasLayer(hybrid)) return 'ghybrid';
   if (map.hasLayer(satelliteAlt) && !map.hasLayer(satellite)) return 'gsat';
   if (map.hasLayer(satellite)) return 'satellite';
   if (map.hasLayer(topo)) return 'topography';
@@ -2682,6 +2684,8 @@ function basemapTileUrl(basemap, z, y, x){
     return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
   if (basemap === 'gsat')
     return `https://mt${(x + y) % 4}.google.com/vt/lyrs=s&x=${x}&y=${y}&z=${z}`;
+  if (basemap === 'ghybrid')
+    return `https://mt${(x + y) % 4}.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${z}`;
   if (basemap === 'topography')
     return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`;
   if (basemap === 'streets')
@@ -3267,7 +3271,10 @@ async function renderExportCanvas(width, opts, rows){
 
   const afs = Math.max(9, width / 160);
   ctx.font = `${afs}px Arial, sans-serif`;
-  const attr = basemap === 'none' ? '' : basemap === 'streets' ? '© OpenStreetMap contributors' : basemap === 'gsat' ? 'Imagery © Google' : 'Tiles © Esri — Maxar, Earthstar Geographics';
+  const attr = basemap === 'none' ? ''
+    : basemap === 'streets' ? '© OpenStreetMap contributors'
+    : (basemap === 'gsat' || basemap === 'ghybrid') ? 'Imagery © Google'
+    : 'Tiles © Esri — Maxar, Earthstar Geographics';
   if (attr){
     const w = ctx.measureText(attr).width + 10;
     ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(width - w - 4, height - afs - 10, w + 4, afs + 10);
