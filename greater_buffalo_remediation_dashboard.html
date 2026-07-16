@@ -688,7 +688,7 @@ footer strong{color:var(--ink)}
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-dec-shape">Symbol type</label>
           <select id="pdf-dec-shape">
-            <option value="by-program" selected>By program (distinct shapes)</option>
+            <option value="by-program" selected>By program (distinct colors)</option>
             <option value="circle">Circle (all DEC)</option>
             <option value="square">Square (all DEC)</option>
             <option value="diamond">Diamond (all DEC)</option>
@@ -889,12 +889,12 @@ const $ = id => document.getElementById(id);
 /* ---- program / dataset metadata ---- */
 const PROG_META = {
   SSF:{label:'State Superfund',color:'#6B1D0E',shape:'circle'},
-  BCP:{label:'Brownfield Cleanup',color:'#0B6E7A',shape:'square'},
-  ERP:{label:'Environmental Restoration',color:'#D4A017',shape:'diamond'},
-  VCP:{label:'Voluntary Cleanup',color:'#1B7A45',shape:'triangle'},
-  RCRA:{label:'RCRA corrective action',color:'#455A64',shape:'hexagon'},
-  DWC:{label:'Drinking Water Contaminant',color:'#6B4FA0',shape:'triangle-down'},
-  PRP:{label:'Petroleum Remediation',color:'#5A6E78',shape:'triangle-down'}
+  BCP:{label:'Brownfield Cleanup',color:'#0B6E7A',shape:'circle'},
+  ERP:{label:'Environmental Restoration',color:'#D4A017',shape:'circle'},
+  VCP:{label:'Voluntary Cleanup',color:'#1B7A45',shape:'circle'},
+  RCRA:{label:'RCRA corrective action',color:'#455A64',shape:'circle'},
+  DWC:{label:'Drinking Water Contaminant',color:'#6B4FA0',shape:'circle'},
+  PRP:{label:'Petroleum Remediation',color:'#C45C26',shape:'circle'}
 };
 /* Primary DEC programs shown in the site picker (counts match regional inventory). */
 const SITE_PICK_PROGS = ['SSF','BCP','ERP','VCP','RCRA'];
