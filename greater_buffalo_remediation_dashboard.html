@@ -14,7 +14,7 @@
   --clean:#2F7D4E; --violet:#6B4FA0; --slate:#3D5A6C;
   --hairline:#C4CFD4; --focus:#0E4F8B;
   /* dataset / program colors — distinct hues for map symbols */
-  --c-npl:#E85D04; --c-ssf:#6B1D0E; --c-bcp:#0B6E7A; --c-erp:#D4A017;
+  --c-npl:#E85D04; --c-ssf:#D32F2F; --c-bcp:#0B6E7A; --c-erp:#D4A017;
   --c-vcp:#1B7A45; --c-rcra:#455A64; --c-dwc:#6B4FA0; --c-ceam:#9B1B7A; --c-cbs:#1E3A5F;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -745,7 +745,7 @@ footer strong{color:var(--ink)}
         <label class="pdf-color-row">Construction complete <input type="color" id="pdf-col-npl-c" value="#D4A017" disabled></label>
         <label class="pdf-color-row">Deleted from NPL <input type="color" id="pdf-col-npl-d" value="#1B7A45" disabled></label>
         <span style="display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin:10px 0 6px">DEC cleanup programs</span>
-        <label class="pdf-color-row">State Superfund <input type="color" id="pdf-col-dec-ssf" value="#6B1D0E" disabled></label>
+        <label class="pdf-color-row">State Superfund <input type="color" id="pdf-col-dec-ssf" value="#D32F2F" disabled></label>
         <label class="pdf-color-row">Brownfield Cleanup <input type="color" id="pdf-col-dec-bcp" value="#0B6E7A" disabled></label>
         <label class="pdf-color-row">Environmental Restoration <input type="color" id="pdf-col-dec-erp" value="#D4A017" disabled></label>
         <label class="pdf-color-row">Voluntary Cleanup <input type="color" id="pdf-col-dec-vcp" value="#1B7A45" disabled></label>
@@ -763,7 +763,7 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="checkbox" id="pdf-labels" checked> Show place labels</label>
       <div class="pdf-grid">
         <div class="pdf-field"><label for="pdf-label-font">Font size (px)</label>
-          <input type="number" id="pdf-label-font" min="8" max="24" step="1" value="12"></div>
+          <input type="number" id="pdf-label-font" min="10" max="32" step="1" value="16"></div>
         <div class="pdf-field"><label for="pdf-label-color">City / region color</label>
           <input type="color" id="pdf-label-color" value="#1A1A1A"></div>
         <div class="pdf-field"><label for="pdf-label-water-color">Water body color</label>
@@ -888,7 +888,7 @@ const $ = id => document.getElementById(id);
 
 /* ---- program / dataset metadata ---- */
 const PROG_META = {
-  SSF:{label:'State Superfund',color:'#6B1D0E',shape:'circle'},
+  SSF:{label:'State Superfund',color:'#D32F2F',shape:'circle'},
   BCP:{label:'Brownfield Cleanup',color:'#0B6E7A',shape:'circle'},
   ERP:{label:'Environmental Restoration',color:'#D4A017',shape:'circle'},
   VCP:{label:'Voluntary Cleanup',color:'#1B7A45',shape:'circle'},
@@ -1462,20 +1462,51 @@ function markerShapeSvg(shape, color, px){
   return `<svg class="map-marker-sym" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${body}</svg>`;
 }
 
-function makeMarker(rec){
+/* Marker diameter (px) by dataset — larger at street-level zoom (≥14). */
+function markerPxForType(type, zoom){
+  const z = zoom == null ? (typeof map !== 'undefined' && map ? map.getZoom() : 10) : zoom;
+  const base = type === 'NPL' ? 18 : type === 'CEAM' ? 15 : type === 'CBS' ? 12 : 14;
+  if (z >= 14) return type === 'NPL' ? 30 : type === 'CEAM' ? 26 : type === 'CBS' ? 22 : 24;
+  if (z >= 12) return type === 'NPL' ? 22 : type === 'CEAM' ? 18 : type === 'CBS' ? 15 : 17;
+  return base;
+}
+
+function markerIconForRec(rec, zoom){
   const shape = recordSymbolShape(rec);
-  const px = rec.type === 'NPL' ? 18 : rec.type === 'CEAM' ? 15 : rec.type === 'CBS' ? 12 : 14;
-  const icon = L.divIcon({
+  const px = markerPxForType(rec.type, zoom);
+  return L.divIcon({
     className: '',
     html: markerShapeSvg(shape, rec.color, px),
     iconSize: [px, px],
     iconAnchor: [px / 2, px / 2]
   });
-  const marker = L.marker([rec.lat, rec.lng], {icon});
+}
+
+function makeMarker(rec){
+  const marker = L.marker([rec.lat, rec.lng], {icon: markerIconForRec(rec)});
+  marker._recKey = rec.key;
   marker.bindTooltip(`<b>${esc(rec.n)}</b><br>${rec.typeLabel}${rec.progLabel&&rec.type==='DEC'?' · '+rec.progLabel:''}`,{className:'mono',direction:'top'});
   marker.on('click',()=>selectRecord(rec.key));
   markerIndex[rec.key]=marker;
   return marker;
+}
+
+let _markerSizeBucket = null;
+function markerSizeBucket(zoom){
+  const z = zoom == null ? map.getZoom() : zoom;
+  return z >= 14 ? 14 : z >= 12 ? 12 : 0;
+}
+function refreshMarkerSizes(){
+  const bucket = markerSizeBucket();
+  if (bucket === _markerSizeBucket) return;
+  _markerSizeBucket = bucket;
+  const z = map.getZoom();
+  Object.keys(markerIndex).forEach(key => {
+    const marker = markerIndex[key];
+    const rec = RECORDS.find(r => r.key === key);
+    if (!marker || !rec) return;
+    marker.setIcon(markerIconForRec(rec, z));
+  });
 }
 
 /* =========================== FILTER + RENDER =========================== */
@@ -1690,6 +1721,7 @@ function currentRecords(){ return RECORDS.filter(passFilters); }
 
 function renderMap(recs){
   clusterGroup.clearLayers(); plainGroup.clearLayers(); markerIndex={};
+  _markerSizeBucket = markerSizeBucket();
   const target = useCluster ? clusterGroup : plainGroup;
   recs.forEach(r=>{ target.addLayer(makeMarker(r)); });
   if(useCluster){ if(map.hasLayer(plainGroup))map.removeLayer(plainGroup); if(!map.hasLayer(clusterGroup))map.addLayer(clusterGroup); }
@@ -2038,7 +2070,8 @@ function clampZ(z){return Math.min(map.getMaxZoom(),Math.max(map.getMinZoom(),z)
 function setZ(z){map.setZoom(clampZ(Math.round(z/Z.step)*Z.step));}
 function updateZUI(){const z=map.getZoom();$('zoom-level').textContent=z.toFixed(2);$('zoom-slider').value=z;}
 function resetView(){map.setView(MAP_DEFAULT.center,MAP_DEFAULT.zoom);}
-map.on('zoom zoomend',updateZUI);
+map.on('zoom', updateZUI);
+map.on('zoomend', () => { updateZUI(); refreshMarkerSizes(); });
 $('zoom-in-coarse').addEventListener('click',()=>setZ(map.getZoom()+1));
 $('zoom-out-coarse').addEventListener('click',()=>setZ(map.getZoom()-1));
 $('zoom-in-fine').addEventListener('click',()=>setZ(map.getZoom()+Z.step));
@@ -2675,7 +2708,9 @@ function computeExportTileZoom(width, bounds, basemap){
   const lngSpan = bounds.east - bounds.west || 1;
   const pxPerDeg = width / lngSpan;
   const z = Math.ceil(Math.log2(pxPerDeg * 360 / 256));
-  return Math.min(maxZ, Math.max(6, z));
+  /* Labeled basemaps: +1 tile zoom so street/place names stay sharp in PNG/PDF */
+  const labelBoost = (resolved === 'streets' || resolved === 'ghybrid' || resolved === 'topography') ? 1 : 0;
+  return Math.min(maxZ, Math.max(6, z + labelBoost));
 }
 
 function basemapTileUrl(basemap, z, y, x){
@@ -3008,7 +3043,7 @@ function readExportOptionsFromForm(){
     zipFillOpacity: 0,
     zipLineWidth: parseFloat($('pdf-zip-width').value) || 1.1,
     zipLineStyle: $('pdf-zip-style').value,
-    labelFontSize: parseInt($('pdf-label-font').value, 10) || 12,
+    labelFontSize: parseInt($('pdf-label-font').value, 10) || 16,
     labelColor: $('pdf-label-color').value,
     labelWaterColor: $('pdf-label-water-color').value
   };
@@ -3240,15 +3275,30 @@ async function renderExportCanvas(width, opts, rows){
   });
 
   if (opts.showLabels){
+    const labelScale = Math.max(scale * 1.45, 1.35);
     PAYLOAD.labels.forEach(g => {
       const [x, y] = xy(g.lat, g.lng);
       if (x < 0 || y < 0 || x > width || y > height) return;
       const water = /water/.test(g.cls);
-      const fs = (water ? opts.labelFontSize : opts.labelFontSize * 0.85) * Math.max(scale, 1);
-      ctx.font = `${water ? 'italic ' : ''}bold ${fs}px "Arial Narrow", Arial, sans-serif`;
+      const sm = /\bsm\b/.test(g.cls);
+      const baseFs = opts.labelFontSize || 16;
+      const fs = (water ? baseFs : sm ? baseFs * 0.9 : baseFs) * labelScale;
+      ctx.save();
+      ctx.font = `${water ? 'italic ' : ''}700 ${fs}px "Arial Narrow", "Segoe UI", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.miterLimit = 2;
+      /* Strong white halo so labels stay readable on satellite / busy tiles */
+      ctx.strokeStyle = 'rgba(255,255,255,0.96)';
+      ctx.lineWidth = Math.max(5, 5.5 * labelScale);
+      ctx.strokeText(g.t, x, y);
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = Math.max(3, 3.2 * labelScale);
+      ctx.strokeText(g.t, x, y);
       ctx.fillStyle = water ? opts.labelWaterColor : opts.labelColor;
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3 * Math.max(scale, 1);
-      ctx.strokeText(g.t, x, y); ctx.fillText(g.t, x, y);
+      ctx.fillText(g.t, x, y);
+      ctx.restore();
     });
   }
 
