@@ -1170,10 +1170,7 @@ function populateSqlSelects(){
       citySel.appendChild(o);
     });
   }
-  const townSel = $('f-town');
-  if (townSel && typeof ERIE_MUNI_AOIS !== 'undefined'){
-    /* Towns are filled after ERIE_MUNI_AOIS loads — see fillSqlTownSelect() */
-  }
+  /* Town options filled later via fillSqlTownSelect() after ERIE_MUNI_AOIS is defined */
   const contSel = $('f-contam');
   if (contSel){
     const {cats, chems} = collectContaminantOptions();
@@ -1215,10 +1212,12 @@ function recordMatchesCity(r, cityKey){
 function recordMatchesTown(r, townName){
   if (!townName) return true;
   if (normPlace(r.city) === normPlace(townName)) return true;
-  const aoi = (typeof ERIE_MUNI_AOIS !== 'undefined' ? ERIE_MUNI_AOIS : [])
-    .find(a => a.kind === 'town' && normPlace(a.name) === normPlace(townName));
-  if (aoi && typeof pointInErieMuni === 'function')
-    return pointInErieMuni(r.lng, r.lat, aoi);
+  try {
+    const list = ERIE_MUNI_AOIS || [];
+    const aoi = list.find(a => a.kind === 'town' && normPlace(a.name) === normPlace(townName));
+    if (aoi && typeof pointInErieMuni === 'function')
+      return pointInErieMuni(r.lng, r.lat, aoi);
+  } catch (e) { /* AOI data not ready */ }
   return false;
 }
 
