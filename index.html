@@ -83,6 +83,20 @@ h2 small{font-family:ui-monospace,Consolas,monospace;font-size:11px;letter-spaci
   font-size:12px;line-height:1.45;overflow:auto;white-space:pre-wrap;word-break:break-word;border:1px solid #2A4550}
 .sql-preview .kw{color:#7FCAD4;font-weight:700}
 .sql-preview .str{color:#F2D9C0}
+.sql-mode-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.sql-mode-tabs button{background:#F7FAFA;border:1px solid var(--hairline);color:var(--steel);padding:5px 12px;cursor:pointer;font-size:12px}
+.sql-mode-tabs button[aria-pressed="true"]{background:var(--slate);border-color:var(--slate);color:#fff}
+.sql-guided-panel[hidden],.sql-custom-panel[hidden]{display:none!important}
+.sql-custom-panel textarea{width:100%;min-height:96px;border:1px solid var(--hairline);background:#F7FAFA;
+  font-family:ui-monospace,Consolas,Menlo,monospace;font-size:12.5px;line-height:1.45;padding:10px;resize:vertical;color:var(--ink)}
+.sql-presets{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.sql-presets button{background:#F1F7F8;border:1px solid var(--lake);color:var(--lake);padding:4px 10px;cursor:pointer;font-size:11.5px;text-align:left}
+.sql-presets button:hover{background:var(--lake);color:#fff}
+.sql-status{margin-top:6px;font-size:12.5px;color:var(--steel)}
+.sql-status.ok{color:var(--clean)}
+.sql-status.err{color:var(--rust)}
+.sql-help{margin-top:8px;font-size:12px;color:var(--steel);line-height:1.45}
+.sql-help code{font-family:ui-monospace,Consolas,monospace;font-size:11px;background:#EEF3F4;padding:1px 4px}
 .sql-summary{margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
 .sql-summary .sq-card{background:#F7FAFA;border:1px solid var(--hairline);padding:8px 10px}
 .sql-summary .sq-card strong{display:block;font-family:ui-monospace,Consolas,monospace;font-size:10.5px;
@@ -350,23 +364,43 @@ footer strong{color:var(--ink)}
       <button class="reset" id="f-reset">Reset filters</button>
     </div>
     <div class="sql-query-panel" id="sql-query-panel" aria-label="SQL site selection">
-      <h3>SQL site selection · city, town &amp; contaminants</h3>
-      <p class="hint" style="margin:0 0 10px">Build a SQL-style <code>WHERE</code> clause to filter the map, KPIs, charts, and site register. Towns use Erie County municipal boundaries (name match or point-in-polygon). Contaminants search reported chemicals and the expanded inventory.</p>
-      <div class="sql-query-grid">
-        <div class="field"><label for="f-city">City</label>
-          <select id="f-city"><option value="">Any city</option></select></div>
-        <div class="field"><label for="f-town">Town (Erie Co.)</label>
-          <select id="f-town"><option value="">Any town</option></select></div>
-        <div class="field"><label for="f-contam">Contaminant</label>
-          <select id="f-contam"><option value="">Any contaminant</option></select></div>
-        <div class="field">
-          <label>Query</label>
-          <div class="sql-query-actions">
-            <button type="button" id="sql-apply">Apply to map</button>
-            <button type="button" class="alt" id="sql-clear">Clear SQL</button>
+      <h3>SQL site selection · city, town, contaminants &amp; custom WHERE</h3>
+      <p class="hint" style="margin:0 0 10px">Filter the map, KPIs, charts, and site register with guided dropdowns or a custom SQL-style <code>WHERE</code> clause. Towns use Erie County municipal boundaries (name match or point-in-polygon).</p>
+      <div class="sql-mode-tabs" role="tablist" aria-label="SQL mode">
+        <button type="button" id="sql-mode-guided" aria-pressed="true">Guided filters</button>
+        <button type="button" id="sql-mode-custom" aria-pressed="false">Custom SQL</button>
+      </div>
+
+      <div class="sql-guided-panel" id="sql-guided-panel">
+        <div class="sql-query-grid">
+          <div class="field"><label for="f-city">City</label>
+            <select id="f-city"><option value="">Any city</option></select></div>
+          <div class="field"><label for="f-town">Town (Erie Co.)</label>
+            <select id="f-town"><option value="">Any town</option></select></div>
+          <div class="field"><label for="f-contam">Contaminant</label>
+            <select id="f-contam"><option value="">Any contaminant</option></select></div>
+          <div class="field">
+            <label>Query</label>
+            <div class="sql-query-actions">
+              <button type="button" id="sql-apply">Apply to map</button>
+              <button type="button" class="alt" id="sql-clear">Clear SQL</button>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="sql-custom-panel" id="sql-custom-panel" hidden>
+        <div class="field"><label for="f-sql-custom">Custom WHERE clause</label>
+          <textarea id="f-sql-custom" spellcheck="false" placeholder="city = 'Buffalo' AND contaminant LIKE '%PFAS%'"></textarea></div>
+        <div class="sql-presets" id="sql-presets" aria-label="Example custom queries"></div>
+        <p class="sql-help">Supported columns: <code>city</code>, <code>town</code>, <code>county</code>, <code>zip</code>, <code>name</code>, <code>dataset</code>/<code>type</code> (NPL, DEC, CEAM, CBS), <code>program</code>, <code>status</code> (active, done, deleted), <code>contaminant</code>, <code>inventory_category</code> (PFAS, BFR, Pesticides, PPCPs, Legacy / industrial). Operators: <code>=</code>, <code>!=</code>, <code>LIKE</code>, <code>ILIKE</code>, <code>IN (...)</code>. Combine with <code>AND</code> / <code>OR</code>. Parentheses supported.</p>
+        <div class="sql-query-actions" style="margin-top:8px">
+          <button type="button" id="sql-custom-apply">Run custom SQL</button>
+          <button type="button" class="alt" id="sql-custom-clear">Clear custom SQL</button>
+        </div>
+        <div class="sql-status" id="sql-status" aria-live="polite"></div>
+      </div>
+
       <pre class="sql-preview" id="sql-preview" aria-live="polite"></pre>
       <div class="sql-summary" id="sql-summary" aria-live="polite"></div>
     </div>
@@ -1094,6 +1128,10 @@ RECORDS.forEach(r => {
 let show = {NPL:true,DEC:true,CEAM:true,CBS:true};
 let fCounty='',fProgram='',fStatus='',fSearch='';
 let fCity='', fTown='', fContam='';
+let sqlMode='guided'; /* 'guided' | 'custom' */
+let fCustomSql='';
+let customSqlAst=null;
+let customSqlError='';
 let limitToSelectedSites=false;
 const selectedSiteKeys=new Set();
 let sitePickDecQ='', pdfSiteDecQ='';
@@ -1237,6 +1275,306 @@ function recordMatchesContaminant(r, contam){
     r.src || ''
   ].join(' ').toLowerCase();
   return hay.includes(q);
+}
+
+/* ---- Custom SQL WHERE parser (safe subset — no eval) ---- */
+const SQL_PRESETS = [
+  {label:'Buffalo + PFAS', sql:"city = 'Buffalo' AND contaminant LIKE '%PFAS%'"},
+  {label:'Erie County active DEC', sql:"county = 'Erie' AND dataset = 'DEC' AND status = 'active'"},
+  {label:'Amherst town AOI', sql:"town = 'Amherst'"},
+  {label:'NPL or CEAM', sql:"dataset IN ('NPL','CEAM')"},
+  {label:'Brownfield Cleanup', sql:"program = 'BCP'"},
+  {label:'Dioxin sites', sql:"contaminant LIKE '%Dioxin%'"},
+  {label:'Niagara Falls Superfund', sql:"city = 'Niagara Falls' AND (dataset = 'NPL' OR program = 'SSF')"}
+];
+
+function sqlUnquote(v){
+  v = String(v||'').trim();
+  if ((v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"')))
+    return v.slice(1,-1).replace(/''/g,"'");
+  return v;
+}
+
+function tokenizeSqlWhere(src){
+  const s = String(src||'').trim();
+  if (!s) return [];
+  const tokens = [];
+  const re2 = /\s*([()]|,|!=|<>|=|<=|>=|<|>|AND\b|OR\b|NOT\b|IN\b|LIKE\b|ILIKE\b|'(?:''|[^'])*'|"(?:\\"|[^"])*"|[A-Za-z_][\w]*|\d+(?:\.\d+)?|%)/giy;
+  let m;
+  while ((m = re2.exec(s))){
+    const t = m[1];
+    const up = t.toUpperCase();
+    if (['AND','OR','NOT','IN','LIKE','ILIKE'].includes(up)) tokens.push({type:'kw', v:up});
+    else if (t === '(' || t === ')') tokens.push({type:'paren', v:t});
+    else if (t === ',') tokens.push({type:'comma', v:t});
+    else if (['=','!=','<>','<','>','<=','>='].includes(t)) tokens.push({type:'op', v: t === '<>' ? '!=' : t});
+    else if ((t.startsWith("'") && t.endsWith("'")) || (t.startsWith('"') && t.endsWith('"')))
+      tokens.push({type:'str', v: sqlUnquote(t)});
+    else if (/^\d/.test(t)) tokens.push({type:'num', v:t});
+    else tokens.push({type:'id', v:t.toLowerCase()});
+  }
+  if (re2.lastIndex < s.length){
+    const rest = s.slice(re2.lastIndex).trim();
+    if (rest) throw new Error('Unexpected SQL near: ' + rest.slice(0, 40));
+  }
+  return tokens;
+}
+
+function parseSqlWhere(src){
+  const text = String(src||'').trim()
+    .replace(/^\s*SELECT\b[\s\S]*?\bWHERE\b/i, '')
+    .replace(/;\s*$/, '')
+    .trim();
+  if (!text || text === '1 = 1' || /^1\s*=\s*1\b/i.test(text)) return null;
+  const tokens = tokenizeSqlWhere(text);
+  let i = 0;
+  const peek = () => tokens[i];
+  const take = () => tokens[i++];
+  function parseOr(){
+    let left = parseAnd();
+    while (peek() && peek().type === 'kw' && peek().v === 'OR'){
+      take();
+      left = {type:'or', left, right: parseAnd()};
+    }
+    return left;
+  }
+  function parseAnd(){
+    let left = parseNot();
+    while (peek() && peek().type === 'kw' && peek().v === 'AND'){
+      take();
+      left = {type:'and', left, right: parseNot()};
+    }
+    return left;
+  }
+  function parseNot(){
+    if (peek() && peek().type === 'kw' && peek().v === 'NOT'){
+      take();
+      return {type:'not', expr: parseNot()};
+    }
+    return parsePrimary();
+  }
+  function parsePrimary(){
+    if (peek() && peek().type === 'paren' && peek().v === '('){
+      take();
+      const e = parseOr();
+      if (!peek() || peek().v !== ')') throw new Error('Missing )');
+      take();
+      return e;
+    }
+    return parseComparison();
+  }
+  function parseComparison(){
+    const colTok = take();
+    if (!colTok || colTok.type !== 'id') throw new Error('Expected column name');
+    const col = colTok.v;
+    const opTok = take();
+    if (!opTok) throw new Error('Expected operator after ' + col);
+    if (opTok.type === 'kw' && opTok.v === 'IN'){
+      if (!peek() || peek().v !== '(') throw new Error('Expected ( after IN');
+      take();
+      const vals = [];
+      while (true){
+        const v = take();
+        if (!v || (v.type !== 'str' && v.type !== 'num' && v.type !== 'id'))
+          throw new Error('Expected value in IN list');
+        vals.push(String(v.v));
+        if (peek() && peek().type === 'comma'){ take(); continue; }
+        break;
+      }
+      if (!peek() || peek().v !== ')') throw new Error('Expected ) after IN list');
+      take();
+      return {type:'cmp', col, op:'IN', value: vals};
+    }
+    if (opTok.type === 'kw' && (opTok.v === 'LIKE' || opTok.v === 'ILIKE')){
+      const v = take();
+      if (!v || (v.type !== 'str' && v.type !== 'id')) throw new Error('Expected pattern after LIKE');
+      return {type:'cmp', col, op: opTok.v, value: String(v.v)};
+    }
+    if (opTok.type !== 'op') throw new Error('Unsupported operator near ' + col);
+    const v = take();
+    if (!v || (v.type !== 'str' && v.type !== 'num' && v.type !== 'id'))
+      throw new Error('Expected value after ' + col);
+    return {type:'cmp', col, op: opTok.v, value: String(v.v)};
+  }
+  const ast = parseOr();
+  if (i < tokens.length) throw new Error('Unexpected token near end of WHERE clause');
+  return ast;
+}
+
+function sqlFieldValue(r, col){
+  switch (col){
+    case 'city': return r.city || '';
+    case 'town': return r.city || ''; /* name fallback; AOI handled in eval */
+    case 'county': return r.co || '';
+    case 'zip': return r.zip || '';
+    case 'name': case 'site': case 'facility': return r.n || '';
+    case 'dataset': case 'type': return r.type || '';
+    case 'program': return r.prog || r.progLabel || '';
+    case 'status': return statusGroup(r) || '';
+    case 'contaminant': case 'contaminants': case 'chemical': case 'chem':
+      return [r.contam, r.chem, r.invFlat, (r.con||[]).join(' ')].filter(Boolean).join(' ');
+    case 'inventory_category': case 'category':
+      return Object.keys(r.inv||{}).filter(k => r.inv[k] && r.inv[k].length).join(', ');
+    case 'class': case 'site_class': return r.cl || r.st || '';
+    case 'address': return r.addr || r.a || '';
+    default: return null;
+  }
+}
+
+function likeMatch(text, pattern, caseInsensitive){
+  const t = caseInsensitive ? String(text).toLowerCase() : String(text);
+  const p = caseInsensitive ? String(pattern).toLowerCase() : String(pattern);
+  const esc = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g,'.*').replace(/_/g,'.');
+  return new RegExp('^'+esc+'$').test(t);
+}
+
+function evalSqlAst(ast, r){
+  if (!ast) return true;
+  if (ast.type === 'and') return evalSqlAst(ast.left, r) && evalSqlAst(ast.right, r);
+  if (ast.type === 'or') return evalSqlAst(ast.left, r) || evalSqlAst(ast.right, r);
+  if (ast.type === 'not') return !evalSqlAst(ast.expr, r);
+  if (ast.type !== 'cmp') return true;
+  const col = ast.col;
+  const op = ast.op;
+  const want = ast.value;
+
+  if (col === 'town'){
+    if (op === '=' || op === '==') return recordMatchesTown(r, want);
+    if (op === '!=' || op === '<>') return !recordMatchesTown(r, want);
+    if (op === 'LIKE' || op === 'ILIKE'){
+      /* town LIKE uses AOI name + city field */
+      if (recordMatchesTown(r, String(want).replace(/%/g,'').trim())) return true;
+      return likeMatch(r.city||'', want, op === 'ILIKE' || true);
+    }
+    if (op === 'IN') return (want||[]).some(v => recordMatchesTown(r, v));
+  }
+
+  if (col === 'city' && (op === '=' || op === '=='))
+    return recordMatchesCity(r, normPlace(want));
+  if (col === 'city' && (op === '!=' || op === '<>'))
+    return !recordMatchesCity(r, normPlace(want));
+
+  if (col === 'program' && (op === '=' || op === 'IN')){
+    const vals = op === 'IN' ? want : [want];
+    return vals.some(v => {
+      const key = String(v).toUpperCase();
+      if (r.prog && r.prog.toUpperCase() === key) return true;
+      const meta = PROG_META[key] || Object.entries(PROG_META).find(([,m]) => normPlace(m.label) === normPlace(v));
+      if (Array.isArray(meta)) return r.prog === meta[0];
+      if (meta && PROG_META[key]) return r.prog === key;
+      return normPlace(r.progLabel) === normPlace(v) || String(r.progLabel).toLowerCase().includes(String(v).toLowerCase());
+    });
+  }
+
+  if ((col === 'dataset' || col === 'type') && (op === '=' || op === 'IN')){
+    const vals = (op === 'IN' ? want : [want]).map(v => String(v).toUpperCase());
+    return vals.includes(String(r.type).toUpperCase());
+  }
+
+  if (col === 'inventory_category' || col === 'category'){
+    const cats = op === 'IN' ? want : [want];
+    const hasCat = (name) => {
+      if (r.inv && r.inv[name] && r.inv[name].length) return true;
+      const hit = CHEM_CAT_ORDER.find(x => normPlace(x) === normPlace(name));
+      return !!(hit && r.inv && r.inv[hit] && r.inv[hit].length);
+    };
+    if (op === 'LIKE' || op === 'ILIKE')
+      return CHEM_CAT_ORDER.some(c => likeMatch(c, want, true) && hasCat(c));
+    const hit = cats.some(c => hasCat(String(c)));
+    if (op === '!=' || op === '<>') return !hit;
+    return hit;
+  }
+
+  if (col === 'contaminant' || col === 'contaminants' || col === 'chemical' || col === 'chem'){
+    if (op === '=' || op === '==') return recordMatchesContaminant(r, want);
+    if (op === '!=' || op === '<>') return !recordMatchesContaminant(r, want);
+    if (op === 'LIKE' || op === 'ILIKE'){
+      const pattern = String(want);
+      const plain = pattern.replace(/^%|%$/g,'');
+      if (pattern.includes('%') || pattern.includes('_'))
+        return likeMatch(sqlFieldValue(r, 'contaminant'), pattern, true);
+      return recordMatchesContaminant(r, plain);
+    }
+    if (op === 'IN') return (want||[]).some(v => recordMatchesContaminant(r, v));
+  }
+
+  let field = sqlFieldValue(r, col);
+  if (field == null) throw new Error('Unknown column: ' + col);
+  field = String(field);
+  const fv = field.toLowerCase();
+  if (op === '=' || op === '==') return fv === String(want).toLowerCase() || normPlace(field) === normPlace(want);
+  if (op === '!=' || op === '<>') return fv !== String(want).toLowerCase() && normPlace(field) !== normPlace(want);
+  if (op === 'LIKE' || op === 'ILIKE') return likeMatch(field, want, true);
+  if (op === 'IN') return (want||[]).some(v => fv === String(v).toLowerCase() || normPlace(field) === normPlace(v));
+  return false;
+}
+
+function recordMatchesCustomSql(r){
+  if (!fCustomSql) return true;
+  if (!customSqlAst) return false; /* invalid / failed parse → match nothing */
+  try { return evalSqlAst(customSqlAst, r); }
+  catch (e){ return false; }
+}
+
+function setSqlStatus(msg, kind){
+  const el = $('sql-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = 'sql-status' + (kind ? ' ' + kind : '');
+}
+
+function setSqlMode(mode){
+  sqlMode = mode === 'custom' ? 'custom' : 'guided';
+  const guided = $('sql-mode-guided');
+  const custom = $('sql-mode-custom');
+  if (guided) guided.setAttribute('aria-pressed', sqlMode === 'guided');
+  if (custom) custom.setAttribute('aria-pressed', sqlMode === 'custom');
+  if ($('sql-guided-panel')) $('sql-guided-panel').hidden = sqlMode !== 'guided';
+  if ($('sql-custom-panel')) $('sql-custom-panel').hidden = sqlMode !== 'custom';
+  updateSqlPreview();
+}
+
+function compileCustomSql(text, opts={}){
+  fCustomSql = String(text||'').trim();
+  customSqlAst = null;
+  customSqlError = '';
+  if (!fCustomSql){
+    setSqlStatus('Custom SQL cleared.', '');
+    return true;
+  }
+  try {
+    customSqlAst = parseSqlWhere(fCustomSql);
+    const n = RECORDS.filter(r => {
+      /* Count against dataset chips only for feedback */
+      if (!show[r.type]) return false;
+      return recordMatchesCustomSql(r);
+    }).length;
+    setSqlStatus(`OK — ${n} site${n===1?'':'s'} match this WHERE clause (with current dataset chips).`, 'ok');
+    return true;
+  } catch (e){
+    customSqlError = e.message || String(e);
+    customSqlAst = null;
+    setSqlStatus('SQL error: ' + customSqlError, 'err');
+    if (opts.strict) return false;
+    return false;
+  }
+}
+
+function populateSqlPresets(){
+  const box = $('sql-presets');
+  if (!box) return;
+  box.innerHTML = SQL_PRESETS.map((p,i) =>
+    `<button type="button" data-sql-preset="${i}" title="${esc(p.sql)}">${esc(p.label)}</button>`
+  ).join('');
+  box.addEventListener('click', e => {
+    const btn = e.target.closest('[data-sql-preset]');
+    if (!btn) return;
+    const p = SQL_PRESETS[+btn.getAttribute('data-sql-preset')];
+    if (!p) return;
+    setSqlMode('custom');
+    if ($('f-sql-custom')) $('f-sql-custom').value = p.sql;
+    applyCustomSqlFromForm({zoom:true});
+  });
 }
 
 /* ================================ MAP ================================ */
@@ -1877,9 +2215,13 @@ function passFilters(r){
   if(fCounty && r.co!==fCounty) return false;
   if(fProgram && r.prog!==fProgram) return false;
   if(fStatus){ if(statusGroup(r)!==fStatus) return false; }
-  if(fCity && !recordMatchesCity(r, fCity)) return false;
-  if(fTown && !recordMatchesTown(r, fTown)) return false;
-  if(fContam && !recordMatchesContaminant(r, fContam)) return false;
+  if (sqlMode === 'custom'){
+    if (fCustomSql && !recordMatchesCustomSql(r)) return false;
+  } else {
+    if(fCity && !recordMatchesCity(r, fCity)) return false;
+    if(fTown && !recordMatchesTown(r, fTown)) return false;
+    if(fContam && !recordMatchesContaminant(r, fContam)) return false;
+  }
   if(fSearch){
     const q=fSearch.toLowerCase();
     const hay=(r.n+' '+r.city+' '+r.co+' '+(r.zip||'')+' '+(r.contam||'')+' '+(r.invFlat||'')+' '+(r.progLabel||'')+' '+(r.cbsType||'')+' '+(r.chem||'')+' '+(r.src||'')+' '+(r.note||'')).toLowerCase();
@@ -1937,7 +2279,7 @@ function renderMapLegend(recs){
   if (title){
     title.textContent = limitToSelectedSites
       ? 'Legend · selected sites'
-      : (fProgram || fCounty || fStatus || fSearch || fCity || fTown || fContam ? 'Legend · filtered' : 'Legend');
+      : (fProgram || fCounty || fStatus || fSearch || fCity || fTown || fContam || (sqlMode==='custom' && fCustomSql) ? 'Legend · filtered' : 'Legend');
   }
   box.innerHTML = rows.join('');
 }
@@ -2012,6 +2354,16 @@ function sqlEscape(s){ return String(s||'').replace(/'/g, "''"); }
 function updateSqlPreview(){
   const el = $('sql-preview');
   if (!el) return;
+  if (sqlMode === 'custom'){
+    const where = fCustomSql
+      ? esc(fCustomSql)
+      : '1 = 1  /* write a custom WHERE clause */';
+    const modeNote = customSqlError
+      ? `\n<span style="color:#F2A0A0">/* error: ${esc(customSqlError)} */</span>`
+      : (fCustomSql ? '\n<span class="kw">/* custom SQL mode */</span>' : '');
+    el.innerHTML = `<span class="kw">SELECT</span> *\n<span class="kw">FROM</span> remediation_sites\n<span class="kw">WHERE</span> ${where}${modeNote}\n<span class="kw">ORDER BY</span> city, name;`;
+    return;
+  }
   const clauses = [];
   if (fCounty) clauses.push(`county = '<span class="str">${esc(sqlEscape(fCounty))}</span>'`);
   if (fProgram) clauses.push(`program = '<span class="str">${esc(sqlEscape((PROG_META[fProgram]||{}).label || fProgram))}</span>'`);
@@ -2051,10 +2403,15 @@ function renderSqlSummary(recs){
     .filter(x => x.n > 0)
     .slice(0, 5);
   const progTop = tally(recs.filter(r=>r.type==='DEC'), r=>r.progLabel).slice(0, 4);
-  const sqlOn = !!(fCity || fTown || fContam);
+  const sqlOn = sqlMode === 'custom'
+    ? !!(fCustomSql && customSqlAst)
+    : !!(fCity || fTown || fContam);
+  const modeLabel = sqlMode === 'custom'
+    ? (customSqlError ? 'custom SQL error' : (fCustomSql ? 'custom SQL on' : 'custom SQL empty'))
+    : (sqlOn ? 'guided SQL filters on' : 'no city/town/contaminant filter');
   box.innerHTML = `
     <div class="sq-card"><strong>Query result</strong><div class="sq-val"><b>${recs.length}</b> sites mapped
-      ${sqlOn ? ' · SQL filters on' : ' · no city/town/contaminant filter'}</div></div>
+      · ${modeLabel}</div></div>
     <div class="sq-card"><strong>By dataset</strong><div class="sq-val">
       NPL <b>${byType.NPL}</b> · DEC <b>${byType.DEC}</b> · CEAM <b>${byType.CEAM}</b> · CBS <b>${byType.CBS}</b>
     </div></div>
@@ -2225,7 +2582,6 @@ function applySqlFiltersFromForm(){
   refreshSitePickLists();
   refresh();
   if (fTown || fCity){
-    /* Zoom to filtered sites when a place filter is applied */
     const recs = currentRecords().filter(r => r.lat && r.lng);
     if (recs.length){
       const b = L.latLngBounds(recs.map(r => [r.lat, r.lng]));
@@ -2233,27 +2589,69 @@ function applySqlFiltersFromForm(){
     }
   }
 }
+function applyCustomSqlFromForm(opts={}){
+  setSqlMode('custom');
+  const text = $('f-sql-custom')?.value || '';
+  const ok = compileCustomSql(text, {strict:true});
+  refreshSitePickLists();
+  refresh();
+  if (ok && opts.zoom !== false){
+    const recs = currentRecords().filter(r => r.lat && r.lng);
+    if (recs.length && (fCustomSql)){
+      const b = L.latLngBounds(recs.map(r => [r.lat, r.lng]));
+      if (b.isValid()) map.fitBounds(b.pad(0.18), {maxZoom: 14});
+    }
+  }
+}
 function clearSqlFilters(){
   fCity = fTown = fContam = '';
+  fCustomSql = '';
+  customSqlAst = null;
+  customSqlError = '';
   if ($('f-city')) $('f-city').value = '';
   if ($('f-town')) $('f-town').value = '';
   if ($('f-contam')) $('f-contam').value = '';
+  if ($('f-sql-custom')) $('f-sql-custom').value = '';
+  setSqlStatus('', '');
   refreshSitePickLists();
   refresh();
 }
-if ($('f-city')) $('f-city').addEventListener('change', applySqlFiltersFromForm);
-if ($('f-town')) $('f-town').addEventListener('change', applySqlFiltersFromForm);
-if ($('f-contam')) $('f-contam').addEventListener('change', applySqlFiltersFromForm);
-if ($('sql-apply')) $('sql-apply').addEventListener('click', applySqlFiltersFromForm);
+if ($('f-city')) $('f-city').addEventListener('change', () => { setSqlMode('guided'); applySqlFiltersFromForm(); });
+if ($('f-town')) $('f-town').addEventListener('change', () => { setSqlMode('guided'); applySqlFiltersFromForm(); });
+if ($('f-contam')) $('f-contam').addEventListener('change', () => { setSqlMode('guided'); applySqlFiltersFromForm(); });
+if ($('sql-apply')) $('sql-apply').addEventListener('click', () => { setSqlMode('guided'); applySqlFiltersFromForm(); });
 if ($('sql-clear')) $('sql-clear').addEventListener('click', clearSqlFilters);
+if ($('sql-mode-guided')) $('sql-mode-guided').addEventListener('click', () => { setSqlMode('guided'); refresh(); });
+if ($('sql-mode-custom')) $('sql-mode-custom').addEventListener('click', () => { setSqlMode('custom'); refresh(); });
+if ($('sql-custom-apply')) $('sql-custom-apply').addEventListener('click', () => applyCustomSqlFromForm({zoom:true}));
+if ($('sql-custom-clear')) $('sql-custom-clear').addEventListener('click', () => {
+  if ($('f-sql-custom')) $('f-sql-custom').value = '';
+  compileCustomSql('');
+  refreshSitePickLists();
+  refresh();
+});
+if ($('f-sql-custom')){
+  $('f-sql-custom').addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      e.preventDefault();
+      applyCustomSqlFromForm({zoom:true});
+    }
+  });
+}
+populateSqlPresets();
+setSqlMode('guided');
 $('f-reset').addEventListener('click',()=>{
   fCounty=fProgram=fStatus=fSearch='';
   fCity=fTown=fContam='';
+  fCustomSql=''; customSqlAst=null; customSqlError='';
   show={NPL:true,DEC:true,CEAM:true,CBS:true};
   $('f-county').value='';$('f-program').value='';$('f-status').value='';$('f-search').value='';
   if ($('f-city')) $('f-city').value='';
   if ($('f-town')) $('f-town').value='';
   if ($('f-contam')) $('f-contam').value='';
+  if ($('f-sql-custom')) $('f-sql-custom').value='';
+  setSqlStatus('', '');
+  setSqlMode('guided');
   selectedSiteKeys.clear();
   setLimitToSelectedSites(false);
   sitePickDecQ=pdfSiteDecQ='';
