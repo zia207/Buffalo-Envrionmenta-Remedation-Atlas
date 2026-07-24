@@ -85,10 +85,12 @@ Seven summary counters (e.g. "Records shown", "Federal Superfund", "DEC cleanup 
 
 ### 3. Filters
 
-Two rows of controls:
+Controls include:
 
 - **Dropdowns:** county, DEC program, status, search box
-- **Toggle chips:** turn datasets on/off (NPL, DEC, CEAM, CBS) and map layers (counties, ZIPs, SVI, labels, clustering)
+- **SQL site selection:** guided filters for **city**, **town (Erie Co.)**, and **contaminant / chemical**, plus a **Custom SQL** mode for freeform `WHERE` clauses
+- **Toggle chips:** turn datasets on/off (NPL, DEC, CEAM, CBS) and map layers (counties, cities, towns, ZIPs, SVI, labels, clustering)
+- **DEC site picker:** optionally limit the map and PNG/PDF export to checked DEC cleanup sites by program
 
 ### 4. Map + Detail Panel
 
@@ -97,8 +99,10 @@ Two rows of controls:
 
 ### 5. Charts
 
-Horizontal bar charts built in plain HTML/CSS:
+Horizontal bar charts built in plain HTML/CSS (recompute with filters):
 
+- Sites by city
+- Contaminant / inventory hits
 - Sites by county
 - DEC sites by program
 - Cleanup status / site class
@@ -111,7 +115,7 @@ Horizontal bar charts built in plain HTML/CSS:
 
 ### 7. Export Buttons
 
-Download CSV, Excel, or a custom map as PNG/PDF.
+Download CSV, Excel, or a custom map as PNG/PDF. The **Export map** dialog lets you choose basemap, datasets, AOI, symbols, legend, and (via active filters) which **chemical / contaminant** sites appear on the figure.
 
 ### 8. About Data
 
@@ -144,12 +148,14 @@ Changing any filter triggers `refresh()`, which redraws the whole UI to match.
 `passFilters(record)` decides whether a site is visible:
 
 1. Its dataset type is enabled (`show.NPL`, `show.DEC`, etc.)
-2. County matches (if selected)
-3. DEC program matches (if selected)
-4. Status matches: `active`, `done`, or `deleted` (via `statusGroup()`)
-5. Search text appears in name, city, contaminants, or related fields
+2. Optional DEC site-selection limit (`selectedSiteKeys`)
+3. County matches (if selected)
+4. DEC program matches (if selected)
+5. Status matches: `active`, `done`, or `deleted` (via `statusGroup()`)
+6. **Chemical / contaminant** (guided SQL) or a **custom SQL WHERE** clause — including `contaminant`, `inventory_category`, city, town, etc.
+7. Search text appears in name, city, contaminants, or related fields
 
-`currentRecords()` returns `RECORDS.filter(passFilters)`.
+`currentRecords()` returns `RECORDS.filter(passFilters)`. The same filtered set feeds the map, KPIs, charts, tables, and **Export map (PNG/PDF)**.
 
 ---
 
@@ -226,6 +232,35 @@ Key objects: `SVI_DATA`, `SVI_CATALOG`, `sviByZip`, `sviLayer`.
 | Full register CSV | Filtered site list |
 | Export map (PDF/PNG) | Modal with options; renders map to canvas, saves via jsPDF or download |
 
+### Export map (PDF / PNG)
+
+Open **Export map (PDF / PNG)** from the map toolbar. The dialog redraws the figure on a canvas (basemap tiles, boundaries, markers, place labels, legend) and saves as PNG or PDF.
+
+**Datasets (current filters apply)** — including chemical selection:
+
+| Option | What it does |
+|--------|----------------|
+| Federal Superfund / DEC / CEAM / CBS checkboxes | Include or omit each dataset on the figure |
+| **Select chemical / contaminant** | Use the dashboard **Contaminant** dropdown (or Custom SQL `contaminant` / `inventory_category` clause) before exporting — only sites matching that chemical appear on the PNG/PDF |
+| Inventory categories | Choose a category such as **PFAS**, **BFR**, **Pesticides**, **PPCPs**, or **Legacy / industrial** to export sites linked to that chemical group |
+| Only selected DEC cleanup sites | Limit DEC markers to sites checked in the program picker |
+
+Because the modal states **current filters apply**, any active chemical, city, town, county, program, or status filter from the main dashboard is honored in the export. Typical workflow:
+
+1. Select a **chemical** (e.g. PFAS, Dioxin, Trichloroethylene) under SQL site selection  
+2. Confirm the map and summary cards show the intended sites  
+3. Open **Export map** → choose basemap, AOI, symbols, and legend → download PNG or PDF  
+
+Other export-map controls:
+
+- **Basemap** — current view, satellite, streets, topography, or none  
+- **Boundaries** — counties, Erie city/town outlines, ZIP lines, optional SVI choropleth  
+- **Symbols** — shape, size, and colors for NPL / DEC / CEAM / CBS (DEC can use distinct program colors)  
+- **Place labels** — font size and colors for readability on satellite imagery  
+- **Legend** — position, font size, and which symbol groups to include  
+- **AOI** — full region, core Buffalo, county, Erie city/town, or user-drawn bounding box  
+- **Figure appearance** — title, data source line, and PDF figure size  
+
 PDF export is the most complex feature — it redraws boundaries, markers, legend, and optionally a site register table on a canvas.
 
 ---
@@ -300,7 +335,8 @@ Embedded data → unified RECORDS list → filters → refresh()
 | Function | Purpose |
 |----------|---------|
 | `passFilters(r)` | Returns true if record passes all active filters |
-| `currentRecords()` | Filtered list of records |
+| `recordMatchesContaminant(r, chem)` | Match a site to a selected chemical / inventory category |
+| `currentRecords()` | Filtered list of records (also used by Export map) |
 | `refresh()` | Master UI update |
 | `renderMap(recs)` | Clear and redraw markers |
 | `renderKPIs(recs)` | Update summary numbers |
