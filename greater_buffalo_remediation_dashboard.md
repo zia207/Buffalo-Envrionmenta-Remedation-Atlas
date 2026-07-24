@@ -241,15 +241,15 @@ Open **Export map (PDF / PNG)** from the map toolbar. The dialog redraws the fig
 | Option | What it does |
 |--------|----------------|
 | Federal Superfund / DEC / CEAM / CBS checkboxes | Include or omit each dataset on the figure |
-| **Select chemical / contaminant** | Use the dashboard **Contaminant** dropdown (or Custom SQL `contaminant` / `inventory_category` clause) before exporting — only sites matching that chemical appear on the PNG/PDF |
+| **Select chemical** | Dedicated **Select chemical** dropdown in the Export map dialog — inventory categories (PFAS, BFR, …) or a specific contaminant. Synced from the dashboard Contaminant filter when the dialog opens; change it here to limit sites on the PNG/PDF only |
 | Inventory categories | Choose a category such as **PFAS**, **BFR**, **Pesticides**, **PPCPs**, or **Legacy / industrial** to export sites linked to that chemical group |
 | Only selected DEC cleanup sites | Limit DEC markers to sites checked in the program picker |
 
 Because the modal states **current filters apply**, any active chemical, city, town, county, program, or status filter from the main dashboard is honored in the export. Typical workflow:
 
-1. Select a **chemical** (e.g. PFAS, Dioxin, Trichloroethylene) under SQL site selection  
-2. Confirm the map and summary cards show the intended sites  
-3. Open **Export map** → choose basemap, AOI, symbols, and legend → download PNG or PDF  
+1. Open **Export map** and choose a **chemical** under **Select chemical** (or set Contaminant on the dashboard first — it syncs into the dialog)  
+2. Confirm dataset checkboxes and AOI  
+3. Choose basemap, symbols, and legend → download PNG or PDF  
 
 Other export-map controls:
 

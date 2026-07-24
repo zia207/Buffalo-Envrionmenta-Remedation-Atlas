@@ -661,6 +661,11 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="checkbox" id="pdf-dec" checked> DEC cleanup sites</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-ceam" checked> Chemical exposure (CEAM)</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-cbs" checked> Chemical bulk storage</label>
+      <div class="pdf-field" style="margin-top:10px">
+        <label for="pdf-chem">Select chemical</label>
+        <select id="pdf-chem"><option value="">Any chemical / contaminant</option></select>
+        <p style="font-size:12px;color:var(--steel);margin:4px 0 0">Limits the PNG/PDF to sites matching this chemical or inventory category (PFAS, BFR, Pesticides, PPCPs, Legacy / industrial). Synced from the dashboard Contaminant filter when you open this dialog.</p>
+      </div>
       <div class="pdf-site-pick" id="pdf-site-pick">
         <label class="pdf-opt"><input type="checkbox" id="pdf-site-limit"> Only selected DEC cleanup sites</label>
         <p style="font-size:12px;color:var(--steel);margin:4px 0 8px">Uses the program-categorized DEC site picker on the dashboard. Chemical exposure follows the dataset checkbox above. <span id="pdf-site-pick-summary">No sites selected.</span></p>
@@ -1209,26 +1214,29 @@ function populateSqlSelects(){
     });
   }
   /* Town options filled later via fillSqlTownSelect() after ERIE_MUNI_AOIS is defined */
-  const contSel = $('f-contam');
-  if (contSel){
-    const {cats, chems} = collectContaminantOptions();
-    const ogCat = document.createElement('optgroup');
-    ogCat.label = 'Inventory categories';
-    cats.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.value; o.textContent = `${c.label} (${c.n})`;
-      ogCat.appendChild(o);
-    });
-    contSel.appendChild(ogCat);
-    const ogChem = document.createElement('optgroup');
-    ogChem.label = 'Reported / inferred chemicals';
-    chems.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.value; o.textContent = `${c.label} (${c.n})`;
-      ogChem.appendChild(o);
-    });
-    contSel.appendChild(ogChem);
-  }
+  fillContaminantSelect($('f-contam'));
+  fillContaminantSelect($('pdf-chem'));
+}
+
+function fillContaminantSelect(contSel){
+  if (!contSel || contSel.options.length > 1) return;
+  const {cats, chems} = collectContaminantOptions();
+  const ogCat = document.createElement('optgroup');
+  ogCat.label = 'Inventory categories';
+  cats.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.value; o.textContent = `${c.label} (${c.n})`;
+    ogCat.appendChild(o);
+  });
+  contSel.appendChild(ogCat);
+  const ogChem = document.createElement('optgroup');
+  ogChem.label = 'Reported / inferred chemicals';
+  chems.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.value; o.textContent = `${c.label} (${c.n})`;
+    ogChem.appendChild(o);
+  });
+  contSel.appendChild(ogChem);
 }
 
 function fillSqlTownSelect(){
@@ -3677,6 +3685,7 @@ function readExportOptionsFromForm(){
     showDEC: $('pdf-dec').checked,
     showCEAM: $('pdf-ceam').checked,
     showCBS: $('pdf-cbs').checked,
+    exportChem: $('pdf-chem')?.value || '',
     showCounties: $('pdf-counties').checked,
     showCities: $('pdf-cities').checked,
     showTowns: $('pdf-towns').checked,
@@ -3845,6 +3854,10 @@ function syncExportModalFromMap(opts={}){
   $('pdf-dec').checked = show.DEC;
   $('pdf-ceam').checked = show.CEAM;
   $('pdf-cbs').checked = show.CBS;
+  if ($('pdf-chem')){
+    fillContaminantSelect($('pdf-chem'));
+    $('pdf-chem').value = fContam || '';
+  }
   if ($('pdf-site-limit')) $('pdf-site-limit').checked = limitToSelectedSites;
   refreshSitePickLists();
   $('pdf-counties').checked = showCounties;
@@ -3897,11 +3910,37 @@ function getExportRows(opts){
     throw new Error('Select at least one dataset or SVI choropleth to export');
   if (!anyDataset) return [];
   const typeOK = {NPL: opts.showNPL, DEC: opts.showDEC, CEAM: opts.showCEAM, CBS: opts.showCBS};
-  let rows = currentRecords().filter(r => typeOK[r.type]);
+  /* Export chemical overrides the dashboard Contaminant filter for this figure */
+  const chem = (opts.exportChem != null && opts.exportChem !== undefined)
+    ? opts.exportChem
+    : fContam;
+  let rows = RECORDS.filter(r => {
+    if (!typeOK[r.type]) return false;
+    if (limitToSelectedSites && r.type === 'DEC' && !selectedSiteKeys.has(r.key)) return false;
+    if (fCounty && r.co !== fCounty) return false;
+    if (fProgram && r.prog !== fProgram) return false;
+    if (fStatus && statusGroup(r) !== fStatus) return false;
+    if (sqlMode === 'custom'){
+      if (fCustomSql && !recordMatchesCustomSql(r)) return false;
+      if (chem && !recordMatchesContaminant(r, chem)) return false;
+    } else {
+      if (fCity && !recordMatchesCity(r, fCity)) return false;
+      if (fTown && !recordMatchesTown(r, fTown)) return false;
+      if (chem && !recordMatchesContaminant(r, chem)) return false;
+    }
+    if (fSearch){
+      const q = fSearch.toLowerCase();
+      const hay = (r.n+' '+r.city+' '+r.co+' '+(r.zip||'')+' '+(r.contam||'')+' '+(r.invFlat||'')+' '+(r.progLabel||'')+' '+(r.cbsType||'')+' '+(r.chem||'')+' '+(r.src||'')+' '+(r.note||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
   rows = filterRowsToExportAoi(rows, opts);
   if (!rows.length){
     if (limitToSelectedSites && opts.showDEC && !selectedSiteKeys.size)
       throw new Error('Site selection is on, but no DEC cleanup sites are checked — select sites or turn off “Only selected”');
+    if (chem)
+      throw new Error('No records match the selected chemical, datasets, filters, and AOI');
     throw new Error('No records match the selected datasets, filters, and AOI');
   }
   return rows;
