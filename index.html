@@ -87,6 +87,11 @@ h2 small{font-family:ui-monospace,Consolas,monospace;font-size:11px;letter-spaci
 .sql-mode-tabs button{background:#F7FAFA;border:1px solid var(--hairline);color:var(--steel);padding:5px 12px;cursor:pointer;font-size:12px}
 .sql-mode-tabs button[aria-pressed="true"]{background:var(--slate);border-color:var(--slate);color:#fff}
 .sql-guided-panel[hidden],.sql-custom-panel[hidden]{display:none!important}
+.sql-query-grid .field select[multiple]{min-height:120px;min-width:180px;padding:6px}
+.sql-multi-hint{font-size:11px;color:var(--steel);margin-top:2px;line-height:1.3}
+.pdf-field select[multiple]{min-height:110px;padding:6px}
+.pdf-multi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:720px){.pdf-multi-grid{grid-template-columns:1fr}}
 .sql-custom-panel textarea{width:100%;min-height:96px;border:1px solid var(--hairline);background:#F7FAFA;
   font-family:ui-monospace,Consolas,Menlo,monospace;font-size:12.5px;line-height:1.45;padding:10px;resize:vertical;color:var(--ink)}
 .sql-presets{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
@@ -365,7 +370,7 @@ footer strong{color:var(--ink)}
     </div>
     <div class="sql-query-panel" id="sql-query-panel" aria-label="SQL site selection">
       <h3>SQL site selection · city, town, contaminants &amp; custom WHERE</h3>
-      <p class="hint" style="margin:0 0 10px">Filter the map, KPIs, charts, and site register with guided dropdowns or a custom SQL-style <code>WHERE</code> clause. Towns use Erie County municipal boundaries (name match or point-in-polygon).</p>
+      <p class="hint" style="margin:0 0 10px">Filter the map, KPIs, charts, and site register with guided multi-selects (cities, towns, contaminants — Ctrl/Cmd-click for several) or a custom SQL-style <code>WHERE</code> clause. Within each list, a site matches if it hits <strong>any</strong> selected value. Towns use Erie County municipal boundaries (name match or point-in-polygon).</p>
       <div class="sql-mode-tabs" role="tablist" aria-label="SQL mode">
         <button type="button" id="sql-mode-guided" aria-pressed="true">Guided filters</button>
         <button type="button" id="sql-mode-custom" aria-pressed="false">Custom SQL</button>
@@ -373,12 +378,15 @@ footer strong{color:var(--ink)}
 
       <div class="sql-guided-panel" id="sql-guided-panel">
         <div class="sql-query-grid">
-          <div class="field"><label for="f-city">City</label>
-            <select id="f-city"><option value="">Any city</option></select></div>
-          <div class="field"><label for="f-town">Town (Erie Co.)</label>
-            <select id="f-town"><option value="">Any town</option></select></div>
-          <div class="field"><label for="f-contam">Contaminant</label>
-            <select id="f-contam"><option value="">Any contaminant</option></select></div>
+          <div class="field"><label for="f-city">Cities <span style="font-weight:400;text-transform:none;letter-spacing:0">(multi-select)</span></label>
+            <select id="f-city" multiple size="7" aria-label="Select one or more cities"></select>
+            <p class="sql-multi-hint">Ctrl/Cmd-click to pick several. Leave empty for any city.</p></div>
+          <div class="field"><label for="f-town">Towns (Erie Co.) <span style="font-weight:400;text-transform:none;letter-spacing:0">(multi-select)</span></label>
+            <select id="f-town" multiple size="7" aria-label="Select one or more towns"></select>
+            <p class="sql-multi-hint">Ctrl/Cmd-click to pick several. Leave empty for any town.</p></div>
+          <div class="field"><label for="f-contam">Contaminants <span style="font-weight:400;text-transform:none;letter-spacing:0">(multi-select)</span></label>
+            <select id="f-contam" multiple size="7" aria-label="Select one or more contaminants"></select>
+            <p class="sql-multi-hint">Ctrl/Cmd-click to pick several. Leave empty for any contaminant.</p></div>
           <div class="field">
             <label>Query</label>
             <div class="sql-query-actions">
@@ -661,11 +669,24 @@ footer strong{color:var(--ink)}
       <label class="pdf-opt"><input type="checkbox" id="pdf-dec" checked> DEC cleanup sites</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-ceam" checked> Chemical exposure (CEAM)</label>
       <label class="pdf-opt"><input type="checkbox" id="pdf-cbs" checked> Chemical bulk storage</label>
-      <div class="pdf-field" style="margin-top:10px">
-        <label for="pdf-chem">Select chemical</label>
-        <select id="pdf-chem"><option value="">Any chemical / contaminant</option></select>
-        <p style="font-size:12px;color:var(--steel);margin:4px 0 0">Limits the PNG/PDF to sites matching this chemical or inventory category (PFAS, BFR, Pesticides, PPCPs, Legacy / industrial). Synced from the dashboard Contaminant filter when you open this dialog.</p>
+      <div class="pdf-multi-grid" id="pdf-place-chem-filters">
+        <div class="pdf-field">
+          <label for="pdf-city">Select cities</label>
+          <select id="pdf-city" multiple size="6" aria-label="Export cities (multi-select)"></select>
+          <p style="font-size:11px;color:var(--steel);margin:4px 0 0">Ctrl/Cmd-click for multiple. Empty = any city.</p>
+        </div>
+        <div class="pdf-field">
+          <label for="pdf-town">Select towns (Erie Co.)</label>
+          <select id="pdf-town" multiple size="6" aria-label="Export towns (multi-select)"></select>
+          <p style="font-size:11px;color:var(--steel);margin:4px 0 0">Ctrl/Cmd-click for multiple. Empty = any town.</p>
+        </div>
+        <div class="pdf-field">
+          <label for="pdf-chem">Select chemicals</label>
+          <select id="pdf-chem" multiple size="6" aria-label="Export chemicals (multi-select)"></select>
+          <p style="font-size:11px;color:var(--steel);margin:4px 0 0">Categories or chemicals. Empty = any contaminant.</p>
+        </div>
       </div>
+      <p style="font-size:12px;color:var(--steel);margin:8px 0 0">Synced from Guided filters when you open this dialog. Within each list, a site matches if it hits <strong>any</strong> selected value.</p>
       <div class="pdf-site-pick" id="pdf-site-pick">
         <label class="pdf-opt"><input type="checkbox" id="pdf-site-limit"> Only selected DEC cleanup sites</label>
         <p style="font-size:12px;color:var(--steel);margin:4px 0 8px">Uses the program-categorized DEC site picker on the dashboard. Chemical exposure follows the dataset checkbox above. <span id="pdf-site-pick-summary">No sites selected.</span></p>
@@ -1132,7 +1153,7 @@ RECORDS.forEach(r => {
 
 let show = {NPL:true,DEC:true,CEAM:true,CBS:true};
 let fCounty='',fProgram='',fStatus='',fSearch='';
-let fCity='', fTown='', fContam='';
+let fCity=[], fTown=[], fContam=[];
 let sqlMode='guided'; /* 'guided' | 'custom' */
 let fCustomSql='';
 let customSqlAst=null;
@@ -1203,23 +1224,42 @@ function collectContaminantOptions(){
   return {cats, chems};
 }
 
-function populateSqlSelects(){
-  const citySel = $('f-city');
-  if (citySel){
-    collectCityOptions().forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.value;
-      o.textContent = `${c.label} (${c.n})`;
-      citySel.appendChild(o);
-    });
-  }
-  /* Town options filled later via fillSqlTownSelect() after ERIE_MUNI_AOIS is defined */
-  fillContaminantSelect($('f-contam'));
-  fillContaminantSelect($('pdf-chem'));
+function selectedValues(sel){
+  if (!sel) return [];
+  return [...sel.selectedOptions].map(o => o.value).filter(v => v !== '');
+}
+function setSelectedValues(sel, values){
+  if (!sel) return;
+  const set = new Set((values || []).map(String));
+  [...sel.options].forEach(o => { o.selected = set.has(o.value); });
+}
+function fillSelectOptions(sel, items, opts={}){
+  if (!sel) return;
+  const keep = selectedValues(sel);
+  if (!opts.force && sel.options.length > 0 && !opts.refill) return;
+  sel.innerHTML = '';
+  (items || []).forEach(it => {
+    const o = document.createElement('option');
+    o.value = it.value;
+    o.textContent = it.label;
+    sel.appendChild(o);
+  });
+  if (keep.length) setSelectedValues(sel, keep);
 }
 
-function fillContaminantSelect(contSel){
-  if (!contSel || contSel.options.length > 1) return;
+function populateSqlSelects(){
+  const cities = collectCityOptions().map(c => ({value:c.value, label:`${c.label} (${c.n})`}));
+  fillSelectOptions($('f-city'), cities, {force:true});
+  fillSelectOptions($('pdf-city'), cities, {force:true});
+  fillContaminantSelect($('f-contam'), {force:true});
+  fillContaminantSelect($('pdf-chem'), {force:true});
+}
+
+function fillContaminantSelect(contSel, opts={}){
+  if (!contSel) return;
+  if (!opts.force && contSel.options.length > 0) return;
+  const keep = selectedValues(contSel);
+  contSel.innerHTML = '';
   const {cats, chems} = collectContaminantOptions();
   const ogCat = document.createElement('optgroup');
   ogCat.label = 'Inventory categories';
@@ -1237,22 +1277,26 @@ function fillContaminantSelect(contSel){
     ogChem.appendChild(o);
   });
   contSel.appendChild(ogChem);
+  if (keep.length) setSelectedValues(contSel, keep);
 }
 
 function fillSqlTownSelect(){
-  const townSel = $('f-town');
-  if (!townSel || townSel.options.length > 1) return;
-  (ERIE_MUNI_AOIS || []).filter(a => a.kind === 'town').sort((a,b)=>a.name.localeCompare(b.name)).forEach(a => {
-    const o = document.createElement('option');
-    o.value = a.name;
-    o.textContent = a.label || ('Town of ' + a.name);
-    townSel.appendChild(o);
-  });
+  const towns = (ERIE_MUNI_AOIS || [])
+    .filter(a => a.kind === 'town')
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .map(a => ({value:a.name, label:a.label || ('Town of ' + a.name)}));
+  fillSelectOptions($('f-town'), towns, {force:true});
+  fillSelectOptions($('pdf-town'), towns, {force:true});
 }
 
 function recordMatchesCity(r, cityKey){
   if (!cityKey) return true;
   return normPlace(r.city) === cityKey;
+}
+
+function recordMatchesAnyCity(r, cityKeys){
+  if (!cityKeys || !cityKeys.length) return true;
+  return cityKeys.some(k => recordMatchesCity(r, k));
 }
 
 function recordMatchesTown(r, townName){
@@ -1265,6 +1309,11 @@ function recordMatchesTown(r, townName){
       return pointInErieMuni(r.lng, r.lat, aoi);
   } catch (e) { /* AOI data not ready */ }
   return false;
+}
+
+function recordMatchesAnyTown(r, townNames){
+  if (!townNames || !townNames.length) return true;
+  return townNames.some(t => recordMatchesTown(r, t));
 }
 
 function recordMatchesContaminant(r, contam){
@@ -1283,6 +1332,11 @@ function recordMatchesContaminant(r, contam){
     r.src || ''
   ].join(' ').toLowerCase();
   return hay.includes(q);
+}
+
+function recordMatchesAnyContaminant(r, contams){
+  if (!contams || !contams.length) return true;
+  return contams.some(c => recordMatchesContaminant(r, c));
 }
 
 /* ---- Custom SQL WHERE parser (safe subset — no eval) ---- */
@@ -2226,9 +2280,9 @@ function passFilters(r){
   if (sqlMode === 'custom'){
     if (fCustomSql && !recordMatchesCustomSql(r)) return false;
   } else {
-    if(fCity && !recordMatchesCity(r, fCity)) return false;
-    if(fTown && !recordMatchesTown(r, fTown)) return false;
-    if(fContam && !recordMatchesContaminant(r, fContam)) return false;
+    if(fCity.length && !recordMatchesAnyCity(r, fCity)) return false;
+    if(fTown.length && !recordMatchesAnyTown(r, fTown)) return false;
+    if(fContam.length && !recordMatchesAnyContaminant(r, fContam)) return false;
   }
   if(fSearch){
     const q=fSearch.toLowerCase();
@@ -2287,7 +2341,7 @@ function renderMapLegend(recs){
   if (title){
     title.textContent = limitToSelectedSites
       ? 'Legend · selected sites'
-      : (fProgram || fCounty || fStatus || fSearch || fCity || fTown || fContam || (sqlMode==='custom' && fCustomSql) ? 'Legend · filtered' : 'Legend');
+      : (fProgram || fCounty || fStatus || fSearch || fCity.length || fTown.length || fContam.length || (sqlMode==='custom' && fCustomSql) ? 'Legend · filtered' : 'Legend');
   }
   box.innerHTML = rows.join('');
 }
@@ -2326,8 +2380,11 @@ function renderCharts(recs){
   barChart($('c-city'), cityRows, ()=>'var(--lake)');
 
   const contamHits = [];
-  if (fContam){
-    contamHits.push({k: fContam.startsWith('__cat:') ? fContam.slice(6) : fContam, v: recs.length});
+  if (fContam.length){
+    fContam.forEach(c => {
+      const label = c.startsWith('__cat:') ? c.slice(6) : c;
+      contamHits.push({k: label, v: recs.filter(r => recordMatchesContaminant(r, c)).length});
+    });
   } else {
     CHEM_CAT_ORDER.forEach(cat => {
       const v = recs.filter(r => r.inv && r.inv[cat] && r.inv[cat].length).length;
@@ -2376,16 +2433,23 @@ function updateSqlPreview(){
   if (fCounty) clauses.push(`county = '<span class="str">${esc(sqlEscape(fCounty))}</span>'`);
   if (fProgram) clauses.push(`program = '<span class="str">${esc(sqlEscape((PROG_META[fProgram]||{}).label || fProgram))}</span>'`);
   if (fStatus) clauses.push(`status = '<span class="str">${esc(sqlEscape(fStatus))}</span>'`);
-  if (fCity){
-    const label = ($('f-city').selectedOptions[0]?.textContent || fCity).replace(/\s*\(\d+\)\s*$/,'');
-    clauses.push(`city = '<span class="str">${esc(sqlEscape(label))}</span>'`);
+  if (fCity.length){
+    const labels = [...($('f-city')?.selectedOptions || [])].map(o => o.textContent.replace(/\s*\(\d+\)\s*$/,'')).filter(Boolean);
+    const vals = labels.length ? labels : fCity;
+    clauses.push(vals.length === 1
+      ? `city = '<span class="str">${esc(sqlEscape(vals[0]))}</span>'`
+      : `city IN (<span class="str">${vals.map(v => "'"+esc(sqlEscape(v))+"'").join(', ')}</span>)`);
   }
-  if (fTown) clauses.push(`town = '<span class="str">${esc(sqlEscape(fTown))}</span>' /* Erie Co. AOI */`);
-  if (fContam){
-    if (fContam.startsWith('__cat:'))
-      clauses.push(`inventory_category = '<span class="str">${esc(sqlEscape(fContam.slice(6)))}</span>'`);
-    else
-      clauses.push(`contaminant LIKE '%<span class="str">${esc(sqlEscape(fContam))}</span>%'`);
+  if (fTown.length){
+    clauses.push(fTown.length === 1
+      ? `town = '<span class="str">${esc(sqlEscape(fTown[0]))}</span>' /* Erie Co. AOI */`
+      : `town IN (<span class="str">${fTown.map(v => "'"+esc(sqlEscape(v))+"'").join(', ')}</span>) /* Erie Co. AOI */`);
+  }
+  if (fContam.length){
+    const parts = fContam.map(c => c.startsWith('__cat:')
+      ? `inventory_category = '<span class="str">${esc(sqlEscape(c.slice(6)))}</span>'`
+      : `contaminant LIKE '%<span class="str">${esc(sqlEscape(c))}</span>%'`);
+    clauses.push(parts.length === 1 ? parts[0] : '(' + parts.join(' OR ') + ')');
   }
   if (fSearch) clauses.push(`(name || city || contaminant) ILIKE '%<span class="str">${esc(sqlEscape(fSearch))}</span>%'`);
   const where = clauses.length ? clauses.join('\n  AND ') : '1 = 1  /* all sites */';
@@ -2413,7 +2477,7 @@ function renderSqlSummary(recs){
   const progTop = tally(recs.filter(r=>r.type==='DEC'), r=>r.progLabel).slice(0, 4);
   const sqlOn = sqlMode === 'custom'
     ? !!(fCustomSql && customSqlAst)
-    : !!(fCity || fTown || fContam);
+    : !!(fCity.length || fTown.length || fContam.length);
   const modeLabel = sqlMode === 'custom'
     ? (customSqlError ? 'custom SQL error' : (fCustomSql ? 'custom SQL on' : 'custom SQL empty'))
     : (sqlOn ? 'guided SQL filters on' : 'no city/town/contaminant filter');
@@ -2584,12 +2648,12 @@ $('f-program').addEventListener('change',e=>{fProgram=e.target.value; if(fProgra
 $('f-status').addEventListener('change',e=>{fStatus=e.target.value;refresh();});
 $('f-search').addEventListener('input',e=>{fSearch=e.target.value.trim();refresh();});
 function applySqlFiltersFromForm(){
-  fCity = $('f-city')?.value || '';
-  fTown = $('f-town')?.value || '';
-  fContam = $('f-contam')?.value || '';
+  fCity = selectedValues($('f-city'));
+  fTown = selectedValues($('f-town'));
+  fContam = selectedValues($('f-contam'));
   refreshSitePickLists();
   refresh();
-  if (fTown || fCity){
+  if (fTown.length || fCity.length){
     const recs = currentRecords().filter(r => r.lat && r.lng);
     if (recs.length){
       const b = L.latLngBounds(recs.map(r => [r.lat, r.lng]));
@@ -2612,13 +2676,16 @@ function applyCustomSqlFromForm(opts={}){
   }
 }
 function clearSqlFilters(){
-  fCity = fTown = fContam = '';
+  fCity = []; fTown = []; fContam = [];
   fCustomSql = '';
   customSqlAst = null;
   customSqlError = '';
-  if ($('f-city')) $('f-city').value = '';
-  if ($('f-town')) $('f-town').value = '';
-  if ($('f-contam')) $('f-contam').value = '';
+  setSelectedValues($('f-city'), []);
+  setSelectedValues($('f-town'), []);
+  setSelectedValues($('f-contam'), []);
+  setSelectedValues($('pdf-city'), []);
+  setSelectedValues($('pdf-town'), []);
+  setSelectedValues($('pdf-chem'), []);
   if ($('f-sql-custom')) $('f-sql-custom').value = '';
   setSqlStatus('', '');
   refreshSitePickLists();
@@ -2650,13 +2717,16 @@ populateSqlPresets();
 setSqlMode('guided');
 $('f-reset').addEventListener('click',()=>{
   fCounty=fProgram=fStatus=fSearch='';
-  fCity=fTown=fContam='';
+  fCity=[]; fTown=[]; fContam=[];
   fCustomSql=''; customSqlAst=null; customSqlError='';
   show={NPL:true,DEC:true,CEAM:true,CBS:true};
   $('f-county').value='';$('f-program').value='';$('f-status').value='';$('f-search').value='';
-  if ($('f-city')) $('f-city').value='';
-  if ($('f-town')) $('f-town').value='';
-  if ($('f-contam')) $('f-contam').value='';
+  setSelectedValues($('f-city'), []);
+  setSelectedValues($('f-town'), []);
+  setSelectedValues($('f-contam'), []);
+  setSelectedValues($('pdf-city'), []);
+  setSelectedValues($('pdf-town'), []);
+  setSelectedValues($('pdf-chem'), []);
   if ($('f-sql-custom')) $('f-sql-custom').value='';
   setSqlStatus('', '');
   setSqlMode('guided');
@@ -3685,7 +3755,9 @@ function readExportOptionsFromForm(){
     showDEC: $('pdf-dec').checked,
     showCEAM: $('pdf-ceam').checked,
     showCBS: $('pdf-cbs').checked,
-    exportChem: $('pdf-chem')?.value || '',
+    exportCities: selectedValues($('pdf-city')),
+    exportTowns: selectedValues($('pdf-town')),
+    exportChem: selectedValues($('pdf-chem')),
     showCounties: $('pdf-counties').checked,
     showCities: $('pdf-cities').checked,
     showTowns: $('pdf-towns').checked,
@@ -3854,10 +3926,12 @@ function syncExportModalFromMap(opts={}){
   $('pdf-dec').checked = show.DEC;
   $('pdf-ceam').checked = show.CEAM;
   $('pdf-cbs').checked = show.CBS;
-  if ($('pdf-chem')){
-    fillContaminantSelect($('pdf-chem'));
-    $('pdf-chem').value = fContam || '';
-  }
+  fillSelectOptions($('pdf-city'), collectCityOptions().map(c => ({value:c.value, label:`${c.label} (${c.n})`})), {force:true});
+  fillSqlTownSelect();
+  fillContaminantSelect($('pdf-chem'), {force:true});
+  setSelectedValues($('pdf-city'), fCity);
+  setSelectedValues($('pdf-town'), fTown);
+  setSelectedValues($('pdf-chem'), fContam);
   if ($('pdf-site-limit')) $('pdf-site-limit').checked = limitToSelectedSites;
   refreshSitePickLists();
   $('pdf-counties').checked = showCounties;
@@ -3911,9 +3985,9 @@ function getExportRows(opts){
   if (!anyDataset) return [];
   const typeOK = {NPL: opts.showNPL, DEC: opts.showDEC, CEAM: opts.showCEAM, CBS: opts.showCBS};
   /* Export chemical overrides the dashboard Contaminant filter for this figure */
-  const chem = (opts.exportChem != null && opts.exportChem !== undefined)
-    ? opts.exportChem
-    : fContam;
+  const cities = (opts.exportCities != null) ? opts.exportCities : fCity;
+  const towns = (opts.exportTowns != null) ? opts.exportTowns : fTown;
+  const chems = (opts.exportChem != null) ? opts.exportChem : fContam;
   let rows = RECORDS.filter(r => {
     if (!typeOK[r.type]) return false;
     if (limitToSelectedSites && r.type === 'DEC' && !selectedSiteKeys.has(r.key)) return false;
@@ -3922,11 +3996,13 @@ function getExportRows(opts){
     if (fStatus && statusGroup(r) !== fStatus) return false;
     if (sqlMode === 'custom'){
       if (fCustomSql && !recordMatchesCustomSql(r)) return false;
-      if (chem && !recordMatchesContaminant(r, chem)) return false;
+      if (cities.length && !recordMatchesAnyCity(r, cities)) return false;
+      if (towns.length && !recordMatchesAnyTown(r, towns)) return false;
+      if (chems.length && !recordMatchesAnyContaminant(r, chems)) return false;
     } else {
-      if (fCity && !recordMatchesCity(r, fCity)) return false;
-      if (fTown && !recordMatchesTown(r, fTown)) return false;
-      if (chem && !recordMatchesContaminant(r, chem)) return false;
+      if (cities.length && !recordMatchesAnyCity(r, cities)) return false;
+      if (towns.length && !recordMatchesAnyTown(r, towns)) return false;
+      if (chems.length && !recordMatchesAnyContaminant(r, chems)) return false;
     }
     if (fSearch){
       const q = fSearch.toLowerCase();
@@ -3939,8 +4015,8 @@ function getExportRows(opts){
   if (!rows.length){
     if (limitToSelectedSites && opts.showDEC && !selectedSiteKeys.size)
       throw new Error('Site selection is on, but no DEC cleanup sites are checked — select sites or turn off “Only selected”');
-    if (chem)
-      throw new Error('No records match the selected chemical, datasets, filters, and AOI');
+    if (cities.length || towns.length || chems.length)
+      throw new Error('No records match the selected cities/towns/chemicals, datasets, filters, and AOI');
     throw new Error('No records match the selected datasets, filters, and AOI');
   }
   return rows;

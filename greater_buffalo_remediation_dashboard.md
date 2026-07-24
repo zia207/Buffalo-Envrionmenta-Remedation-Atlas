@@ -88,7 +88,7 @@ Seven summary counters (e.g. "Records shown", "Federal Superfund", "DEC cleanup 
 Controls include:
 
 - **Dropdowns:** county, DEC program, status, search box
-- **SQL site selection:** guided filters for **city**, **town (Erie Co.)**, and **contaminant / chemical**, plus a **Custom SQL** mode for freeform `WHERE` clauses
+- **SQL site selection:** guided **multi-select** filters for **cities**, **towns (Erie Co.)**, and **contaminants / chemicals** (Ctrl/Cmd-click), plus a **Custom SQL** mode for freeform `WHERE` clauses
 - **Toggle chips:** turn datasets on/off (NPL, DEC, CEAM, CBS) and map layers (counties, cities, towns, ZIPs, SVI, labels, clustering)
 - **DEC site picker:** optionally limit the map and PNG/PDF export to checked DEC cleanup sites by program
 
@@ -241,7 +241,7 @@ Open **Export map (PDF / PNG)** from the map toolbar. The dialog redraws the fig
 | Option | What it does |
 |--------|----------------|
 | Federal Superfund / DEC / CEAM / CBS checkboxes | Include or omit each dataset on the figure |
-| **Select chemical** | Dedicated **Select chemical** dropdown in the Export map dialog — inventory categories (PFAS, BFR, …) or a specific contaminant. Synced from the dashboard Contaminant filter when the dialog opens; change it here to limit sites on the PNG/PDF only |
+| **Select cities / towns / chemicals** | Multi-select lists in the Export map dialog (Ctrl/Cmd-click). Synced from Guided filters when the dialog opens; a site matches if it hits **any** selected value in each list |
 | Inventory categories | Choose a category such as **PFAS**, **BFR**, **Pesticides**, **PPCPs**, or **Legacy / industrial** to export sites linked to that chemical group |
 | Only selected DEC cleanup sites | Limit DEC markers to sites checked in the program picker |
 
